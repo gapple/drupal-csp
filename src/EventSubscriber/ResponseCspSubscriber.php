@@ -3,6 +3,7 @@
 namespace Drupal\csp\EventSubscriber;
 
 use Drupal\Core\Config\ConfigFactoryInterface;
+use Drupal\csp\Csp;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 use Symfony\Component\HttpKernel\Event\FilterResponseEvent;
 use Symfony\Component\HttpKernel\KernelEvents;
@@ -50,9 +51,10 @@ class ResponseCspSubscriber implements EventSubscriberInterface {
 
     $response = $event->getResponse();
 
-    $policy = [
-      'default-src' => "'self'",
-    ];
+    $policy = new Csp();
+    $policy->reportOnly(TRUE);
+
+    $policy->setDirective('default-src', [Csp::POLICY_SELF]);
 
     // IE9 only supports up to 31 stylesheets on the page, so if there are more
     // CssCollectionRenderer outputs them inline as @import statements instead.
@@ -62,15 +64,10 @@ class ResponseCspSubscriber implements EventSubscriberInterface {
     // @see CssCollectionRenderer::render()
     // @see HtmlResponseAttachmentsProcessor::processAssetLibraries()
     if (defined('MAINTENANCE_MODE') || !$this->configFactory->get('system.performance')->get('css.preprocess')) {
-      $policy['style-src'] = "'self' 'unsafe-inline'";
+      $policy->appendDirective('style-src', [Csp::POLICY_SELF, Csp::POLICY_UNSAFE_INLINE]);
     }
 
-    $response->headers->set(
-      'Content-Security-Policy-Report-Only',
-      implode('; ', array_map(function ($key, $value) {
-        return $key . ' ' . $value;
-      }, array_keys($policy), $policy))
-    );
+    $response->headers->set($policy->getHeaderName(), $policy->getHeaderValue());
   }
 
 }
