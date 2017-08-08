@@ -1,7 +1,7 @@
 services:
   csp.response_listener:
     class: Drupal\csp\EventSubscriber\ResponseCspSubscriber
-    arguments: ['@config.factory']
+    arguments: ['@config.factory', '@cache.default', '@module_handler', '@library.discovery']
     tags:
       - { name: event_subscriber }
 
