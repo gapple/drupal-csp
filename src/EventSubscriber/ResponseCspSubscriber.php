@@ -158,10 +158,6 @@ class ResponseCspSubscriber implements EventSubscriberInterface {
     sort($scriptHosts);
     sort($styleHosts);
 
-    // TODO reduce to minimal set
-    // e.g.
-    // - Wildcards and matching subdomains (*.example.com, sub.example.com)
-    // - Protocols (example.com, https://example.com)
     $this->setHosts('script', array_unique($scriptHosts));
     $this->setHosts('style', array_unique($styleHosts));
   }

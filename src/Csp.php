@@ -149,6 +149,12 @@ class Csp {
       if (empty($value)) {
         continue;
       }
+
+      // TODO reduce to minimal set
+      // e.g.
+      // - Wildcards and matching subdomains (*.example.com, sub.example.com)
+      // - Protocols (example.com, https://example.com)
+      // - Remove if same value as default-src
       $value = array_unique($value);
       $output .= $name . ' ' . implode(' ', $value) . '; ';
     }
