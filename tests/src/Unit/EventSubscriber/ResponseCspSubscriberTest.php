@@ -111,7 +111,7 @@ class ResponseCspSubscriberTest extends UnitTestCase {
       ->method('set')
       ->with(
         $this->equalTo('Content-Security-Policy-Report-Only'),
-        $this->equalTo("default-src 'self'; style-src 'self' 'unsafe-inline'")
+        $this->equalTo("script-src 'self'; style-src 'self' 'unsafe-inline'")
       );
 
     $subscriber->onKernelResponse($this->event);
@@ -141,7 +141,7 @@ class ResponseCspSubscriberTest extends UnitTestCase {
       ->method('set')
       ->with(
         $this->equalTo('Content-Security-Policy-Report-Only'),
-        $this->equalTo("default-src 'self'")
+        $this->equalTo("script-src 'self'; style-src 'self'")
       );
 
     $subscriber->onKernelResponse($this->event);

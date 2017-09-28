@@ -101,12 +101,12 @@ class ResponseCspSubscriber implements EventSubscriberInterface {
     $policy = new Csp();
     $policy->reportOnly(TRUE);
 
+    $policy->setDirective('script-src', [Csp::POLICY_SELF]);
     if (($scriptHosts = $this->getHosts('script'))) {
-      $policy->setDirective('script-src', [Csp::POLICY_SELF]);
       $policy->appendDirective('script-src', $scriptHosts);
     }
+    $policy->setDirective('style-src', [Csp::POLICY_SELF]);
     if (($styleHosts = $this->getHosts('style'))) {
-      $policy->setDirective('style-src', [Csp::POLICY_SELF]);
       $policy->appendDirective('style-src', $styleHosts);
     }
 
@@ -118,9 +118,6 @@ class ResponseCspSubscriber implements EventSubscriberInterface {
     // @see CssCollectionRenderer::render()
     // @see HtmlResponseAttachmentsProcessor::processAssetLibraries()
     if (defined('MAINTENANCE_MODE') || !$this->configFactory->get('system.performance')->get('css.preprocess')) {
-      if (!$styleHosts) {
-        $policy->appendDirective('style-src', [Csp::POLICY_SELF]);
-      }
       $policy->appendDirective('style-src', [Csp::POLICY_UNSAFE_INLINE]);
     }
 
