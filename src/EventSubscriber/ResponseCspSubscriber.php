@@ -110,14 +110,17 @@ class ResponseCspSubscriber implements EventSubscriberInterface {
       $policy->appendDirective('style-src', $styleHosts);
     }
 
-    // IE9 only supports up to 31 stylesheets on the page, so if there are more
-    // CssCollectionRenderer outputs them inline as @import statements instead.
+    // Prior to Drupal 8.5, in order to support IE9, CssCollectionRenderer
+    // outputs more than 31 stylesheets as inline @import statements.
+    // @see https://www.drupal.org/node/2897408
     // Since checking the actual number of stylesheets included on the page is
-    // more difficult, we'll just check the optimization settings, as in
+    // more difficult, just check the optimization settings, as in
     // HtmlResponseAttachmentsProcessor::processAssetLibraries()
     // @see CssCollectionRenderer::render()
     // @see HtmlResponseAttachmentsProcessor::processAssetLibraries()
-    if (defined('MAINTENANCE_MODE') || !$this->configFactory->get('system.performance')->get('css.preprocess')) {
+    if (version_compare(\Drupal::VERSION, '8.5', '<')
+      && (defined('MAINTENANCE_MODE') || !$this->configFactory->get('system.performance')->get('css.preprocess'))
+    ) {
       $policy->appendDirective('style-src', [Csp::POLICY_UNSAFE_INLINE]);
     }
 
