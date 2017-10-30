@@ -99,6 +99,9 @@ class ResponseCspSubscriberTest extends UnitTestCase {
       'system.performance' => [
         'css.preprocess' => FALSE,
       ],
+      'csp.settings' => [
+        'enforce' => FALSE,
+      ],
     ]);
 
     $this->moduleHandler->expects($this->any())
@@ -129,6 +132,9 @@ class ResponseCspSubscriberTest extends UnitTestCase {
       'system.performance' => [
         'css.preprocess' => TRUE,
       ],
+      'csp.settings' => [
+        'enforce' => FALSE,
+      ],
     ]);
 
     $this->moduleHandler->expects($this->any())
@@ -141,6 +147,39 @@ class ResponseCspSubscriberTest extends UnitTestCase {
       ->method('set')
       ->with(
         $this->equalTo('Content-Security-Policy-Report-Only'),
+        $this->equalTo("script-src 'self'; style-src 'self'")
+      );
+
+    $subscriber->onKernelResponse($this->event);
+  }
+
+  /**
+   * Check the policy with enforcement enabled.
+   *
+   * @covers ::onKernelResponse
+   */
+  public function testEnforcedResponse() {
+
+    /** @var \Drupal\Core\Config\ConfigFactoryInterface|\PHPUnit_Framework_MockObject_MockObject $configFactory */
+    $configFactory = $this->getConfigFactoryStub([
+      'system.performance' => [
+        'css.preprocess' => TRUE,
+      ],
+      'csp.settings' => [
+        'enforce' => TRUE,
+      ],
+    ]);
+
+    $this->moduleHandler->expects($this->any())
+      ->method('getModuleList')
+      ->willReturn([]);
+
+    $subscriber = new ResponseCspSubscriber($configFactory, $this->cache, $this->moduleHandler, $this->libraryDiscovery);
+
+    $this->response->headers->expects($this->once())
+      ->method('set')
+      ->with(
+        $this->equalTo('Content-Security-Policy'),
         $this->equalTo("script-src 'self'; style-src 'self'")
       );
 
