@@ -98,11 +98,15 @@ class ResponseCspSubscriberTest extends UnitTestCase {
   }
 
   /**
-   * Check the policy with CSS optimization disabled.
+   * Check the policy with CSS optimization disabled in Drupal <=8.4.
    *
    * @covers ::onKernelResponse
    */
-  public function testUnoptimizedResponse() {
+  public function testUnoptimizedResponse84() {
+
+    if (version_compare(\Drupal::VERSION, '8.5', '>=')) {
+      $this->markTestSkipped("Test for drupal/core <=8.4");
+    }
 
     /** @var \Drupal\Core\Config\ConfigFactoryInterface|\PHPUnit_Framework_MockObject_MockObject $configFactory */
     $configFactory = $this->getConfigFactoryStub([
@@ -125,6 +129,43 @@ class ResponseCspSubscriberTest extends UnitTestCase {
       ->with(
         $this->equalTo('Content-Security-Policy-Report-Only'),
         $this->equalTo("script-src 'self'; style-src 'self' 'unsafe-inline'")
+      );
+
+    $subscriber->onKernelResponse($this->event);
+  }
+
+  /**
+   * Check the policy with CSS optimization disabled in Drupal >=8.5.
+   *
+   * @covers ::onKernelResponse
+   */
+  public function testUnoptimizedResponse85() {
+
+    if (version_compare(\Drupal::VERSION, '8.5', '<')) {
+      $this->markTestSkipped("Test for drupal/core >=8.5");
+    }
+
+    /** @var \Drupal\Core\Config\ConfigFactoryInterface|\PHPUnit_Framework_MockObject_MockObject $configFactory */
+    $configFactory = $this->getConfigFactoryStub([
+      'system.performance' => [
+        'css.preprocess' => FALSE,
+      ],
+      'csp.settings' => [
+        'enforce' => FALSE,
+      ],
+    ]);
+
+    $this->moduleHandler->expects($this->any())
+      ->method('getModuleList')
+      ->willReturn([]);
+
+    $subscriber = new ResponseCspSubscriber($configFactory, $this->cache, $this->moduleHandler, $this->libraryDiscovery);
+
+    $this->response->headers->expects($this->once())
+      ->method('set')
+      ->with(
+        $this->equalTo('Content-Security-Policy-Report-Only'),
+        $this->equalTo("script-src 'self'; style-src 'self'")
       );
 
     $subscriber->onKernelResponse($this->event);
