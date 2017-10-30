@@ -10,6 +10,7 @@ use Drupal\csp\EventSubscriber\ResponseCspSubscriber;
 use Drupal\Tests\UnitTestCase;
 use Symfony\Component\HttpFoundation\ResponseHeaderBag;
 use Symfony\Component\HttpKernel\Event\FilterResponseEvent;
+use Symfony\Component\HttpKernel\KernelEvents;
 
 /**
  * @coversDefaultClass Drupal\csp\EventSubscriber\ResponseCspSubscriber
@@ -85,6 +86,15 @@ class ResponseCspSubscriberTest extends UnitTestCase {
     $this->libraryDiscovery = $this->getMockBuilder(LibraryDiscovery::class)
       ->disableOriginalConstructor()
       ->getMock();
+  }
+
+  /**
+   * Check that the subscriber listens to the Response event.
+   *
+   * @covers ::getSubscribedEvents
+   */
+  public function testSubscribedEvents() {
+    $this->assertArrayHasKey(KernelEvents::RESPONSE, ResponseCspSubscriber::getSubscribedEvents());
   }
 
   /**
