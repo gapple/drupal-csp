@@ -1,0 +1,7 @@
+csp.settings:
+  path: '/admin/config/system/csp'
+  defaults:
+    _form: '\Drupal\csp\Form\CspSettingsForm'
+    _title: 'Content Security Policy'
+  requirements:
+    _permission: 'administer site configuration'

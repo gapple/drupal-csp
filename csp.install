@@ -34,3 +34,12 @@ function csp_requirements($phase) {
     ];
   }
 }
+
+/**
+ * Create module configuration.
+ */
+function csp_update_8001() {
+  \Drupal::configFactory()->getEditable('csp.settings')
+    ->set('enforce', FALSE)
+    ->save();
+}

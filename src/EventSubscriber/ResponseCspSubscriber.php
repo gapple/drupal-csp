@@ -96,10 +96,12 @@ class ResponseCspSubscriber implements EventSubscriberInterface {
       return;
     }
 
+    $cspConfig = $this->configFactory->get('csp.settings');
+
     $response = $event->getResponse();
 
     $policy = new Csp();
-    $policy->reportOnly(TRUE);
+    $policy->reportOnly(!$cspConfig->get('enforce'));
 
     $policy->setDirective('script-src', [Csp::POLICY_SELF]);
     if (($scriptHosts = $this->getHosts('script'))) {
