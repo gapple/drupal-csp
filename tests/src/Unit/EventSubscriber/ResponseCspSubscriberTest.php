@@ -172,6 +172,44 @@ class ResponseCspSubscriberTest extends UnitTestCase {
   }
 
   /**
+   * Check the policy with CSS optimization disabled if IE9 module installed.
+   *
+   * @covers ::onKernelResponse
+   */
+  public function testUnoptimizedResponseIe9() {
+
+    /** @var \Drupal\Core\Config\ConfigFactoryInterface|\PHPUnit_Framework_MockObject_MockObject $configFactory */
+    $configFactory = $this->getConfigFactoryStub([
+      'system.performance' => [
+        'css.preprocess' => FALSE,
+      ],
+      'csp.settings' => [
+        'enforce' => FALSE,
+      ],
+    ]);
+
+    $this->moduleHandler->expects($this->any())
+      ->method('moduleExists')
+      ->with($this->equalTo('ie9'))
+      ->willReturn(TRUE);
+
+    $this->moduleHandler->expects($this->any())
+      ->method('getModuleList')
+      ->willReturn([]);
+
+    $subscriber = new ResponseCspSubscriber($configFactory, $this->cache, $this->moduleHandler, $this->libraryDiscovery);
+
+    $this->response->headers->expects($this->once())
+      ->method('set')
+      ->with(
+        $this->equalTo('Content-Security-Policy-Report-Only'),
+        $this->equalTo("script-src 'self'; style-src 'self' 'unsafe-inline'")
+      );
+
+    $subscriber->onKernelResponse($this->event);
+  }
+
+  /**
    * Check the policy with CSS optimization enabled.
    *
    * @covers ::onKernelResponse
