@@ -2,7 +2,7 @@
 
 namespace Drupal\csp\EventSubscriber;
 
-use Drupal\Core\Asset\LibraryDiscovery;
+use Drupal\Core\Asset\LibraryDiscoveryInterface;
 use Drupal\Core\Cache\Cache;
 use Drupal\Core\Cache\CacheBackendInterface;
 use Drupal\Core\Config\ConfigFactoryInterface;
@@ -62,14 +62,14 @@ class ResponseCspSubscriber implements EventSubscriberInterface {
    *   The cache bin.
    * @param \Drupal\Core\Extension\ModuleHandlerInterface $moduleHandler
    *   The Module Handler Interface.
-   * @param \Drupal\Core\Asset\LibraryDiscovery $libraryDiscovery
+   * @param \Drupal\Core\Asset\LibraryDiscoveryInterface $libraryDiscovery
    *   The Library Discovery Collector service.
    */
   public function __construct(
     ConfigFactoryInterface $configFactory,
     CacheBackendInterface $cache,
     ModuleHandlerInterface $moduleHandler,
-    LibraryDiscovery $libraryDiscovery
+    LibraryDiscoveryInterface $libraryDiscovery
   ) {
     $this->configFactory = $configFactory;
     $this->cache = $cache;
