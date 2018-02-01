@@ -98,14 +98,14 @@ class ResponseCspSubscriberTest extends UnitTestCase {
   }
 
   /**
-   * Check the policy with CSS optimization disabled in Drupal <=8.4.
+   * Check the policy with CSS optimization disabled in Drupal <=8.5.
    *
    * @covers ::onKernelResponse
    */
-  public function testUnoptimizedResponse84() {
+  public function testUnoptimizedResponse85() {
 
-    if (version_compare(\Drupal::VERSION, '8.5', '>=')) {
-      $this->markTestSkipped("Test for drupal/core <=8.4");
+    if (version_compare(\Drupal::VERSION, '8.6', '>=')) {
+      $this->markTestSkipped("Test for drupal/core <=8.5");
     }
 
     /** @var \Drupal\Core\Config\ConfigFactoryInterface|\PHPUnit_Framework_MockObject_MockObject $configFactory */
@@ -135,14 +135,14 @@ class ResponseCspSubscriberTest extends UnitTestCase {
   }
 
   /**
-   * Check the policy with CSS optimization disabled in Drupal >=8.5.
+   * Check the policy with CSS optimization disabled in Drupal >=8.6.
    *
    * @covers ::onKernelResponse
    */
-  public function testUnoptimizedResponse85() {
+  public function testUnoptimizedResponse86() {
 
-    if (version_compare(\Drupal::VERSION, '8.5', '<')) {
-      $this->markTestSkipped("Test for drupal/core >=8.5");
+    if (version_compare(\Drupal::VERSION, '8.6', '<')) {
+      $this->markTestSkipped("Test for drupal/core >=8.6");
     }
 
     /** @var \Drupal\Core\Config\ConfigFactoryInterface|\PHPUnit_Framework_MockObject_MockObject $configFactory */
