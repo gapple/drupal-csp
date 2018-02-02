@@ -14,7 +14,7 @@ function csp_requirements($phase) {
   }
 
   if ((
-      version_compare(\Drupal::VERSION, '8.5', '<')
+      version_compare(\Drupal::VERSION, '8.6', '<')
       || \Drupal::moduleHandler()->moduleExists('ie9')
     )
     && !\Drupal::configFactory()->get('system.performance')->get('css.preprocess')
