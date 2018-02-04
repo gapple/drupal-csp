@@ -9,30 +9,30 @@
  * Implements hook_requirements().
  */
 function csp_requirements($phase) {
-  if ($phase !== 'runtime') {
-    return;
-  }
+  $requirements = [];
 
-  if ((
+  if (
+    $phase === 'runtime'
+    && (
       version_compare(\Drupal::VERSION, '8.6', '<')
       || \Drupal::moduleHandler()->moduleExists('ie9')
     )
     && !\Drupal::configFactory()->get('system.performance')->get('css.preprocess')
     ) {
-    return [
-      'csp_ie9' => [
-        'title' => 'Content-Security-Policy IE9',
-        'value' => "'unsafe-inline'",
-        'description' => t(
-          'Support for IE9 requires allowing inline styles when CSS aggregation is disabled.  <br><a href=":system-performance">Enable CSS aggregation</a> to prevent allowing inline CSS.',
-          [
-            ':system-performance' => \Drupal::urlGenerator()->generateFromRoute('system.performance_settings'),
-          ]
-        ),
-        'severity' => REQUIREMENT_WARNING,
-      ],
+    $requirements['csp_ie9'] = [
+      'title' => 'Content-Security-Policy IE9',
+      'value' => "'unsafe-inline'",
+      'description' => t(
+        'Support for IE9 requires allowing inline styles when CSS aggregation is disabled.  <br><a href=":system-performance">Enable CSS aggregation</a> to prevent allowing inline CSS.',
+        [
+          ':system-performance' => \Drupal::urlGenerator()->generateFromRoute('system.performance_settings'),
+        ]
+      ),
+      'severity' => REQUIREMENT_WARNING,
     ];
   }
+
+  return $requirements;
 }
 
 /**
