@@ -7,6 +7,7 @@ use Drupal\Core\Cache\Cache;
 use Drupal\Core\Cache\CacheBackendInterface;
 use Drupal\Core\Config\ConfigFactoryInterface;
 use Drupal\Core\Extension\ModuleHandlerInterface;
+use Drupal\Core\Theme\ThemeManagerInterface;
 use Drupal\csp\Csp;
 use GuzzleHttp\Psr7\Uri;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
@@ -47,7 +48,14 @@ class ResponseCspSubscriber implements EventSubscriberInterface {
   protected $moduleHandler;
 
   /**
-   * Arrays of hosts, keyed by resource type.
+   * The Theme Manager service.
+   *
+   * @var \Drupal\Core\Theme\ThemeManagerInterface;
+   */
+  protected $themeManager;
+
+  /**
+   * Arrays of hosts, keyed by theme name and resource type.
    *
    * @var array
    */
@@ -61,7 +69,9 @@ class ResponseCspSubscriber implements EventSubscriberInterface {
    * @param \Drupal\Core\Cache\CacheBackendInterface $cache
    *   The cache bin.
    * @param \Drupal\Core\Extension\ModuleHandlerInterface $moduleHandler
-   *   The Module Handler Interface.
+   *   The Module Handler service.
+   * @param \Drupal\Core\Theme\ThemeManagerInterface $themeManager
+   *   The Theme Handler service.
    * @param \Drupal\Core\Asset\LibraryDiscoveryInterface $libraryDiscovery
    *   The Library Discovery Collector service.
    */
@@ -69,11 +79,13 @@ class ResponseCspSubscriber implements EventSubscriberInterface {
     ConfigFactoryInterface $configFactory,
     CacheBackendInterface $cache,
     ModuleHandlerInterface $moduleHandler,
+    ThemeManagerInterface $themeManager,
     LibraryDiscoveryInterface $libraryDiscovery
   ) {
     $this->configFactory = $configFactory;
     $this->cache = $cache;
     $this->moduleHandler = $moduleHandler;
+    $this->themeManager = $themeManager;
     $this->libraryDiscovery = $libraryDiscovery;
   }
 
@@ -137,12 +149,13 @@ class ResponseCspSubscriber implements EventSubscriberInterface {
    * Retrieve and cache hosts from library definitions.
    */
   protected function parseLibraryHosts() {
-    $moduleList = $this->moduleHandler->getModuleList();
+    $extensions = array_keys($this->moduleHandler->getModuleList());
+    $extensions[] = $this->themeManager->getActiveTheme()->getName();
 
     $scriptHosts = [];
     $styleHosts = [];
 
-    foreach ($moduleList as $extensionName => $extensionInfo) {
+    foreach ($extensions as $extensionName) {
       $moduleLibraries = $this->libraryDiscovery->getLibrariesByExtension($extensionName);
 
       foreach ($moduleLibraries as $libraryName => $libraryInfo) {
@@ -175,9 +188,18 @@ class ResponseCspSubscriber implements EventSubscriberInterface {
    *   An array of hosts.
    */
   protected function setHosts($type, array $hosts) {
-    $this->hosts[$type] = $hosts;
+    $theme = $this->themeManager->getActiveTheme()->getName();
 
-    $this->cache->set('csp:hosts:' . $type, $hosts, Cache::PERMANENT, ['library_info']);
+    $cid = implode(':', [
+      'csp',
+      'hosts',
+      $theme,
+      $type,
+    ]);
+
+    $this->hosts[$theme][$type] = $hosts;
+
+    $this->cache->set($cid, $hosts, Cache::PERMANENT, ['library_info']);
   }
 
   /**
@@ -192,24 +214,32 @@ class ResponseCspSubscriber implements EventSubscriberInterface {
    * @throws \Exception
    */
   protected function getHosts($type) {
+    $theme = $this->themeManager->getActiveTheme()->getName();
 
-    if (!isset($this->hosts[$type])) {
-      $cacheData = $this->cache->get('csp:hosts:' . $type);
+    $cid = implode(':', [
+      'csp',
+      'hosts',
+      $theme,
+      $type,
+    ]);
+
+    if (!isset($this->hosts[$theme][$type])) {
+      $cacheData = $this->cache->get($cid);
 
       if ($cacheData) {
-        $this->hosts[$type] = $cacheData->data;
+        $this->hosts[$theme][$type] = $cacheData->data;
       }
     }
 
-    if (!isset($this->hosts[$type])) {
+    if (!isset($this->hosts[$theme][$type])) {
       $this->parseLibraryHosts();
     }
 
-    if (!isset($this->hosts[$type])) {
+    if (!isset($this->hosts[$theme][$type])) {
       throw new \Exception("Host type not available.");
     }
 
-    return $this->hosts[$type];
+    return $this->hosts[$theme][$type];
   }
 
   /**
