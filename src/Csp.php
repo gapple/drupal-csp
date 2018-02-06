@@ -52,6 +52,13 @@ class Csp {
   protected $directives = [];
 
   /**
+   * The report-uri endpoint.
+   *
+   * @var bool|string
+   */
+  protected $reportUri = FALSE;
+
+  /**
    * Set the policy to report-only.
    *
    * @param bool $value
@@ -143,7 +150,7 @@ class Csp {
    *   The header value.
    */
   public function getHeaderValue() {
-    $output = '';
+    $output = [];
 
     foreach ($this->directives as $name => $value) {
       if (empty($value)) {
@@ -156,10 +163,26 @@ class Csp {
       // - Protocols (example.com, https://example.com)
       // - Remove if same value as default-src
       $value = array_unique($value);
-      $output .= $name . ' ' . implode(' ', $value) . '; ';
+      $output[] = $name . ' ' . implode(' ', $value);
     }
 
-    return substr($output, 0, -2);
+    if ($this->reportUri) {
+      $output[] = 'report-uri ' . $this->reportUri;
+    }
+
+    return implode('; ', $output);
+  }
+
+  /**
+   * The report-uri endpoint.
+   *
+   * Set to 'FALSE' to disable.
+   *
+   * @param string|bool $reportUri
+   *   A URI.
+   */
+  public function setReportUri($reportUri) {
+    $this->reportUri = $reportUri;
   }
 
   /**

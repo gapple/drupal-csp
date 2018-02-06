@@ -8,6 +8,7 @@ use Drupal\Core\Cache\CacheBackendInterface;
 use Drupal\Core\Config\ConfigFactoryInterface;
 use Drupal\Core\Extension\ModuleHandlerInterface;
 use Drupal\Core\Theme\ThemeManagerInterface;
+use Drupal\Core\Url;
 use Drupal\csp\Csp;
 use GuzzleHttp\Psr7\Uri;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
@@ -141,6 +142,15 @@ class ResponseCspSubscriber implements EventSubscriberInterface {
     )) {
       $policy->appendDirective('style-src', [Csp::POLICY_UNSAFE_INLINE]);
     }
+
+    $reportUri = Url::fromRoute('csp.reporturi',
+      [
+        'type' => $cspConfig->get('enforce') ? 'enforce' : 'reportOnly',
+      ],
+      [
+        'absolute' => TRUE,
+      ]);
+    $policy->setReportUri($reportUri->toString());
 
     $response->headers->set($policy->getHeaderName(), $policy->getHeaderValue());
   }

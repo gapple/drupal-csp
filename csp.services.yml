@@ -10,3 +10,6 @@ services:
     tags:
       - { name: event_subscriber }
 
+  logger.channel.csp:
+    parent: logger.channel_base
+    arguments: ['csp']
