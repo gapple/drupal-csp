@@ -77,6 +77,7 @@ class CspSettingsForm extends ConfigFormBase {
       '#type' => 'textfield',
       '#title' => $this->t('Subdomain'),
       '#description' => $this->t("Your report-uri.com subdomain."),
+      '#default_value' => $config->get('report.options.subdomain'),
       '#states' => [
         'visible' => [
           ':input[name="report[handler]"]' => ['value' => 'report-uri-com'],
@@ -87,6 +88,7 @@ class CspSettingsForm extends ConfigFormBase {
       '#type' => 'textfield',
       '#title' => $this->t('URI'),
       '#description' => $this->t('The URI to send reports to.'),
+      '#default_value' => $config->get('report.options.uri'),
       '#states' => [
         'visible' => [
           ':input[name="report[handler]"]' => ['value' => 'uri'],
@@ -102,9 +104,32 @@ class CspSettingsForm extends ConfigFormBase {
    */
   public function submitForm(array &$form, FormStateInterface $form_state) {
 
-    $this->config('csp.settings')
-      ->set('enforce', $form_state->getValue('enforce'))
-      ->save();
+    $config = $this->config('csp.settings')
+      ->set('enforce', $form_state->getValue('enforce'));
+
+    $reportHandler = $form_state->getValue(['report', 'handler']);
+    $config->set('report.handler', $reportHandler);
+    if ($reportHandler == 'report-uri-com') {
+      $config->set(
+        'report.options',
+        [
+          'subdomain' => $form_state->getValue(['report', 'report-uri-com', 'subdomain']),
+        ]
+      );
+    }
+    elseif ($reportHandler == 'uri') {
+      $config->set(
+        'report.options',
+        [
+          'uri' => $form_state->getValue(['report', 'uri', 'uri']),
+        ]
+      );
+    }
+    else {
+      $config->clear('report.options');
+    }
+
+    $config->save();
 
     parent::submitForm($form, $form_state);
   }
