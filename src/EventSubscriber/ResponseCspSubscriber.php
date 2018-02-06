@@ -143,14 +143,24 @@ class ResponseCspSubscriber implements EventSubscriberInterface {
       $policy->appendDirective('style-src', [Csp::POLICY_UNSAFE_INLINE]);
     }
 
-    $reportUri = Url::fromRoute('csp.reporturi',
-      [
-        'type' => $cspConfig->get('enforce') ? 'enforce' : 'reportOnly',
-      ],
-      [
-        'absolute' => TRUE,
-      ]);
-    $policy->setReportUri($reportUri->toString());
+    $reportHandler = $cspConfig->get('report.handler');
+    if ($reportHandler == 'csp-module') {
+      $reportUri = Url::fromRoute('csp.reporturi',
+        [
+          'type' => $cspConfig->get('enforce') ? 'enforce' : 'reportOnly',
+        ],
+        [
+          'absolute' => TRUE,
+        ]);
+      $policy->setReportUri($reportUri->toString());
+    }
+    elseif ($reportHandler == 'report-uri-com') {
+      $reportUri = 'https://' . $cspConfig->get('report.options.subdomain') . '.report-uri.com/r/d/csp/' . ($cspConfig->get('enforce') ? 'enforce' : 'reportOnly');
+      $policy->setReportUri($reportUri);
+    }
+    elseif ($reportHandler == 'uri') {
+      $policy->setReportUri($cspConfig->get('report.options.uri'));
+    }
 
     $response->headers->set($policy->getHeaderName(), $policy->getHeaderValue());
   }
