@@ -39,6 +39,61 @@ class CspSettingsForm extends ConfigFormBase {
       '#default_value' => $config->get('enforce'),
     ];
 
+    $form['report'] = [
+      '#type' => 'fieldset',
+      '#title' => $this->t('Reporting'),
+      '#tree' => TRUE,
+    ];
+    $form['report']['handler'] = [
+      '#type' => 'select',
+      '#title' => $this->t('Handler'),
+      '#options' => [
+        'csp-module' => $this->t('Internal'),
+        'report-uri-com' => 'Report-URI.com',
+        'uri' => $this->t('External URI'),
+        '' => $this->t('None'),
+      ],
+      '#default_value' => $config->get('report.handler'),
+    ];
+    $form['report']['none'] = [
+      '#type' => 'item',
+      '#description' => $this->t('Reporting is disabled.'),
+      '#states' => [
+        'visible' => [
+          ':input[name="report[handler]"]' => ['value' => ''],
+        ],
+      ],
+    ];
+    $form['report']['csp-module'] = [
+      '#type' => 'item',
+      '#description' => $this->t('Reports will be added to the site log.'),
+      '#states' => [
+        'visible' => [
+          ':input[name="report[handler]"]' => ['value' => 'csp-module'],
+        ],
+      ],
+    ];
+    $form['report']['report-uri-com']['subdomain'] = [
+      '#type' => 'textfield',
+      '#title' => $this->t('Subdomain'),
+      '#description' => $this->t("Your report-uri.com subdomain."),
+      '#states' => [
+        'visible' => [
+          ':input[name="report[handler]"]' => ['value' => 'report-uri-com'],
+        ],
+      ],
+    ];
+    $form['report']['uri']['uri'] = [
+      '#type' => 'textfield',
+      '#title' => $this->t('URI'),
+      '#description' => $this->t('The URI to send reports to.'),
+      '#states' => [
+        'visible' => [
+          ':input[name="report[handler]"]' => ['value' => 'uri'],
+        ],
+      ],
+    ];
+
     return parent::buildForm($form, $form_state);
   }
 
