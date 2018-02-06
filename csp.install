@@ -43,3 +43,12 @@ function csp_update_8001() {
     ->set('enforce', FALSE)
     ->save();
 }
+
+/**
+ * Set default reporting settings.
+ */
+function csp_update_8002() {
+  \Drupal::configFactory()->getEditable('csp.settings')
+    ->set('report.handler', 'csp-module')
+    ->save();
+}
