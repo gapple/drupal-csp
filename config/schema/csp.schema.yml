@@ -7,3 +7,28 @@ csp.settings:
     enforce:
       type: boolean
       label: 'Enforce'
+    report:
+      type: mapping
+      label: 'Reporting'
+      mapping:
+        handler:
+          type: string
+          label: 'Handler'
+        options:
+          type: csp.report-handler.[%parent.handler]
+
+csp.report-handler.report-uri-com:
+  type: mapping
+  label: 'Report-URI.com'
+  mapping:
+    subdomain:
+      type: string
+      label: 'Subdomain'
+csp.report-handler.uri:
+  type: mapping
+  label: 'URI'
+  mapping:
+    uri:
+      type: uri
+      label: 'URI'
+
