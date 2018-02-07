@@ -85,6 +85,9 @@ class CspSettingsForm extends ConfigFormBase {
         'visible' => [
           ':input[name="report[handler]"]' => ['value' => 'report-uri-com'],
         ],
+        'required' => [
+          ':input[name="report[handler]"]' => ['value' => 'report-uri-com'],
+        ],
       ],
     ];
     $form['report']['uri']['uri'] = [
@@ -94,6 +97,9 @@ class CspSettingsForm extends ConfigFormBase {
       '#default_value' => $config->get('report.options.uri'),
       '#states' => [
         'visible' => [
+          ':input[name="report[handler]"]' => ['value' => 'uri'],
+        ],
+        'required' => [
           ':input[name="report[handler]"]' => ['value' => 'uri'],
         ],
       ],
