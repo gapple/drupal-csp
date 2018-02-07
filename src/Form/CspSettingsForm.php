@@ -2,6 +2,7 @@
 
 namespace Drupal\csp\Form;
 
+use Drupal\Component\Utility\UrlHelper;
 use Drupal\Core\Form\ConfigFormBase;
 use Drupal\Core\Form\FormStateInterface;
 
@@ -76,7 +77,9 @@ class CspSettingsForm extends ConfigFormBase {
     $form['report']['report-uri-com']['subdomain'] = [
       '#type' => 'textfield',
       '#title' => $this->t('Subdomain'),
-      '#description' => $this->t("Your report-uri.com subdomain."),
+      '#description' => $this->t('Your <a href=":url">Report-URI.com subdomain</a>.', [
+        ':url' => 'https://report-uri.com/account/setup/',
+      ]),
       '#default_value' => $config->get('report.options.subdomain'),
       '#states' => [
         'visible' => [
@@ -97,6 +100,27 @@ class CspSettingsForm extends ConfigFormBase {
     ];
 
     return parent::buildForm($form, $form_state);
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function validateForm(array &$form, FormStateInterface $form_state) {
+
+    $reportHandler = $form_state->getValue(['report', 'handler']);
+    if ($reportHandler == 'report-uri-com') {
+      if (!preg_match('/^[a-z\d]{4,30}$/i', $form_state->getValue(['report', 'report-uri-com', 'subdomain']))) {
+        $form_state->setError($form['report']['report-uri-com']['subdomain'], 'Must be 4-30 alphanumeric characters.');
+      }
+    }
+    elseif ($reportHandler == 'uri') {
+      $uri = $form_state->getValue(['report', 'uri', 'uri']);
+      if (!(UrlHelper::isValid($uri, TRUE) && preg_match('/^https?:/', $uri))) {
+        $form_state->setError($form['report']['uri']['uri'], 'Must be a valid http or https URL.');
+      }
+    }
+
+    parent::validateForm($form, $form_state);
   }
 
   /**
