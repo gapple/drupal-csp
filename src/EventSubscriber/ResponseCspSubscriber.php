@@ -172,8 +172,10 @@ class ResponseCspSubscriber implements EventSubscriberInterface {
     $extensions = array_keys($this->moduleHandler->getModuleList());
     $extensions[] = $this->themeManager->getActiveTheme()->getName();
 
-    $scriptHosts = [];
-    $styleHosts = [];
+    $hosts = [
+      'script' => [],
+      'style' => [],
+    ];
 
     foreach ($extensions as $extensionName) {
       $moduleLibraries = $this->libraryDiscovery->getLibrariesByExtension($extensionName);
@@ -181,22 +183,21 @@ class ResponseCspSubscriber implements EventSubscriberInterface {
       foreach ($moduleLibraries as $libraryName => $libraryInfo) {
         foreach ($libraryInfo['js'] as $jsInfo) {
           if ($jsInfo['type'] == 'external') {
-            $scriptHosts[] = $this->getHostFromUri($jsInfo['data']);
+            $hosts['script'][] = $this->getHostFromUri($jsInfo['data']);
           }
         }
         foreach ($libraryInfo['css'] as $cssInfo) {
           if ($cssInfo['type'] == 'external') {
-            $styleHosts[] = $this->getHostFromUri($cssInfo['data']);
+            $hosts['style'][] = $this->getHostFromUri($cssInfo['data']);
           }
         }
       }
     }
 
-    sort($scriptHosts);
-    sort($styleHosts);
-
-    $this->setHosts('script', array_unique($scriptHosts));
-    $this->setHosts('style', array_unique($styleHosts));
+    foreach (array_keys($hosts) as $type) {
+      sort($hosts[$type]);
+      $this->setHosts($type, array_unique($hosts[$type]));
+    }
   }
 
   /**
