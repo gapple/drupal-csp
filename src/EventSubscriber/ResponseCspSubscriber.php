@@ -51,7 +51,7 @@ class ResponseCspSubscriber implements EventSubscriberInterface {
   /**
    * The Theme Manager service.
    *
-   * @var \Drupal\Core\Theme\ThemeManagerInterface;
+   * @var \Drupal\Core\Theme\ThemeManagerInterface
    */
   protected $themeManager;
 
