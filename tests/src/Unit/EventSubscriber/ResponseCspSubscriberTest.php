@@ -6,6 +6,8 @@ use Drupal\Core\Asset\LibraryDiscovery;
 use Drupal\Core\Cache\MemoryBackend;
 use Drupal\Core\Extension\ModuleHandler;
 use Drupal\Core\Render\HtmlResponse;
+use Drupal\Core\Theme\ActiveTheme;
+use Drupal\Core\Theme\ThemeManager;
 use Drupal\csp\EventSubscriber\ResponseCspSubscriber;
 use Drupal\Tests\UnitTestCase;
 use Symfony\Component\HttpFoundation\ResponseHeaderBag;
@@ -47,6 +49,20 @@ class ResponseCspSubscriberTest extends UnitTestCase {
   protected $moduleHandler;
 
   /**
+   * Mock Active Theme.
+   *
+   * @var \Drupal\Core\Theme\ActiveTheme|\PHPUnit_Framework_MockObject_MockObject
+   */
+  protected $activeTheme;
+
+  /**
+   * Mock Theme Manager.
+   *
+   * @var \Drupal\Core\Theme\ThemeManagerInterface|\PHPUnit_Framework_MockObject_MockObject
+   */
+  protected $themeManager;
+
+  /**
    * Mock Library Discovery.
    *
    * @var \Drupal\Core\Asset\LibraryDiscoveryInterface|\PHPUnit_Framework_MockObject_MockObject
@@ -83,9 +99,26 @@ class ResponseCspSubscriberTest extends UnitTestCase {
       ->disableOriginalConstructor()
       ->getMock();
 
+    $this->activeTheme = $this->getMockBuilder(ActiveTheme::class)
+      ->disableOriginalConstructor()
+      ->getMock();
+    $this->activeTheme->expects($this->any())
+      ->method('getName')
+      ->willReturn('stark');
+    $this->themeManager = $this->getMockBuilder(ThemeManager::class)
+      ->disableOriginalConstructor()
+      ->getMock();
+    $this->themeManager->expects($this->any())
+      ->method('getActiveTheme')
+      ->willReturn($this->activeTheme);
+
     $this->libraryDiscovery = $this->getMockBuilder(LibraryDiscovery::class)
       ->disableOriginalConstructor()
       ->getMock();
+
+    $this->libraryDiscovery->expects($this->any())
+      ->method('getLibrariesByExtension')
+      ->willReturn([]);
   }
 
   /**
@@ -122,7 +155,7 @@ class ResponseCspSubscriberTest extends UnitTestCase {
       ->method('getModuleList')
       ->willReturn([]);
 
-    $subscriber = new ResponseCspSubscriber($configFactory, $this->cache, $this->moduleHandler, $this->libraryDiscovery);
+    $subscriber = new ResponseCspSubscriber($configFactory, $this->cache, $this->moduleHandler, $this->themeManager, $this->libraryDiscovery);
 
     $this->response->headers->expects($this->once())
       ->method('set')
@@ -159,7 +192,7 @@ class ResponseCspSubscriberTest extends UnitTestCase {
       ->method('getModuleList')
       ->willReturn([]);
 
-    $subscriber = new ResponseCspSubscriber($configFactory, $this->cache, $this->moduleHandler, $this->libraryDiscovery);
+    $subscriber = new ResponseCspSubscriber($configFactory, $this->cache, $this->moduleHandler, $this->themeManager, $this->libraryDiscovery);
 
     $this->response->headers->expects($this->once())
       ->method('set')
@@ -197,7 +230,7 @@ class ResponseCspSubscriberTest extends UnitTestCase {
       ->method('getModuleList')
       ->willReturn([]);
 
-    $subscriber = new ResponseCspSubscriber($configFactory, $this->cache, $this->moduleHandler, $this->libraryDiscovery);
+    $subscriber = new ResponseCspSubscriber($configFactory, $this->cache, $this->moduleHandler, $this->themeManager, $this->libraryDiscovery);
 
     $this->response->headers->expects($this->once())
       ->method('set')
@@ -230,7 +263,7 @@ class ResponseCspSubscriberTest extends UnitTestCase {
       ->method('getModuleList')
       ->willReturn([]);
 
-    $subscriber = new ResponseCspSubscriber($configFactory, $this->cache, $this->moduleHandler, $this->libraryDiscovery);
+    $subscriber = new ResponseCspSubscriber($configFactory, $this->cache, $this->moduleHandler, $this->themeManager, $this->libraryDiscovery);
 
     $this->response->headers->expects($this->once())
       ->method('set')
@@ -263,7 +296,7 @@ class ResponseCspSubscriberTest extends UnitTestCase {
       ->method('getModuleList')
       ->willReturn([]);
 
-    $subscriber = new ResponseCspSubscriber($configFactory, $this->cache, $this->moduleHandler, $this->libraryDiscovery);
+    $subscriber = new ResponseCspSubscriber($configFactory, $this->cache, $this->moduleHandler, $this->themeManager, $this->libraryDiscovery);
 
     $this->response->headers->expects($this->once())
       ->method('set')
