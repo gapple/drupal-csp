@@ -171,6 +171,7 @@ class ResponseCspSubscriber implements EventSubscriberInterface {
   protected function parseLibraryHosts() {
     $extensions = array_keys($this->moduleHandler->getModuleList());
     $extensions[] = $this->themeManager->getActiveTheme()->getName();
+    $extensions[] = 'core';
 
     $hosts = [
       'script' => [],
