@@ -116,7 +116,13 @@ class ResponseCspSubscriber implements EventSubscriberInterface {
     $policy = new Csp();
     $policy->reportOnly(!$cspConfig->get('enforce'));
 
-    $policy->setDirective('script-src', [Csp::POLICY_SELF]);
+    // TODO 'unsafe-inline' is required by core/ckeditor
+    // When manual policy options are implemented, this can be set as a default,
+    // but optionally disabled
+    // (https://www.drupal.org/project/csp/issues/2895243).
+    // Per-library alterations will allow only enabling unsafe flags when
+    // necessary (https://www.drupal.org/project/csp/issues/2943432).
+    $policy->setDirective('script-src', [Csp::POLICY_SELF, Csp::POLICY_UNSAFE_INLINE]);
     if (($scriptHosts = $this->getHosts('script'))) {
       $policy->appendDirective('script-src', $scriptHosts);
     }

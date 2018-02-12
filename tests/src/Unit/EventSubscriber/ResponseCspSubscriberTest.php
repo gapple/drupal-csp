@@ -161,7 +161,7 @@ class ResponseCspSubscriberTest extends UnitTestCase {
       ->method('set')
       ->with(
         $this->equalTo('Content-Security-Policy-Report-Only'),
-        $this->equalTo("script-src 'self'; style-src 'self' 'unsafe-inline'")
+        $this->equalTo("script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'")
       );
 
     $subscriber->onKernelResponse($this->event);
@@ -198,7 +198,7 @@ class ResponseCspSubscriberTest extends UnitTestCase {
       ->method('set')
       ->with(
         $this->equalTo('Content-Security-Policy-Report-Only'),
-        $this->equalTo("script-src 'self'; style-src 'self'")
+        $this->equalTo("script-src 'self' 'unsafe-inline'; style-src 'self'")
       );
 
     $subscriber->onKernelResponse($this->event);
@@ -236,7 +236,7 @@ class ResponseCspSubscriberTest extends UnitTestCase {
       ->method('set')
       ->with(
         $this->equalTo('Content-Security-Policy-Report-Only'),
-        $this->equalTo("script-src 'self'; style-src 'self' 'unsafe-inline'")
+        $this->equalTo("script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'")
       );
 
     $subscriber->onKernelResponse($this->event);
@@ -269,7 +269,7 @@ class ResponseCspSubscriberTest extends UnitTestCase {
       ->method('set')
       ->with(
         $this->equalTo('Content-Security-Policy-Report-Only'),
-        $this->equalTo("script-src 'self'; style-src 'self'")
+        $this->equalTo("script-src 'self' 'unsafe-inline'; style-src 'self'")
       );
 
     $subscriber->onKernelResponse($this->event);
@@ -302,7 +302,7 @@ class ResponseCspSubscriberTest extends UnitTestCase {
       ->method('set')
       ->with(
         $this->equalTo('Content-Security-Policy'),
-        $this->equalTo("script-src 'self'; style-src 'self'")
+        $this->equalTo("script-src 'self' 'unsafe-inline'; style-src 'self'")
       );
 
     $subscriber->onKernelResponse($this->event);
