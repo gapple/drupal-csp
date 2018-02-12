@@ -15,26 +15,65 @@ class Csp {
   const POLICY_UNSAFE_INLINE = "'unsafe-inline'";
 
   /**
-   * The available policy directive keys.
+   * The available fetch directive keys.
    *
    * @var array
    */
-  private static $directiveNames = [
-    'base-uri',
+  private static $fetchDirectiveNames = [
     'default-src',
     'child-src',
     'connect-src',
     'font-src',
-    'form-action',
-    'frame-ancestors',
     'frame-src',
     'img-src',
+    'manifest-src',
     'media-src',
     'object-src',
-    'plugin-types',
-    'manifest-src',
     'script-src',
     'style-src',
+    'worker-src',
+  ];
+
+  /**
+   * The available document directive keys.
+   *
+   * @var array
+   */
+  private static $documentDirectiveNames = [
+    'base-uri',
+    'plugin-types',
+    'sandbox',
+  ];
+
+  /**
+   * The available navigation directive keys.
+   *
+   * @var array
+   */
+  private static $navigationDirectiveNames = [
+    'form-action',
+    'frame-ancestors',
+  ];
+
+  /**
+   * The available reporting directive keys.
+   *
+   * @var array
+   */
+  private static $reportingDirectiveNames = [
+    'report-uri',
+    'report-to',
+  ];
+
+  /**
+   * The available other directive keys.
+   *
+   * @var array
+   */
+  private static $otherDirectiveNames = [
+    'block-all-mixed-content',
+    'require-sri-for',
+    'upgrade-insecure-requests',
   ];
 
   /**
@@ -52,13 +91,6 @@ class Csp {
   protected $directives = [];
 
   /**
-   * The report-uri endpoint.
-   *
-   * @var bool|string
-   */
-  protected $reportUri = FALSE;
-
-  /**
    * Set the policy to report-only.
    *
    * @param bool $value
@@ -66,6 +98,33 @@ class Csp {
    */
   public function reportOnly($value = TRUE) {
     $this->reportOnly = $value;
+  }
+
+  /**
+   * Check if a directive name is valid.
+   *
+   * @param string $name
+   *   The directive name.
+   *
+   * @return bool
+   *   True if the directive name is valid.
+   */
+  protected function isValidDirectiveName($name) {
+    $directiveNameVariables = [
+      'fetchDirectiveNames',
+      'documentDirectiveNames',
+      'navigationDirectiveNames',
+      'reportingDirectiveNames',
+      'otherDirectiveNames',
+    ];
+
+    foreach ($directiveNameVariables as $directiveNameVariable) {
+      if (in_array($name, static::${$directiveNameVariable})) {
+        return TRUE;
+      }
+    }
+
+    return FALSE;
   }
 
   /**
@@ -77,7 +136,7 @@ class Csp {
    *   The directive value.
    */
   public function setDirective($name, $value) {
-    if (!in_array($name, self::$directiveNames)) {
+    if (!static::isValidDirectiveName($name)) {
       throw new \InvalidArgumentException("Invalid directive name provided");
     }
 
@@ -97,7 +156,7 @@ class Csp {
    *   The directive value.
    */
   public function appendDirective($name, $value) {
-    if (!in_array($name, self::$directiveNames)) {
+    if (!static::isValidDirectiveName($name)) {
       throw new \InvalidArgumentException("Invalid directive name provided");
     }
 
@@ -126,7 +185,7 @@ class Csp {
    *   The directive name.
    */
   public function removeDirective($name) {
-    if (!in_array($name, self::$directiveNames)) {
+    if (!static::isValidDirectiveName($name)) {
       throw new \InvalidArgumentException("Invalid directive name provided");
     }
 
@@ -166,10 +225,6 @@ class Csp {
       $output[] = $name . ' ' . implode(' ', $value);
     }
 
-    if ($this->reportUri) {
-      $output[] = 'report-uri ' . $this->reportUri;
-    }
-
     return implode('; ', $output);
   }
 
@@ -180,9 +235,12 @@ class Csp {
    *
    * @param string|bool $reportUri
    *   A URI.
+   *
+   * @deprecated in 8.x-1.0-beta2, will be removed before 8.x-1.0. Use
+   * setDirective('report-uri') instead.
    */
   public function setReportUri($reportUri) {
-    $this->reportUri = $reportUri;
+    $this->setDirective('report-uri', $reportUri);
   }
 
   /**

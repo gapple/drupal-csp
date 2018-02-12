@@ -40,6 +40,7 @@ class CspTest extends UnitTestCase {
 
   /**
    * @covers ::setDirective
+   * @covers ::isValidDirectiveName
    *
    * @expectedException \InvalidArgumentException
    */
@@ -51,6 +52,7 @@ class CspTest extends UnitTestCase {
 
   /**
    * @covers ::appendDirective
+   * @covers ::isValidDirectiveName
    *
    * @expectedException \InvalidArgumentException
    */
@@ -62,6 +64,7 @@ class CspTest extends UnitTestCase {
 
   /**
    * @covers ::setDirective
+   * @covers ::isValidDirectiveName
    * @covers ::getHeaderValue
    */
   public function testSetSingle() {
@@ -77,6 +80,7 @@ class CspTest extends UnitTestCase {
 
   /**
    * @covers ::appendDirective
+   * @covers ::isValidDirectiveName
    * @covers ::getHeaderValue
    */
   public function testAppendSingle() {
@@ -92,6 +96,7 @@ class CspTest extends UnitTestCase {
 
   /**
    * @covers ::setDirective
+   * @covers ::isValidDirectiveName
    * @covers ::getHeaderValue
    */
   public function testSetMultiple() {
@@ -100,15 +105,17 @@ class CspTest extends UnitTestCase {
     $policy->setDirective('default-src', Csp::POLICY_SELF);
     $policy->setDirective('default-src', [Csp::POLICY_SELF, 'example.com']);
     $policy->setDirective('script-src', Csp::POLICY_SELF . ' example.com');
+    $policy->setDirective('report-uri', 'example.com/report-uri');
 
     $this->assertEquals(
-      "default-src 'self' example.com; script-src 'self' example.com",
+      "default-src 'self' example.com; script-src 'self' example.com; report-uri example.com/report-uri",
       $policy->getHeaderValue()
     );
   }
 
   /**
    * @covers ::appendDirective
+   * @covers ::isValidDirectiveName
    * @covers ::getHeaderValue
    */
   public function testAppendMultiple() {
@@ -126,6 +133,7 @@ class CspTest extends UnitTestCase {
 
   /**
    * @covers ::setDirective
+   * @covers ::isValidDirectiveName
    * @covers ::getHeaderValue
    */
   public function testSetEmpty() {
@@ -154,6 +162,7 @@ class CspTest extends UnitTestCase {
 
   /**
    * @covers ::appendDirective
+   * @covers ::isValidDirectiveName
    * @covers ::getHeaderValue
    */
   public function testAppendEmpty() {
@@ -183,6 +192,7 @@ class CspTest extends UnitTestCase {
   /**
    * @covers ::setDirective
    * @covers ::appendDirective
+   * @covers ::isValidDirectiveName
    * @covers ::getHeaderValue
    */
   public function testDuplicate() {
@@ -202,6 +212,7 @@ class CspTest extends UnitTestCase {
 
   /**
    * @covers ::removeDirective
+   * @covers ::isValidDirectiveName
    * @covers ::getHeaderValue
    */
   public function testRemove() {
@@ -220,6 +231,7 @@ class CspTest extends UnitTestCase {
 
   /**
    * @covers ::removeDirective
+   * @covers ::isValidDirectiveName
    *
    * @expectedException \InvalidArgumentException
    */
