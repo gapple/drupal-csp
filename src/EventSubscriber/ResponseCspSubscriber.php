@@ -2,15 +2,11 @@
 
 namespace Drupal\csp\EventSubscriber;
 
-use Drupal\Core\Asset\LibraryDiscoveryInterface;
-use Drupal\Core\Cache\Cache;
-use Drupal\Core\Cache\CacheBackendInterface;
 use Drupal\Core\Config\ConfigFactoryInterface;
 use Drupal\Core\Extension\ModuleHandlerInterface;
-use Drupal\Core\Theme\ThemeManagerInterface;
 use Drupal\Core\Url;
 use Drupal\csp\Csp;
-use GuzzleHttp\Psr7\Uri;
+use Drupal\csp\LibraryPolicyBuilder;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 use Symfony\Component\HttpKernel\Event\FilterResponseEvent;
 use Symfony\Component\HttpKernel\KernelEvents;
@@ -28,20 +24,6 @@ class ResponseCspSubscriber implements EventSubscriberInterface {
   protected $configFactory;
 
   /**
-   * The Library Discovery service.
-   *
-   * @var \Drupal\Core\Asset\LibraryDiscovery
-   */
-  protected $libraryDiscovery;
-
-  /**
-   * The cache bin.
-   *
-   * @var \Drupal\Core\Cache\CacheBackendInterface
-   */
-  protected $cache;
-
-  /**
    * The module handler service.
    *
    * @var \Drupal\Core\Extension\ModuleHandlerInterface
@@ -49,45 +31,30 @@ class ResponseCspSubscriber implements EventSubscriberInterface {
   protected $moduleHandler;
 
   /**
-   * The Theme Manager service.
+   * The Library Policy Builder service.
    *
-   * @var \Drupal\Core\Theme\ThemeManagerInterface
+   * @var \Drupal\csp\LibraryPolicyBuilder
    */
-  protected $themeManager;
-
-  /**
-   * Arrays of hosts, keyed by theme name and resource type.
-   *
-   * @var array
-   */
-  protected $hosts;
+  protected $libraryPolicyBuilder;
 
   /**
    * Constructs a new ResponseSubscriber object.
    *
    * @param \Drupal\Core\Config\ConfigFactoryInterface $configFactory
    *   Config Factory service.
-   * @param \Drupal\Core\Cache\CacheBackendInterface $cache
-   *   The cache bin.
    * @param \Drupal\Core\Extension\ModuleHandlerInterface $moduleHandler
    *   The Module Handler service.
-   * @param \Drupal\Core\Theme\ThemeManagerInterface $themeManager
-   *   The Theme Handler service.
-   * @param \Drupal\Core\Asset\LibraryDiscoveryInterface $libraryDiscovery
-   *   The Library Discovery Collector service.
+   * @param \Drupal\csp\LibraryPolicyBuilder $libraryPolicyBuilder
+   *   The Library Parser service.
    */
   public function __construct(
     ConfigFactoryInterface $configFactory,
-    CacheBackendInterface $cache,
     ModuleHandlerInterface $moduleHandler,
-    ThemeManagerInterface $themeManager,
-    LibraryDiscoveryInterface $libraryDiscovery
+    LibraryPolicyBuilder $libraryPolicyBuilder
   ) {
     $this->configFactory = $configFactory;
-    $this->cache = $cache;
     $this->moduleHandler = $moduleHandler;
-    $this->themeManager = $themeManager;
-    $this->libraryDiscovery = $libraryDiscovery;
+    $this->libraryPolicyBuilder = $libraryPolicyBuilder;
   }
 
   /**
@@ -116,6 +83,8 @@ class ResponseCspSubscriber implements EventSubscriberInterface {
     $policy = new Csp();
     $policy->reportOnly(!$cspConfig->get('enforce'));
 
+    $sources = $this->libraryPolicyBuilder->getSourcesForActiveTheme();
+
     // TODO 'unsafe-inline' is required by core/ckeditor
     // When manual policy options are implemented, this can be set as a default,
     // but optionally disabled
@@ -123,12 +92,12 @@ class ResponseCspSubscriber implements EventSubscriberInterface {
     // Per-library alterations will allow only enabling unsafe flags when
     // necessary (https://www.drupal.org/project/csp/issues/2943432).
     $policy->setDirective('script-src', [Csp::POLICY_SELF, Csp::POLICY_UNSAFE_INLINE]);
-    if (($scriptHosts = $this->getHosts('script'))) {
-      $policy->appendDirective('script-src', $scriptHosts);
+    if (!empty($sources['script-src'])) {
+      $policy->appendDirective('script-src', $sources['script-src']);
     }
     $policy->setDirective('style-src', [Csp::POLICY_SELF]);
-    if (($styleHosts = $this->getHosts('style'))) {
-      $policy->appendDirective('style-src', $styleHosts);
+    if (!empty($sources['style-src'])) {
+      $policy->appendDirective('style-src', $sources['style-src']);
     }
 
     // Prior to Drupal 8.6, in order to support IE9, CssCollectionRenderer
@@ -169,128 +138,6 @@ class ResponseCspSubscriber implements EventSubscriberInterface {
     }
 
     $response->headers->set($policy->getHeaderName(), $policy->getHeaderValue());
-  }
-
-  /**
-   * Retrieve and cache hosts from library definitions.
-   */
-  protected function parseLibraryHosts() {
-    $extensions = array_keys($this->moduleHandler->getModuleList());
-    $extensions[] = $this->themeManager->getActiveTheme()->getName();
-    $extensions[] = 'core';
-
-    $hosts = [
-      'script' => [],
-      'style' => [],
-    ];
-
-    foreach ($extensions as $extensionName) {
-      $moduleLibraries = $this->libraryDiscovery->getLibrariesByExtension($extensionName);
-
-      foreach ($moduleLibraries as $libraryName => $libraryInfo) {
-        foreach ($libraryInfo['js'] as $jsInfo) {
-          if ($jsInfo['type'] == 'external') {
-            $hosts['script'][] = $this->getHostFromUri($jsInfo['data']);
-          }
-        }
-        foreach ($libraryInfo['css'] as $cssInfo) {
-          if ($cssInfo['type'] == 'external') {
-            $hosts['style'][] = $this->getHostFromUri($cssInfo['data']);
-          }
-        }
-      }
-    }
-
-    foreach (array_keys($hosts) as $type) {
-      sort($hosts[$type]);
-      $this->setHosts($type, array_unique($hosts[$type]));
-    }
-  }
-
-  /**
-   * Cache a set of hosts by resource type.
-   *
-   * @param string $type
-   *   The resource type, 'script' or 'style'.
-   * @param array $hosts
-   *   An array of hosts.
-   */
-  protected function setHosts($type, array $hosts) {
-    $theme = $this->themeManager->getActiveTheme()->getName();
-
-    $cid = implode(':', [
-      'csp',
-      'hosts',
-      $theme,
-      $type,
-    ]);
-
-    $this->hosts[$theme][$type] = $hosts;
-
-    $this->cache->set($cid, $hosts, Cache::PERMANENT, ['library_info']);
-  }
-
-  /**
-   * Retrieve a set of hosts by resource type.
-   *
-   * @param string $type
-   *   The resource type, 'script' or 'style'.
-   *
-   * @return array
-   *   An array of hosts.
-   *
-   * @throws \Exception
-   */
-  protected function getHosts($type) {
-    $theme = $this->themeManager->getActiveTheme()->getName();
-
-    $cid = implode(':', [
-      'csp',
-      'hosts',
-      $theme,
-      $type,
-    ]);
-
-    if (!isset($this->hosts[$theme][$type])) {
-      $cacheData = $this->cache->get($cid);
-
-      if ($cacheData) {
-        $this->hosts[$theme][$type] = $cacheData->data;
-      }
-    }
-
-    if (!isset($this->hosts[$theme][$type])) {
-      $this->parseLibraryHosts();
-    }
-
-    if (!isset($this->hosts[$theme][$type])) {
-      throw new \Exception("Host type not available.");
-    }
-
-    return $this->hosts[$theme][$type];
-  }
-
-  /**
-   * Get host info from a URI.
-   *
-   * @param string $uri
-   *   The URI.
-   *
-   * @return string
-   *   The host info.
-   */
-  protected function getHostFromUri($uri) {
-    $uri = new Uri($uri);
-    $host = $uri->getHost();
-
-    // Only include scheme if restricted to HTTPS.
-    if ($uri->getScheme() === 'https') {
-      $host = 'https://' . $host;
-    }
-    if (($port = $uri->getPort())) {
-      $host .= ':' . $port;
-    }
-    return $host;
   }
 
 }

@@ -3,12 +3,17 @@ services:
     class: Drupal\csp\EventSubscriber\ResponseCspSubscriber
     arguments:
       - '@config.factory'
+      - '@module_handler'
+      - '@csp.library_policy_builder'
+    tags:
+      - { name: event_subscriber }
+  csp.library_policy_builder:
+    class: Drupal\csp\LibraryPolicyBuilder
+    arguments:
       - '@cache.default'
       - '@module_handler'
       - '@theme.manager'
       - '@library.discovery'
-    tags:
-      - { name: event_subscriber }
 
   logger.channel.csp:
     parent: logger.channel_base

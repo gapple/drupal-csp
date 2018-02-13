@@ -2,13 +2,10 @@
 
 namespace Drupal\Tests\csp\Unit\EventSubscriber;
 
-use Drupal\Core\Asset\LibraryDiscovery;
-use Drupal\Core\Cache\MemoryBackend;
 use Drupal\Core\Extension\ModuleHandler;
 use Drupal\Core\Render\HtmlResponse;
-use Drupal\Core\Theme\ActiveTheme;
-use Drupal\Core\Theme\ThemeManager;
 use Drupal\csp\EventSubscriber\ResponseCspSubscriber;
+use Drupal\csp\LibraryPolicyBuilder;
 use Drupal\Tests\UnitTestCase;
 use Symfony\Component\HttpFoundation\ResponseHeaderBag;
 use Symfony\Component\HttpKernel\Event\FilterResponseEvent;
@@ -35,13 +32,6 @@ class ResponseCspSubscriberTest extends UnitTestCase {
   protected $event;
 
   /**
-   * Memory Cache backend.
-   *
-   * @var \Drupal\Core\Cache\CacheBackendInterface
-   */
-  protected $cache;
-
-  /**
    * Mock Module Handler.
    *
    * @var \Drupal\Core\Extension\ModuleHandlerInterface|\PHPUnit_Framework_MockObject_MockObject
@@ -49,25 +39,11 @@ class ResponseCspSubscriberTest extends UnitTestCase {
   protected $moduleHandler;
 
   /**
-   * Mock Active Theme.
+   * The Library Policy service.
    *
-   * @var \Drupal\Core\Theme\ActiveTheme|\PHPUnit_Framework_MockObject_MockObject
+   * @var \Drupal\csp\LibraryPolicyBuilder
    */
-  protected $activeTheme;
-
-  /**
-   * Mock Theme Manager.
-   *
-   * @var \Drupal\Core\Theme\ThemeManagerInterface|\PHPUnit_Framework_MockObject_MockObject
-   */
-  protected $themeManager;
-
-  /**
-   * Mock Library Discovery.
-   *
-   * @var \Drupal\Core\Asset\LibraryDiscoveryInterface|\PHPUnit_Framework_MockObject_MockObject
-   */
-  protected $libraryDiscovery;
+  private $libraryPolicy;
 
   /**
    * {@inheritdoc}
@@ -93,32 +69,13 @@ class ResponseCspSubscriberTest extends UnitTestCase {
       ->method('getResponse')
       ->willReturn($this->response);
 
-    $this->cache = new MemoryBackend();
-
     $this->moduleHandler = $this->getMockBuilder(ModuleHandler::class)
       ->disableOriginalConstructor()
       ->getMock();
 
-    $this->activeTheme = $this->getMockBuilder(ActiveTheme::class)
+    $this->libraryPolicy = $this->getMockBuilder(LibraryPolicyBuilder::class)
       ->disableOriginalConstructor()
       ->getMock();
-    $this->activeTheme->expects($this->any())
-      ->method('getName')
-      ->willReturn('stark');
-    $this->themeManager = $this->getMockBuilder(ThemeManager::class)
-      ->disableOriginalConstructor()
-      ->getMock();
-    $this->themeManager->expects($this->any())
-      ->method('getActiveTheme')
-      ->willReturn($this->activeTheme);
-
-    $this->libraryDiscovery = $this->getMockBuilder(LibraryDiscovery::class)
-      ->disableOriginalConstructor()
-      ->getMock();
-
-    $this->libraryDiscovery->expects($this->any())
-      ->method('getLibrariesByExtension')
-      ->willReturn([]);
   }
 
   /**
@@ -151,11 +108,11 @@ class ResponseCspSubscriberTest extends UnitTestCase {
       ],
     ]);
 
-    $this->moduleHandler->expects($this->any())
-      ->method('getModuleList')
+    $this->libraryPolicy->expects($this->any())
+      ->method('getSourcesForActiveTheme')
       ->willReturn([]);
 
-    $subscriber = new ResponseCspSubscriber($configFactory, $this->cache, $this->moduleHandler, $this->themeManager, $this->libraryDiscovery);
+    $subscriber = new ResponseCspSubscriber($configFactory, $this->moduleHandler, $this->libraryPolicy);
 
     $this->response->headers->expects($this->once())
       ->method('set')
@@ -188,11 +145,11 @@ class ResponseCspSubscriberTest extends UnitTestCase {
       ],
     ]);
 
-    $this->moduleHandler->expects($this->any())
-      ->method('getModuleList')
+    $this->libraryPolicy->expects($this->any())
+      ->method('getSourcesForActiveTheme')
       ->willReturn([]);
 
-    $subscriber = new ResponseCspSubscriber($configFactory, $this->cache, $this->moduleHandler, $this->themeManager, $this->libraryDiscovery);
+    $subscriber = new ResponseCspSubscriber($configFactory, $this->moduleHandler, $this->libraryPolicy);
 
     $this->response->headers->expects($this->once())
       ->method('set')
@@ -226,11 +183,7 @@ class ResponseCspSubscriberTest extends UnitTestCase {
       ->with($this->equalTo('ie9'))
       ->willReturn(TRUE);
 
-    $this->moduleHandler->expects($this->any())
-      ->method('getModuleList')
-      ->willReturn([]);
-
-    $subscriber = new ResponseCspSubscriber($configFactory, $this->cache, $this->moduleHandler, $this->themeManager, $this->libraryDiscovery);
+    $subscriber = new ResponseCspSubscriber($configFactory, $this->moduleHandler, $this->libraryPolicy);
 
     $this->response->headers->expects($this->once())
       ->method('set')
@@ -259,11 +212,7 @@ class ResponseCspSubscriberTest extends UnitTestCase {
       ],
     ]);
 
-    $this->moduleHandler->expects($this->any())
-      ->method('getModuleList')
-      ->willReturn([]);
-
-    $subscriber = new ResponseCspSubscriber($configFactory, $this->cache, $this->moduleHandler, $this->themeManager, $this->libraryDiscovery);
+    $subscriber = new ResponseCspSubscriber($configFactory, $this->moduleHandler, $this->libraryPolicy);
 
     $this->response->headers->expects($this->once())
       ->method('set')
@@ -292,11 +241,7 @@ class ResponseCspSubscriberTest extends UnitTestCase {
       ],
     ]);
 
-    $this->moduleHandler->expects($this->any())
-      ->method('getModuleList')
-      ->willReturn([]);
-
-    $subscriber = new ResponseCspSubscriber($configFactory, $this->cache, $this->moduleHandler, $this->themeManager, $this->libraryDiscovery);
+    $subscriber = new ResponseCspSubscriber($configFactory, $this->moduleHandler, $this->libraryPolicy);
 
     $this->response->headers->expects($this->once())
       ->method('set')
