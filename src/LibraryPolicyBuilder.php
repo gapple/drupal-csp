@@ -101,10 +101,7 @@ class LibraryPolicyBuilder {
       array_keys($this->themeHandler->listInfo())
     );
 
-    $sources = [
-      'script-src' => [],
-      'style-src' => [],
-    ];
+    $sources = [];
 
     foreach ($extensions as $extensionName) {
       $extensionSources = $this->getExtensionSources($extensionName);
@@ -141,10 +138,7 @@ class LibraryPolicyBuilder {
       return $cacheItem->data;
     }
 
-    $sources = [
-      'script-src' => [],
-      'style-src' => [],
-    ];
+    $sources = [];
 
     $moduleLibraries = $this->libraryDiscovery->getLibrariesByExtension($extension);
 
@@ -186,10 +180,7 @@ class LibraryPolicyBuilder {
     }
 
     $libraryInfo = $this->libraryDiscovery->getLibraryByName($extension, $name);
-    $sources = [
-      'script-src' => [],
-      'style-src' => [],
-    ];
+    $sources = [];
 
     foreach ($libraryInfo['js'] as $jsInfo) {
       if ($jsInfo['type'] == 'external') {

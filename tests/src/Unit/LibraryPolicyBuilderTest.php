@@ -96,10 +96,7 @@ class LibraryPolicyBuilderTest extends UnitTestCase {
     $libraryPolicy = new LibraryPolicyBuilder($this->cache, $this->moduleHandler, $this->themeHandler, $this->libraryDiscovery);
 
     $this->assertArrayEquals(
-      [
-        'script-src' => [],
-        'style-src' => [],
-      ],
+      [],
       $libraryPolicy->getSources()
     );
   }
