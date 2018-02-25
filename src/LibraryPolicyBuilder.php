@@ -7,6 +7,7 @@ use Drupal\Core\Asset\LibraryDiscoveryInterface;
 use Drupal\Core\Cache\Cache;
 use Drupal\Core\Cache\CacheBackendInterface;
 use Drupal\Core\Extension\ModuleHandlerInterface;
+use Drupal\Core\Extension\ThemeHandlerInterface;
 use Drupal\Core\Theme\ThemeManagerInterface;
 use GuzzleHttp\Psr7\Uri;
 
@@ -37,11 +38,11 @@ class LibraryPolicyBuilder {
   protected $moduleHandler;
 
   /**
-   * The Theme Manager service.
+   * The Theme Handler service.
    *
-   * @var \Drupal\Core\Theme\ThemeManagerInterface
+   * @var \Drupal\Core\Extension\ThemeHandlerInterface
    */
-  protected $themeManager;
+  protected $themeHandler;
 
   /**
    * Constructs a new Library Parser.
@@ -50,7 +51,7 @@ class LibraryPolicyBuilder {
    *   The cache bin.
    * @param \Drupal\Core\Extension\ModuleHandlerInterface $moduleHandler
    *   The Module Handler service.
-   * @param \Drupal\Core\Theme\ThemeManagerInterface $themeManager
+   * @param \Drupal\Core\Extension\ThemeHandlerInterface $themeHandler
    *   The Theme Handler service.
    * @param \Drupal\Core\Asset\LibraryDiscoveryInterface $libraryDiscovery
    *   The Library Discovery Collector service.
@@ -58,12 +59,12 @@ class LibraryPolicyBuilder {
   public function __construct(
     CacheBackendInterface $cache,
     ModuleHandlerInterface $moduleHandler,
-    ThemeManagerInterface $themeManager,
+    ThemeHandlerInterface $themeHandler,
     LibraryDiscoveryInterface $libraryDiscovery
   ) {
     $this->cache = $cache;
     $this->moduleHandler = $moduleHandler;
-    $this->themeManager = $themeManager;
+    $this->themeHandler = $themeHandler;
     $this->libraryDiscovery = $libraryDiscovery;
   }
 
@@ -73,20 +74,21 @@ class LibraryPolicyBuilder {
    * @return array
    *   An array of sources keyed by type.
    */
-  public function getSourcesForActiveTheme() {
+  public function getSources() {
     $cid = implode(':', [
       'csp',
-      'active-theme',
-      $this->themeManager->getActiveTheme()->getName(),
+      'sources',
     ]);
 
     if (($cacheItem = $this->cache->get($cid))) {
       return $cacheItem->data;
     }
 
-    $extensions = array_keys($this->moduleHandler->getModuleList());
-    $extensions[] = $this->themeManager->getActiveTheme()->getName();
-    $extensions[] = 'core';
+    $extensions = array_merge(
+      ['core'],
+      array_keys($this->moduleHandler->getModuleList()),
+      array_keys($this->themeHandler->listInfo())
+    );
 
     $sources = [
       'script-src' => [],

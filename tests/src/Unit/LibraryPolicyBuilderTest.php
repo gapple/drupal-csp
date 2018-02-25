@@ -5,6 +5,7 @@ namespace Drupal\Tests\csp\Unit;
 use Drupal\Core\Asset\LibraryDiscovery;
 use Drupal\Core\Cache\MemoryBackend;
 use Drupal\Core\Extension\ModuleHandler;
+use Drupal\Core\Extension\ThemeHandler;
 use Drupal\Core\Theme\ActiveTheme;
 use Drupal\Core\Theme\ThemeManager;
 use Drupal\csp\LibraryPolicyBuilder;
@@ -38,11 +39,11 @@ class LibraryPolicyBuilderTest extends UnitTestCase {
   protected $activeTheme;
 
   /**
-   * Mock Theme Manager.
+   * Mock Theme Handler.
    *
-   * @var \Drupal\Core\Theme\ThemeManagerInterface|\PHPUnit_Framework_MockObject_MockObject
+   * @var \Drupal\Core\Extension\ThemeHandlerInterface|\PHPUnit_Framework_MockObject_MockObject
    */
-  protected $themeManager;
+  protected $themeHandler;
 
   /**
    * Mock Library Discovery.
@@ -63,18 +64,9 @@ class LibraryPolicyBuilderTest extends UnitTestCase {
       ->disableOriginalConstructor()
       ->getMock();
 
-    $this->activeTheme = $this->getMockBuilder(ActiveTheme::class)
+    $this->themeHandler = $this->getMockBuilder(ThemeHandler::class)
       ->disableOriginalConstructor()
       ->getMock();
-    $this->activeTheme->expects($this->any())
-      ->method('getName')
-      ->willReturn('stark');
-    $this->themeManager = $this->getMockBuilder(ThemeManager::class)
-      ->disableOriginalConstructor()
-      ->getMock();
-    $this->themeManager->expects($this->any())
-      ->method('getActiveTheme')
-      ->willReturn($this->activeTheme);
 
     $this->libraryDiscovery = $this->getMockBuilder(LibraryDiscovery::class)
       ->disableOriginalConstructor()
@@ -84,37 +76,38 @@ class LibraryPolicyBuilderTest extends UnitTestCase {
   /**
    * Test an empty extension set.
    *
-   * @covers ::getSourcesForActiveTheme
+   * @covers ::getSources
    * @covers ::getExtensionSources
    * @covers ::getLibrarySources
    */
   public function testEmptyPolicy() {
-    $this->moduleHandler->expects($this->any())
+    $this->themeHandler->expects($this->atLeastOnce())
+      ->method('listInfo')
+      ->willReturn([]);
+    $this->moduleHandler->expects($this->atLeastOnce())
       ->method('getModuleList')
       ->willReturn([]);
 
-    // PHPUnit doesn't allow asserting that a single method is called with each
-    // of a set of parameters.
-    $this->libraryDiscovery->expects($this->atLeast(2))
+    $this->libraryDiscovery->expects($this->atLeastOnce())
       ->method('getLibrariesByExtension')
-      ->with($this->logicalOr('stark', 'core'))
+      ->with('core')
       ->willReturn([]);
 
-    $libraryPolicy = new LibraryPolicyBuilder($this->cache, $this->moduleHandler, $this->themeManager, $this->libraryDiscovery);
+    $libraryPolicy = new LibraryPolicyBuilder($this->cache, $this->moduleHandler, $this->themeHandler, $this->libraryDiscovery);
 
     $this->assertArrayEquals(
       [
         'script-src' => [],
         'style-src' => [],
       ],
-      $libraryPolicy->getSourcesForActiveTheme()
+      $libraryPolicy->getSources()
     );
   }
 
   /**
    * Test that a library's external sources are discovered.
    *
-   * @covers ::getSourcesForActiveTheme
+   * @covers ::getSources
    * @covers ::getExtensionSources
    * @covers ::getLibrarySources
    * @covers ::getHostFromUri
@@ -124,6 +117,11 @@ class LibraryPolicyBuilderTest extends UnitTestCase {
     $this->moduleHandler->expects($this->any())
       ->method('getModuleList')
       ->willReturn([]);
+    $this->themeHandler->expects($this->any())
+      ->method('listInfo')
+      ->willReturn([
+        'stark' => (object) ['name' => 'stark'],
+      ]);
 
     $extensionMap = [
       ['core', []],
@@ -168,14 +166,14 @@ class LibraryPolicyBuilderTest extends UnitTestCase {
       ->with('stark', 'test')
       ->willReturn($libraryInfo);
 
-    $libraryPolicy = new LibraryPolicyBuilder($this->cache, $this->moduleHandler, $this->themeManager, $this->libraryDiscovery);
+    $libraryPolicy = new LibraryPolicyBuilder($this->cache, $this->moduleHandler, $this->themeHandler, $this->libraryDiscovery);
 
     $this->assertArrayEquals(
       [
         'script-src' => ['js.example.com', 'js.example.org'],
         'style-src' => ['css.example.com'],
       ],
-      $libraryPolicy->getSourcesForActiveTheme()
+      $libraryPolicy->getSources()
     );
   }
 

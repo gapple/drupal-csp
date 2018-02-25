@@ -109,7 +109,7 @@ class ResponseCspSubscriberTest extends UnitTestCase {
     ]);
 
     $this->libraryPolicy->expects($this->any())
-      ->method('getSourcesForActiveTheme')
+      ->method('getSources')
       ->willReturn([]);
 
     $subscriber = new ResponseCspSubscriber($configFactory, $this->moduleHandler, $this->libraryPolicy);
@@ -146,7 +146,7 @@ class ResponseCspSubscriberTest extends UnitTestCase {
     ]);
 
     $this->libraryPolicy->expects($this->any())
-      ->method('getSourcesForActiveTheme')
+      ->method('getSources')
       ->willReturn([]);
 
     $subscriber = new ResponseCspSubscriber($configFactory, $this->moduleHandler, $this->libraryPolicy);

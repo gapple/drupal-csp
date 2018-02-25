@@ -83,7 +83,7 @@ class ResponseCspSubscriber implements EventSubscriberInterface {
     $policy = new Csp();
     $policy->reportOnly(!$cspConfig->get('enforce'));
 
-    $sources = $this->libraryPolicyBuilder->getSourcesForActiveTheme();
+    $sources = $this->libraryPolicyBuilder->getSources();
 
     // TODO 'unsafe-inline' is required by core/ckeditor
     // When manual policy options are implemented, this can be set as a default,

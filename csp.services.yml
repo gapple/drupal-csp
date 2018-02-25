@@ -12,7 +12,7 @@ services:
     arguments:
       - '@cache.default'
       - '@module_handler'
-      - '@theme.manager'
+      - '@theme_handler'
       - '@library.discovery'
 
   logger.channel.csp:
