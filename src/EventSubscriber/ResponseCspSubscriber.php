@@ -83,7 +83,7 @@ class ResponseCspSubscriber implements EventSubscriberInterface {
     $policy = new Csp();
     $policy->reportOnly(!$cspConfig->get('enforce'));
 
-    $sources = $this->libraryPolicyBuilder->getSources();
+    $directives = $this->libraryPolicyBuilder->getSources();
 
     // TODO 'unsafe-inline' is required by core/ckeditor
     // When manual policy options are implemented, this can be set as a default,
@@ -92,12 +92,10 @@ class ResponseCspSubscriber implements EventSubscriberInterface {
     // Per-library alterations will allow only enabling unsafe flags when
     // necessary (https://www.drupal.org/project/csp/issues/2943432).
     $policy->setDirective('script-src', [Csp::POLICY_SELF, Csp::POLICY_UNSAFE_INLINE]);
-    if (!empty($sources['script-src'])) {
-      $policy->appendDirective('script-src', $sources['script-src']);
-    }
     $policy->setDirective('style-src', [Csp::POLICY_SELF]);
-    if (!empty($sources['style-src'])) {
-      $policy->appendDirective('style-src', $sources['style-src']);
+
+    foreach ($directives as $directive => $sources) {
+      $policy->appendDirective($directive, $sources);
     }
 
     // Prior to Drupal 8.6, in order to support IE9, CssCollectionRenderer

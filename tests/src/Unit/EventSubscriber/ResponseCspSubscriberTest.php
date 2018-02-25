@@ -183,6 +183,10 @@ class ResponseCspSubscriberTest extends UnitTestCase {
       ->with($this->equalTo('ie9'))
       ->willReturn(TRUE);
 
+    $this->libraryPolicy->expects($this->any())
+      ->method('getSources')
+      ->willReturn([]);
+
     $subscriber = new ResponseCspSubscriber($configFactory, $this->moduleHandler, $this->libraryPolicy);
 
     $this->response->headers->expects($this->once())
@@ -212,6 +216,10 @@ class ResponseCspSubscriberTest extends UnitTestCase {
       ],
     ]);
 
+    $this->libraryPolicy->expects($this->any())
+      ->method('getSources')
+      ->willReturn([]);
+
     $subscriber = new ResponseCspSubscriber($configFactory, $this->moduleHandler, $this->libraryPolicy);
 
     $this->response->headers->expects($this->once())
@@ -240,6 +248,10 @@ class ResponseCspSubscriberTest extends UnitTestCase {
         'enforce' => TRUE,
       ],
     ]);
+
+    $this->libraryPolicy->expects($this->any())
+      ->method('getSources')
+      ->willReturn([]);
 
     $subscriber = new ResponseCspSubscriber($configFactory, $this->moduleHandler, $this->libraryPolicy);
 
