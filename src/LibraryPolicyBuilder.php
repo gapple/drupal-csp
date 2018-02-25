@@ -45,6 +45,17 @@ class LibraryPolicyBuilder {
   protected $themeHandler;
 
   /**
+   * Static cache of library source information for each extension.
+   *
+   * This reduces lookup calls to the database when generating information for
+   * an extension, or when retrieving data for multiple libraries in an
+   * extension.
+   *
+   * @var array
+   */
+  protected $librarySourcesCache;
+
+  /**
    * Constructs a new Library Parser.
    *
    * @param \Drupal\Core\Cache\CacheBackendInterface $cache
@@ -161,11 +172,17 @@ class LibraryPolicyBuilder {
    *   An array of sources keyed by type.
    */
   protected function getLibrarySources($extension, $name) {
-    $cid = implode(':', ['csp', 'library', $extension, $name]);
+    $cid = implode(':', ['csp', 'libraries', $extension]);
 
-    $cacheItem = $this->cache->get($cid);
-    if ($cacheItem) {
-      return $cacheItem->data;
+    if (!isset($this->librarySourcesCache[$extension])) {
+      $cacheItem = $this->cache->get($cid);
+      if ($cacheItem) {
+        $this->librarySourcesCache[$extension] = $cacheItem->data;
+      }
+    }
+
+    if (isset($this->librarySourcesCache[$extension][$name])) {
+      return $this->librarySourcesCache[$extension][$name];
     }
 
     $libraryInfo = $this->libraryDiscovery->getLibraryByName($extension, $name);
@@ -185,11 +202,12 @@ class LibraryPolicyBuilder {
       }
     }
 
-    $this->cache->set($cid, $sources, Cache::PERMANENT, [
+    $this->librarySourcesCache[$extension][$name] = $sources;
+    $this->cache->set($cid, $this->librarySourcesCache[$extension], Cache::PERMANENT, [
       'library_info',
     ]);
 
-    return $sources;
+    return $this->librarySourcesCache[$extension][$name];
   }
 
   /**
