@@ -76,6 +76,14 @@ class Csp {
     'upgrade-insecure-requests',
   ];
 
+  private static $directiveNameVariables = [
+    'fetchDirectiveNames',
+    'documentDirectiveNames',
+    'navigationDirectiveNames',
+    'reportingDirectiveNames',
+    'otherDirectiveNames',
+  ];
+
   /**
    * If this policy is report-only.
    *
@@ -109,22 +117,30 @@ class Csp {
    * @return bool
    *   True if the directive name is valid.
    */
-  protected function isValidDirectiveName($name) {
-    $directiveNameVariables = [
-      'fetchDirectiveNames',
-      'documentDirectiveNames',
-      'navigationDirectiveNames',
-      'reportingDirectiveNames',
-      'otherDirectiveNames',
-    ];
-
-    foreach ($directiveNameVariables as $directiveNameVariable) {
+  public static function isValidDirectiveName($name) {
+    foreach (self::$directiveNameVariables as $directiveNameVariable) {
       if (in_array($name, static::${$directiveNameVariable})) {
         return TRUE;
       }
     }
 
     return FALSE;
+  }
+
+  /**
+   * Get the valid directive names.
+   *
+   * @return array
+   *   An array of directive names.
+   */
+  public static function getDirectiveNames() {
+    $names = [];
+
+    foreach (self::$directiveNameVariables as $directiveNameVariable) {
+      $names = array_merge($names, static::${$directiveNameVariable});
+    }
+
+    return $names;
   }
 
   /**
