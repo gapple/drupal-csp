@@ -3,14 +3,24 @@
 namespace Drupal\csp\Form;
 
 use Drupal\Component\Utility\UrlHelper;
+use Drupal\Core\Config\ConfigFactoryInterface;
 use Drupal\Core\Form\ConfigFormBase;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\csp\Csp;
+use Drupal\csp\LibraryPolicyBuilder;
+use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
  * Form for editing Content Security Policy module settings.
  */
 class CspSettingsForm extends ConfigFormBase {
+
+  /**
+   * The Library Policy Builder service.
+   *
+   * @var \Drupal\csp\LibraryPolicyBuilder
+   */
+  private $libraryPolicyBuilder;
 
   /**
    * {@inheritdoc}
@@ -29,10 +39,38 @@ class CspSettingsForm extends ConfigFormBase {
   }
 
   /**
+   * Constructs a \Drupal\csp\Form\CspSettingsForm object.
+   *
+   * @param \Drupal\Core\Config\ConfigFactoryInterface $config_factory
+   *   The factory for configuration objects.
+   * @param \Drupal\csp\LibraryPolicyBuilder $libraryPolicyBuilder
+   *   The Library Policy Builder service.
+   */
+  public function __construct(ConfigFactoryInterface $config_factory, LibraryPolicyBuilder $libraryPolicyBuilder) {
+    parent::__construct($config_factory);
+    $this->libraryPolicyBuilder = $libraryPolicyBuilder;
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public static function create(ContainerInterface $container) {
+    return new static(
+      $container->get('config.factory'),
+      $container->get('csp.library_policy_builder')
+    );
+  }
+
+  /**
    * {@inheritdoc}
    */
   public function buildForm(array $form, FormStateInterface $form_state) {
     $config = $this->config('csp.settings');
+    // Script and Style must always be enabled.
+    $autoDirectives = $this->libraryPolicyBuilder->getSources() + [
+      'script-src' => [],
+      'style-src' => [],
+    ];
 
     $form['#attached']['library'][] = 'csp/admin';
 
@@ -123,6 +161,7 @@ class CspSettingsForm extends ConfigFormBase {
       'upgrade-insecure-requests',
     ];
     // Directives which do not support unsafe flags.
+    // @see https://www.w3.org/TR/CSP/#grammardef-ancestor-source-list
     $noUnsafe = [
       'frame-ancestors',
     ];
@@ -160,9 +199,14 @@ class CspSettingsForm extends ConfigFormBase {
         $form[$policyTypeKey]['directives'][$directive] = [
           '#type' => 'container',
         ];
+
+        $forceEnable = isset($autoDirectives[$directive]);
+
         $form[$policyTypeKey]['directives'][$directive]['enable'] = [
           '#type' => 'checkbox',
           '#title' => $directive,
+          '#default_value' => $forceEnable,
+          '#disabled' => $forceEnable,
         ];
         $form[$policyTypeKey]['directives'][$directive]['options'] = [
           '#type' => 'container',
