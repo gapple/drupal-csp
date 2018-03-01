@@ -80,62 +80,95 @@ class ResponseCspSubscriber implements EventSubscriberInterface {
 
     $response = $event->getResponse();
 
-    $policy = new Csp();
-    $policy->reportOnly(!$cspConfig->get('enforce'));
+    foreach (['report-only', 'enforce'] as $policyType) {
 
-    $directives = $this->libraryPolicyBuilder->getSources();
+      if (!$cspConfig->get($policyType . '.enable')) {
+        continue;
+      }
 
-    // TODO 'unsafe-inline' is required by core/ckeditor
-    // When manual policy options are implemented, this can be set as a default,
-    // but optionally disabled
-    // (https://www.drupal.org/project/csp/issues/2895243).
-    // Per-library alterations will allow only enabling unsafe flags when
-    // necessary (https://www.drupal.org/project/csp/issues/2943432).
-    $policy->setDirective('script-src', [Csp::POLICY_SELF, Csp::POLICY_UNSAFE_INLINE]);
-    $policy->setDirective('style-src', [Csp::POLICY_SELF]);
+      $policy = new Csp();
+      $policy->reportOnly($policyType == 'report-only');
 
-    foreach ($directives as $directive => $sources) {
-      $policy->appendDirective($directive, $sources);
+      foreach ($cspConfig->get($policyType . '.directives') as $directiveName => $directiveOptions) {
+
+        if (is_bool($directiveOptions)) {
+          $policy->setDirective($directiveName, TRUE);
+          continue;
+        }
+
+        // This is a directive with a simple array of values.
+        if (!isset($directiveOptions['base'])) {
+          $policy->setDirective($directiveName, $directiveOptions);
+          continue;
+        }
+
+        switch ($directiveOptions['base']) {
+          case 'self':
+            $policy->setDirective($directiveName, "'self'");
+            break;
+
+          case 'none':
+            $policy->setDirective($directiveName, "'none'");
+            break;
+
+          case 'any':
+            $policy->setDirective($directiveName, "*");
+            break;
+        }
+
+        if (!empty($directiveOptions['flags'])) {
+          $policy->appendDirective($directiveName, array_map(function ($value) {
+            return "'" . $value . "'";
+          }, $directiveOptions['flags']));
+        }
+
+        if (!empty($directiveOptions['sources'])) {
+          $policy->appendDirective($directiveName, $directiveOptions['sources']);
+        }
+      }
+
+      foreach ($this->libraryPolicyBuilder->getSources() as $directiveName => $sources) {
+        $policy->appendDirective($directiveName, $sources);
+      }
+
+      // Prior to Drupal 8.6, in order to support IE9, CssCollectionRenderer
+      // outputs more than 31 stylesheets as inline @import statements.
+      // @see https://www.drupal.org/node/2897408
+      // Since checking the actual number of stylesheets included on the page is
+      // more difficult, just check the optimization settings, as in
+      // HtmlResponseAttachmentsProcessor::processAssetLibraries()
+      // @see CssCollectionRenderer::render()
+      // @see HtmlResponseAttachmentsProcessor::processAssetLibraries()
+      if ((
+          version_compare(\Drupal::VERSION, '8.6', '<')
+          || $this->moduleHandler->moduleExists('ie9')
+        ) && (
+          defined('MAINTENANCE_MODE')
+          || !$this->configFactory->get('system.performance')
+            ->get('css.preprocess')
+        )) {
+        $policy->appendDirective('style-src', [Csp::POLICY_UNSAFE_INLINE]);
+      }
+
+      $reportHandler = $cspConfig->get('report.handler');
+      if ($reportHandler == 'csp-module') {
+        $reportUri = Url::fromRoute(
+          'csp.reporturi',
+          ['type' => ($policyType == 'enforce') ? 'enforce' : 'reportOnly'],
+          ['absolute' => TRUE]
+        );
+        $policy->setDirective('report-uri', $reportUri->toString());
+      }
+      elseif ($reportHandler == 'report-uri-com') {
+        $reportUri = 'https://' . $cspConfig->get('report.options.subdomain') . '.report-uri.com/r/d/csp/' . (($policyType == 'enforce') ? 'enforce' : 'reportOnly');
+        $policy->setDirective('report-uri', $reportUri);
+      }
+      elseif ($reportHandler == 'uri') {
+        $policy->setDirective('report-uri', $cspConfig->get('report.options.uri'));
+      }
+
+      $response->headers->set($policy->getHeaderName(), $policy->getHeaderValue());
     }
-
-    // Prior to Drupal 8.6, in order to support IE9, CssCollectionRenderer
-    // outputs more than 31 stylesheets as inline @import statements.
-    // @see https://www.drupal.org/node/2897408
-    // Since checking the actual number of stylesheets included on the page is
-    // more difficult, just check the optimization settings, as in
-    // HtmlResponseAttachmentsProcessor::processAssetLibraries()
-    // @see CssCollectionRenderer::render()
-    // @see HtmlResponseAttachmentsProcessor::processAssetLibraries()
-    if ((
-        version_compare(\Drupal::VERSION, '8.6', '<')
-        || $this->moduleHandler->moduleExists('ie9')
-      ) && (
-        defined('MAINTENANCE_MODE')
-        || !$this->configFactory->get('system.performance')->get('css.preprocess')
-    )) {
-      $policy->appendDirective('style-src', [Csp::POLICY_UNSAFE_INLINE]);
-    }
-
-    $reportHandler = $cspConfig->get('report.handler');
-    if ($reportHandler == 'csp-module') {
-      $reportUri = Url::fromRoute('csp.reporturi',
-        [
-          'type' => $cspConfig->get('enforce') ? 'enforce' : 'reportOnly',
-        ],
-        [
-          'absolute' => TRUE,
-        ]);
-      $policy->setDirective('report-uri', $reportUri->toString());
-    }
-    elseif ($reportHandler == 'report-uri-com') {
-      $reportUri = 'https://' . $cspConfig->get('report.options.subdomain') . '.report-uri.com/r/d/csp/' . ($cspConfig->get('enforce') ? 'enforce' : 'reportOnly');
-      $policy->setDirective('report-uri', $reportUri);
-    }
-    elseif ($reportHandler == 'uri') {
-      $policy->setDirective('report-uri', $cspConfig->get('report.options.uri'));
-    }
-
-    $response->headers->set($policy->getHeaderName(), $policy->getHeaderValue());
   }
 
 }
