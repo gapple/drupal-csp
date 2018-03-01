@@ -4,9 +4,12 @@ csp.settings:
   type: config_object
   label: 'Content Security Policy Settings'
   mapping:
+    report-only:
+      type: csp_policy
+      label: 'Report-Only Policy'
     enforce:
-      type: boolean
-      label: 'Enforce'
+      type: csp_policy
+      label: 'Enforce Policy'
     report:
       type: mapping
       label: 'Reporting'
@@ -15,16 +18,94 @@ csp.settings:
           type: string
           label: 'Handler'
         options:
-          type: csp.report-handler.[%parent.handler]
+          type: csp_report_handler.[%parent.handler]
 
-csp.report-handler.report-uri-com:
+csp_policy:
+  type: mapping
+  label: 'Policy'
+  mapping:
+    enable:
+      type: boolean
+      label: 'Enable'
+    directives:
+      type: sequence
+      label: 'Directives'
+      sequence:
+        type: csp_directive.[%key]
+
+csp_directive_source_list:
+  type: mapping
+  mapping:
+    base:
+      type: string
+      label: 'Base'
+    flags:
+      type: sequence
+      label: 'Flags'
+      sequence:
+        type: string
+    sources:
+      type: sequence
+      label: 'Sources'
+      sequence:
+        type: string
+csp_directive.default-src:
+  type: csp_directive_source_list
+csp_directive.child-src:
+  type: csp_directive_source_list
+csp_directive.connect-src:
+  type: csp_directive_source_list
+csp_directive.font-src:
+  type: csp_directive_source_list
+csp_directive.frame-src:
+  type: csp_directive_source_list
+csp_directive.img-src:
+  type: csp_directive_source_list
+csp_directive.manifest-src:
+  type: csp_directive_source_list
+csp_directive.media-src:
+  type: csp_directive_source_list
+csp_directive.object-src:
+  type: csp_directive_source_list
+csp_directive.script-src:
+  type: csp_directive_source_list
+csp_directive.style-src:
+  type: csp_directive_source_list
+csp_directive.worker-src:
+  type: csp_directive_source_list
+csp_directive.base-uri:
+  type: csp_directive_source_list
+csp_directive.plugin-types:
+  type: sequence
+  sequence:
+    type: string
+csp_directive.sandbox:
+  type: sequence
+  sequence:
+    type: string
+csp_directive.form-action:
+  type: csp_directive_source_list
+# frame-ancestors does not support unsafe flags
+# @see https://www.w3.org/TR/CSP/#grammardef-ancestor-source-list
+csp_directive.frame-ancestors:
+  type: csp_directive_source_list
+csp_directive.block-all-mixed-content:
+  type: boolean
+csp_directive.require-sri-for:
+  type: sequence
+  sequence:
+    type: string
+csp_directive.upgrade-insecure-requests:
+  type: boolean
+
+csp_report_handler.report-uri-com:
   type: mapping
   label: 'Report-URI.com'
   mapping:
     subdomain:
       type: string
       label: 'Subdomain'
-csp.report-handler.uri:
+csp_report_handler.uri:
   type: mapping
   label: 'URI'
   mapping:

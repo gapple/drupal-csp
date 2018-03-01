@@ -1,3 +1,13 @@
-enforce: false
 report:
   handler: csp-module
+report-only:
+  enable: true
+  directives:
+    script-src:
+      base: 'self'
+      flags:
+        - 'unsafe-inline'
+    style-src:
+      base: 'self'
+enforce:
+  enable: false
