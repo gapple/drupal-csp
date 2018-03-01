@@ -62,6 +62,41 @@ class CspSettingsForm extends ConfigFormBase {
   }
 
   /**
+   * Get the directives that should be configurable.
+   *
+   * @return array
+   *   An array of directive names.
+   */
+  private function getConfigurableDirectives() {
+    // Exclude some directives
+    // - Reporting directives have dedicated fields elsewhere in the form.
+    // - 'referrer' is deprecated in favour of the Referrer-Policy header, and
+    //   not supported in most browsers.
+    $directives = array_diff(
+      Csp::getDirectiveNames(),
+      ['report-uri', 'report-to', 'referrer']
+    );
+
+    return $directives;
+  }
+
+  /**
+   * Get the directives which don't use a source-list.
+   *
+   * @return array
+   *   An array of directive names.
+   */
+  private function getCustomOptionsDirectives() {
+    return [
+      'plugin-types',
+      'sandbox',
+      'block-all-mixed-content',
+      'require-sri-for',
+      'upgrade-insecure-requests',
+    ];
+  }
+
+  /**
    * {@inheritdoc}
    */
   public function buildForm(array $form, FormStateInterface $form_state) {
@@ -144,31 +179,13 @@ class CspSettingsForm extends ConfigFormBase {
       '#title' => $this->t('Policies'),
     ];
 
-    // Exclude some directives
-    // - Reporting directives have dedicated fields elsewhere in the form.
-    // - 'referrer' is deprecated in favour of the Referrer-Policy header, and
-    //   not supported in most browsers.
-    $directives = array_diff(
-      Csp::getDirectiveNames(),
-      ['report-uri', 'report-to', 'referrer']
-    );
+    $directiveNames = $this->getConfigurableDirectives();
     // These directives may have custom options instead of sources.
-    $customOptionDirectives = [
-      'plugin-types',
-      'sandbox',
-      'block-all-mixed-content',
-      'require-sri-for',
-      'upgrade-insecure-requests',
-    ];
-    // Directives which do not support unsafe flags.
-    // @see https://www.w3.org/TR/CSP/#grammardef-ancestor-source-list
-    $noUnsafe = [
-      'frame-ancestors',
-    ];
+    $customOptionDirectives = $this->getCustomOptionsDirectives();
 
     $policyTypes = [
       'report-only' => $this->t('Report Only'),
-      'enforced' => $this->t('Enforced'),
+      'enforce' => $this->t('Enforced'),
     ];
     foreach ($policyTypes as $policyTypeKey => $policyTypeName) {
       $form[$policyTypeKey] = [
@@ -195,35 +212,35 @@ class CspSettingsForm extends ConfigFormBase {
         ],
       ];
 
-      foreach ($directives as $directive) {
-        $form[$policyTypeKey]['directives'][$directive] = [
+      foreach ($directiveNames as $directiveName) {
+        $form[$policyTypeKey]['directives'][$directiveName] = [
           '#type' => 'container',
         ];
 
-        $forceEnable = isset($autoDirectives[$directive]);
+        $forceEnable = isset($autoDirectives[$directiveName]);
 
-        $form[$policyTypeKey]['directives'][$directive]['enable'] = [
+        $form[$policyTypeKey]['directives'][$directiveName]['enable'] = [
           '#type' => 'checkbox',
-          '#title' => $directive,
+          '#title' => $directiveName,
           '#default_value' => $forceEnable,
           '#disabled' => $forceEnable,
         ];
-        $form[$policyTypeKey]['directives'][$directive]['options'] = [
+        $form[$policyTypeKey]['directives'][$directiveName]['options'] = [
           '#type' => 'container',
           '#states' => [
             'visible' => [
-              ':input[name="' . $policyTypeKey . '[directives][' . $directive . '][enable]"]' => ['checked' => TRUE],
+              ':input[name="' . $policyTypeKey . '[directives][' . $directiveName . '][enable]"]' => ['checked' => TRUE],
             ],
           ],
         ];
 
-        if (in_array($directive, $customOptionDirectives)) {
+        if (in_array($directiveName, $customOptionDirectives)) {
           continue;
         }
 
-        $form[$policyTypeKey]['directives'][$directive]['options']['base'] = [
+        $form[$policyTypeKey]['directives'][$directiveName]['options']['base'] = [
           '#type' => 'radios',
-          '#parents' => [$policyTypeKey, 'directives', $directive, 'base'],
+          '#parents' => [$policyTypeKey, 'directives', $directiveName, 'base'],
           '#options' => [
             'self' => "Self",
             'none' => "None",
@@ -233,21 +250,23 @@ class CspSettingsForm extends ConfigFormBase {
           '#default_value' => 'self',
         ];
 
-        if (!in_array($directive, $noUnsafe)) {
+        // Some directives do not support unsafe flags.
+        // @see https://www.w3.org/TR/CSP/#grammardef-ancestor-source-list
+        if (!in_array($directiveName, ['frame-ancestors'])) {
           // States currently don't work on checkboxes elements, so need to be
           // applied to a wrapper.
           // @see https://www.drupal.org/project/drupal/issues/994360
-          $form[$policyTypeKey]['directives'][$directive]['options']['flags_wrapper'] = [
+          $form[$policyTypeKey]['directives'][$directiveName]['options']['flags_wrapper'] = [
             '#type' => 'container',
             '#states' => [
               'visible' => [
-                [':input[name="' . $policyTypeKey . '[directives][' . $directive . '][base]"]' => ['!value' => 'none']],
+                [':input[name="' . $policyTypeKey . '[directives][' . $directiveName . '][base]"]' => ['!value' => 'none']],
               ],
             ],
           ];
-          $form[$policyTypeKey]['directives'][$directive]['options']['flags_wrapper']['flags'] = [
+          $form[$policyTypeKey]['directives'][$directiveName]['options']['flags_wrapper']['flags'] = [
             '#type' => 'checkboxes',
-            '#parents' => [$policyTypeKey, 'directives', $directive, 'flags'],
+            '#parents' => [$policyTypeKey, 'directives', $directiveName, 'flags'],
             '#options' => [
               'unsafe-inline' => "<code>'unsafe-inline'</code>",
               'unsafe-eval' => "<code>'unsafe-eval'</code>",
@@ -255,14 +274,14 @@ class CspSettingsForm extends ConfigFormBase {
             '#default_value' => [],
           ];
         }
-        $form[$policyTypeKey]['directives'][$directive]['options']['sources'] = [
+        $form[$policyTypeKey]['directives'][$directiveName]['options']['sources'] = [
           '#type' => 'textfield',
+          '#parents' => [$policyTypeKey, 'directives', $directiveName, 'sources'],
           '#title' => $this->t('Additional Sources'),
           '#description' => $this->t('Additional domains or protocols to allow for this directive.'),
-          '#parents' => [$policyTypeKey, 'directives', $directive, 'sources'],
           '#states' => [
             'visible' => [
-              [':input[name="' . $policyTypeKey . '[directives][' . $directive . '][base]"]' => ['!value' => 'none']],
+              [':input[name="' . $policyTypeKey . '[directives][' . $directiveName . '][base]"]' => ['!value' => 'none']],
             ],
           ],
         ];
