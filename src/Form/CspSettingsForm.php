@@ -297,9 +297,9 @@ class CspSettingsForm extends ConfigFormBase {
         '#default_value' => implode(' ', $config->get($policyTypeKey . '.directives.plugin-types') ?: []),
       ];
 
-      $form[$policyTypeKey]['directives']['sandbox']['options']['values'] = [
+      $form[$policyTypeKey]['directives']['sandbox']['options']['keys'] = [
         '#type' => 'checkboxes',
-        '#parents' => [$policyTypeKey, 'directives', 'sandbox', 'values'],
+        '#parents' => [$policyTypeKey, 'directives', 'sandbox', 'keys'],
         '#options' => [
           'allow-forms' => '<code>allow-forms</code>',
           'allow-modals' => '<code>allow-modals</code>',
@@ -315,9 +315,9 @@ class CspSettingsForm extends ConfigFormBase {
         '#default_value' => $config->get($policyTypeKey . '.directives.sandbox') ?: [],
       ];
 
-      $form[$policyTypeKey]['directives']['require-sri-for']['options']['directives'] = [
+      $form[$policyTypeKey]['directives']['require-sri-for']['options']['keys'] = [
         '#type' => 'checkboxes',
-        '#parents' => [$policyTypeKey, 'directives', 'require-sri-for', 'directives'],
+        '#parents' => [$policyTypeKey, 'directives', 'require-sri-for', 'keys'],
         '#options' => [
           'script' => '<code>script</code>',
           'style' => '<code>style</code>',
@@ -378,6 +378,61 @@ class CspSettingsForm extends ConfigFormBase {
     }
     else {
       $config->clear('report.options');
+    }
+
+    $directiveNames = $this->getConfigurableDirectives();
+    $booleanDirectives = ['block-all-mixed-content', 'upgrade-insecure-requests'];
+    $arrayDirectives = ['plugin-types', 'sandbox', 'require-sri-for'];
+    $customOptionsDirectives = $this->getCustomOptionsDirectives();
+    foreach (['report-only', 'enforce'] as $policyTypeKey) {
+      $config->clear($policyTypeKey);
+
+      $policyFormData = $form_state->getValue($policyTypeKey);
+
+      $config->set($policyTypeKey . '.enable', !empty($policyFormData['enable']));
+      if (empty($policyFormData['enable'])) {
+        continue;
+      }
+
+      foreach ($directiveNames as $directiveName) {
+        $directiveFormData = $policyFormData['directives'][$directiveName];
+        $directiveOptions = [];
+
+        if (empty($directiveFormData['enable'])) {
+          continue;
+        }
+
+        if (in_array($directiveName, $booleanDirectives)) {
+          $directiveOptions = TRUE;
+        }
+        elseif (in_array($directiveName, $arrayDirectives)) {
+          if ($directiveName == 'plugin-types') {
+            if (!empty($directiveFormData['mime-types'])) {
+              $directiveOptions = preg_split('/,? /', $directiveFormData['mime-types']);
+            }
+          }
+          else {
+            $directiveOptions = array_keys(array_filter($directiveFormData['keys']));
+          }
+        }
+        elseif (!in_array($directiveName, $customOptionsDirectives)) {
+          $directiveOptions['base'] = $directiveFormData['base'];
+          if (!empty($directiveFormData['sources'])) {
+            $directiveOptions['sources'] = $sources = preg_split('/,? /', $directiveFormData['sources']);
+          }
+          if ($directiveName != 'frame-ancestors') {
+            $directiveFormData['flags'] = array_filter($directiveFormData['flags']);
+            if (!empty($directiveFormData['flags'])) {
+              $directiveOptions['flags'] = array_keys($directiveFormData['flags']);
+            }
+          }
+        }
+
+        if (!empty($directiveOptions)) {
+          $config->set($policyTypeKey . '.directives.' . $directiveName, $directiveOptions);
+        }
+      }
+
     }
 
     $config->save();
