@@ -198,6 +198,7 @@ class CspSettingsForm extends ConfigFormBase {
       $form[$policyTypeKey]['enable'] = [
         '#type' => 'checkbox',
         '#title' => $this->t("Enable '@type'", ['@type' => $policyTypeName]),
+        '#default_value' => $config->get($policyTypeKey . '.enable'),
       ];
 
       $form[$policyTypeKey]['directives'] = [
@@ -222,7 +223,7 @@ class CspSettingsForm extends ConfigFormBase {
         $form[$policyTypeKey]['directives'][$directiveName]['enable'] = [
           '#type' => 'checkbox',
           '#title' => $directiveName,
-          '#default_value' => $forceEnable,
+          '#default_value' => $forceEnable || !empty($config->get($policyTypeKey . '.directives.' . $directiveName)),
           '#disabled' => $forceEnable,
         ];
         $form[$policyTypeKey]['directives'][$directiveName]['options'] = [
@@ -238,6 +239,7 @@ class CspSettingsForm extends ConfigFormBase {
           continue;
         }
 
+        $sourceListBase = $config->get($policyTypeKey . '.directives.' . $directiveName . '.base');
         $form[$policyTypeKey]['directives'][$directiveName]['options']['base'] = [
           '#type' => 'radios',
           '#parents' => [$policyTypeKey, 'directives', $directiveName, 'base'],
@@ -247,7 +249,7 @@ class CspSettingsForm extends ConfigFormBase {
             'any' => "Any",
             '' => '<em>n/a</em>',
           ],
-          '#default_value' => 'self',
+          '#default_value' => $sourceListBase !== NULL ? $sourceListBase : 'self',
         ];
 
         // Some directives do not support unsafe flags.
@@ -271,7 +273,7 @@ class CspSettingsForm extends ConfigFormBase {
               'unsafe-inline' => "<code>'unsafe-inline'</code>",
               'unsafe-eval' => "<code>'unsafe-eval'</code>",
             ],
-            '#default_value' => [],
+            '#default_value' => $config->get($policyTypeKey . '.directives.' . $directiveName . '.flags') ?: [],
           ];
         }
         $form[$policyTypeKey]['directives'][$directiveName]['options']['sources'] = [
@@ -279,6 +281,7 @@ class CspSettingsForm extends ConfigFormBase {
           '#parents' => [$policyTypeKey, 'directives', $directiveName, 'sources'],
           '#title' => $this->t('Additional Sources'),
           '#description' => $this->t('Additional domains or protocols to allow for this directive.'),
+          '#default_value' => implode(' ', $config->get($policyTypeKey . '.directives.' . $directiveName . '.sources') ?: []),
           '#states' => [
             'visible' => [
               [':input[name="' . $policyTypeKey . '[directives][' . $directiveName . '][base]"]' => ['!value' => 'none']],
@@ -291,6 +294,7 @@ class CspSettingsForm extends ConfigFormBase {
         '#type' => 'textfield',
         '#parents' => [$policyTypeKey, 'directives', 'plugin-types', 'mime-types'],
         '#title' => $this->t('MIME Types'),
+        '#default_value' => implode(' ', $config->get($policyTypeKey . '.directives.plugin-types') ?: []),
       ];
 
       $form[$policyTypeKey]['directives']['sandbox']['options']['values'] = [
@@ -308,6 +312,7 @@ class CspSettingsForm extends ConfigFormBase {
           'allow-scripts' => '<code>allow-scripts</code>',
           'allow-top-navigation' => '<code>allow-top-navigation</code>',
         ],
+        '#default_value' => $config->get($policyTypeKey . '.directives.sandbox') ?: [],
       ];
 
       $form[$policyTypeKey]['directives']['require-sri-for']['options']['directives'] = [
@@ -317,6 +322,7 @@ class CspSettingsForm extends ConfigFormBase {
           'script' => '<code>script</code>',
           'style' => '<code>style</code>',
         ],
+        '#default_value' => $config->get($policyTypeKey . '.directives.require-sri-for') ?: [],
       ];
     }
 
