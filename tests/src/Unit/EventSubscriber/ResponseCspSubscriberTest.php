@@ -104,7 +104,17 @@ class ResponseCspSubscriberTest extends UnitTestCase {
         'css.preprocess' => FALSE,
       ],
       'csp.settings' => [
-        'enforce' => FALSE,
+        'report-only' => [
+          'enable' => TRUE,
+          'directives' => [
+            'script-src' => [
+              'base' => 'self',
+            ],
+          ],
+        ],
+        'enforce' => [
+          'enable' => FALSE,
+        ],
       ],
     ]);
 
@@ -141,7 +151,23 @@ class ResponseCspSubscriberTest extends UnitTestCase {
         'css.preprocess' => FALSE,
       ],
       'csp.settings' => [
-        'enforce' => FALSE,
+        'report-only' => [
+          'enable' => TRUE,
+          'directives' => [
+            'script-src' => [
+              'base' => 'self',
+              'flags' => [
+                'unsafe-inline',
+              ],
+            ],
+            'style-src' => [
+              'base' => 'self',
+            ],
+          ],
+        ],
+        'enforce' => [
+          'enable' => FALSE,
+        ],
       ],
     ]);
 
@@ -174,7 +200,23 @@ class ResponseCspSubscriberTest extends UnitTestCase {
         'css.preprocess' => FALSE,
       ],
       'csp.settings' => [
-        'enforce' => FALSE,
+        'report-only' => [
+          'enable' => TRUE,
+          'directives' => [
+            'script-src' => [
+              'base' => 'self',
+              'flags' => [
+                'unsafe-inline',
+              ],
+            ],
+            'style-src' => [
+              'base' => 'self',
+            ],
+          ],
+        ],
+        'enforce' => [
+          'enable' => FALSE,
+        ],
       ],
     ]);
 
@@ -212,7 +254,23 @@ class ResponseCspSubscriberTest extends UnitTestCase {
         'css.preprocess' => TRUE,
       ],
       'csp.settings' => [
-        'enforce' => FALSE,
+        'report-only' => [
+          'enable' => TRUE,
+          'directives' => [
+            'script-src' => [
+              'base' => 'self',
+              'flags' => [
+                'unsafe-inline',
+              ],
+            ],
+            'style-src' => [
+              'base' => 'self',
+            ],
+          ],
+        ],
+        'enforce' => [
+          'enable' => FALSE,
+        ],
       ],
     ]);
 
@@ -245,7 +303,23 @@ class ResponseCspSubscriberTest extends UnitTestCase {
         'css.preprocess' => TRUE,
       ],
       'csp.settings' => [
-        'enforce' => TRUE,
+        'enforce' => [
+          'enable' => TRUE,
+          'directives' => [
+            'script-src' => [
+              'base' => 'self',
+              'flags' => [
+                'unsafe-inline',
+              ],
+            ],
+            'style-src' => [
+              'base' => 'self',
+            ],
+          ],
+        ],
+        'report-only' => [
+          'enable' => FALSE,
+        ],
       ],
     ]);
 
@@ -260,6 +334,72 @@ class ResponseCspSubscriberTest extends UnitTestCase {
       ->with(
         $this->equalTo('Content-Security-Policy'),
         $this->equalTo("script-src 'self' 'unsafe-inline'; style-src 'self'")
+      );
+
+    $subscriber->onKernelResponse($this->event);
+  }
+
+  /**
+   * Check the generated headers with both policies enabled.
+   *
+   * @covers ::onKernelResponse
+   */
+  public function testBothPolicies() {
+
+    /** @var \Drupal\Core\Config\ConfigFactoryInterface|\PHPUnit_Framework_MockObject_MockObject $configFactory */
+    $configFactory = $this->getConfigFactoryStub([
+      'system.performance' => [
+        'css.preprocess' => TRUE,
+      ],
+      'csp.settings' => [
+        'report-only' => [
+          'enable' => TRUE,
+          'directives' => [
+            'script-src' => [
+              'base' => 'any',
+              'flags' => [
+                'unsafe-inline',
+              ],
+            ],
+            'style-src' => [
+              'base' => 'any',
+              'flags' => [
+                'unsafe-inline',
+              ],
+            ],
+          ],
+        ],
+        'enforce' => [
+          'enable' => TRUE,
+          'directives' => [
+            'script-src' => [
+              'base' => 'self',
+            ],
+            'style-src' => [
+              'base' => 'self',
+            ],
+          ],
+        ],
+      ],
+    ]);
+
+    $this->libraryPolicy->expects($this->any())
+      ->method('getSources')
+      ->willReturn([]);
+
+    $subscriber = new ResponseCspSubscriber($configFactory, $this->moduleHandler, $this->libraryPolicy);
+
+    $this->response->headers->expects($this->exactly(2))
+      ->method('set')
+      ->withConsecutive(
+        [
+          $this->equalTo('Content-Security-Policy-Report-Only'),
+          $this->equalTo("script-src * 'unsafe-inline'; style-src * 'unsafe-inline'"),
+        ],
+        [
+          $this->equalTo('Content-Security-Policy'),
+          $this->equalTo("script-src 'self'; style-src 'self'"),
+        ]
       );
 
     $subscriber->onKernelResponse($this->event);
