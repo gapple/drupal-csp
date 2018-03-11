@@ -351,6 +351,16 @@ class CspSettingsForm extends ConfigFormBase {
       ];
     }
 
+    // Skip this check when building the form before validation/submission.
+    if (empty($form_state->getUserInput())) {
+      $enabledPolicies = array_filter(array_keys($policyTypes), function ($policyTypeKey) use ($config) {
+        return $config->get($policyTypeKey . '.enable');
+      });
+      if (empty($enabledPolicies)) {
+        drupal_set_message($this->t('No policies are currently enabled.'), 'warning');
+      }
+    }
+
     return parent::buildForm($form, $form_state);
   }
 
