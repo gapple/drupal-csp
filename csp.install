@@ -52,3 +52,38 @@ function csp_update_8002() {
     ->set('report.handler', 'csp-module')
     ->save();
 }
+
+/**
+ * Update configuration format.
+ */
+function csp_update_8003() {
+  $config = \Drupal::configFactory()->getEditable('csp.settings');
+
+  $enabledPolicy = 'report-only';
+  $disabledPolicy = 'enforce';
+
+  if ($config->get('enforce')) {
+    $enabledPolicy = 'enforce';
+    $disabledPolicy = 'report-only';
+  }
+
+  $config
+    ->set($enabledPolicy, [
+      'enable' => TRUE,
+      'directives' => [
+        'script-src' => [
+          'base' => 'self',
+          'flags' => [
+            'unsafe-inline',
+          ],
+        ],
+        'style-src' => [
+          'base' => 'self',
+        ],
+      ],
+    ])
+    ->set($disabledPolicy, [
+      'enable' => FALSE,
+    ])
+    ->save();
+}

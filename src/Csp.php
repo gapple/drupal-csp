@@ -156,6 +156,12 @@ class Csp {
       throw new \InvalidArgumentException("Invalid directive name provided");
     }
 
+    // TODO Validate that the specified directive is a boolean type.
+    if (gettype($value) == 'boolean') {
+      $this->directives[$name] = $value;
+      return;
+    }
+
     $this->directives[$name] = [];
     if (empty($value)) {
       return;
@@ -229,6 +235,11 @@ class Csp {
 
     foreach ($this->directives as $name => $value) {
       if (empty($value)) {
+        continue;
+      }
+
+      if (gettype($value) == 'boolean') {
+        $output[] = $name;
         continue;
       }
 
