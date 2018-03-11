@@ -112,4 +112,3 @@ csp_report_handler.uri:
     uri:
       type: uri
       label: 'URI'
-

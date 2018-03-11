@@ -8,7 +8,6 @@ use Drupal\Core\Cache\Cache;
 use Drupal\Core\Cache\CacheBackendInterface;
 use Drupal\Core\Extension\ModuleHandlerInterface;
 use Drupal\Core\Extension\ThemeHandlerInterface;
-use Drupal\Core\Theme\ThemeManagerInterface;
 use GuzzleHttp\Psr7\Uri;
 
 /**

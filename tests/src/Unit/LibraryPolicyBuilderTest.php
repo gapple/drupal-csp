@@ -6,8 +6,6 @@ use Drupal\Core\Asset\LibraryDiscovery;
 use Drupal\Core\Cache\MemoryBackend;
 use Drupal\Core\Extension\ModuleHandler;
 use Drupal\Core\Extension\ThemeHandler;
-use Drupal\Core\Theme\ActiveTheme;
-use Drupal\Core\Theme\ThemeManager;
 use Drupal\csp\LibraryPolicyBuilder;
 use Drupal\Tests\UnitTestCase;
 
