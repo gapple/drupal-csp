@@ -195,6 +195,10 @@ class CspSettingsForm extends ConfigFormBase {
         '#tree' => TRUE,
       ];
 
+      if ($config->get($policyTypeKey . '.enable')) {
+        $form['policies']['#default_tab'] = 'edit-' . $policyTypeKey;
+      }
+
       $form[$policyTypeKey]['enable'] = [
         '#type' => 'checkbox',
         '#title' => $this->t("Enable '@type'", ['@type' => $policyTypeName]),
