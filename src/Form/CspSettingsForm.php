@@ -304,6 +304,17 @@ class CspSettingsForm extends ConfigFormBase {
         ];
       }
 
+      if ($policyTypeKey === 'enforce') {
+        // block-all-mixed content is a no-op if upgrade-insecure-requests is
+        // enabled.
+        // @see https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Security-Policy/block-all-mixed-content
+        $form[$policyTypeKey]['directives']['block-all-mixed-content']['#states'] = [
+          'disabled' => [
+            [':input[name="' . $policyTypeKey . '[directives][upgrade-insecure-requests][enable]"]' => ['checked' => TRUE]],
+          ],
+        ];
+      }
+
       $form[$policyTypeKey]['directives']['plugin-types']['options']['mime-types'] = [
         '#type' => 'textfield',
         '#parents' => [$policyTypeKey, 'directives', 'plugin-types', 'mime-types'],
