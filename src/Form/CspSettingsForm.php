@@ -182,6 +182,12 @@ class CspSettingsForm extends ConfigFormBase {
     $directiveNames = $this->getConfigurableDirectives();
     // These directives may have custom options instead of sources.
     $customOptionDirectives = $this->getCustomOptionsDirectives();
+    $enforceOnlyDirectives = [
+      // upgrade-insecure-requests is ignored when sent via a
+      // Content-Security-Policy-Report-Only header.
+      // @see https://w3c.github.io/webappsec-upgrade-insecure-requests/#delivery
+      'upgrade-insecure-requests',
+    ];
 
     $policyTypes = [
       'report-only' => $this->t('Report Only'),
@@ -218,6 +224,10 @@ class CspSettingsForm extends ConfigFormBase {
       ];
 
       foreach ($directiveNames as $directiveName) {
+        if ($policyTypeKey !== 'enforce' && in_array($directiveName, $enforceOnlyDirectives)) {
+          continue;
+        }
+
         $form[$policyTypeKey]['directives'][$directiveName] = [
           '#type' => 'container',
         ];
@@ -399,6 +409,10 @@ class CspSettingsForm extends ConfigFormBase {
       }
 
       foreach ($directiveNames as $directiveName) {
+        if (empty($policyFormData['directives'][$directiveName])) {
+          continue;
+        }
+
         $directiveFormData = $policyFormData['directives'][$directiveName];
         $directiveOptions = [];
 
