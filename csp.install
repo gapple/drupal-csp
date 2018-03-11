@@ -11,25 +11,46 @@
 function csp_requirements($phase) {
   $requirements = [];
 
-  if (
-    $phase === 'runtime'
-    && (
+  if ($phase === 'runtime') {
+    if ((
       version_compare(\Drupal::VERSION, '8.6', '<')
       || \Drupal::moduleHandler()->moduleExists('ie9')
     )
-    && !\Drupal::configFactory()->get('system.performance')->get('css.preprocess')
+    && !\Drupal::config('system.performance')->get('css.preprocess')
     ) {
-    $requirements['csp_ie9'] = [
-      'title' => 'Content-Security-Policy IE9',
-      'value' => "'unsafe-inline'",
-      'description' => t(
-        'Support for IE9 requires allowing inline styles when CSS aggregation is disabled.  <br><a href=":system-performance">Enable CSS aggregation</a> to prevent allowing inline CSS.',
-        [
-          ':system-performance' => \Drupal::urlGenerator()->generateFromRoute('system.performance_settings'),
-        ]
-      ),
-      'severity' => REQUIREMENT_WARNING,
-    ];
+      $requirements['csp_ie9'] = [
+        'title' => 'Content Security Policy IE9',
+        'value' => "'unsafe-inline'",
+        'description' => t(
+          'Support for IE9 requires allowing inline styles when CSS aggregation is disabled.  <br><a href=":system-performance">Enable CSS aggregation</a> to prevent allowing inline CSS.',
+          [
+            ':system-performance' => \Drupal::urlGenerator()
+              ->generateFromRoute('system.performance_settings'),
+          ]
+        ),
+        'severity' => REQUIREMENT_WARNING,
+      ];
+    }
+
+    $cspSettingsConfig = \Drupal::config('csp.settings');
+
+    $enabledPolicies = array_filter(['report-only', 'enforce'], function ($policyTypeKey) use ($cspSettingsConfig) {
+      return $cspSettingsConfig->get($policyTypeKey . '.enable');
+    });
+    if (empty($enabledPolicies)) {
+      $requirements['csp_enabled'] = [
+        'title' => 'Content Security Policy',
+        'value' => t('No Content Security Policy headers are currently enabled.'),
+        'description' => t(
+          'Enable a header via <a href=":csp-settings">the Content Security Policy settings</a>.',
+          [
+            ':csp-settings' => \Drupal::urlGenerator()
+              ->generateFromRoute('csp.settings'),
+          ]
+        ),
+        'severity' => REQUIREMENT_WARNING,
+      ];
+    }
   }
 
   return $requirements;
