@@ -494,13 +494,15 @@ class CspSettingsForm extends ConfigFormBase {
         }
         elseif (!in_array($directiveName, $customOptionsDirectives)) {
           $directiveOptions['base'] = $directiveFormData['base'];
-          if (!empty($directiveFormData['sources'])) {
-            $directiveOptions['sources'] = $sources = preg_split('/,?\s+/', $directiveFormData['sources']);
-          }
-          if ($directiveName != 'frame-ancestors') {
-            $directiveFormData['flags'] = array_filter($directiveFormData['flags']);
-            if (!empty($directiveFormData['flags'])) {
-              $directiveOptions['flags'] = array_keys($directiveFormData['flags']);
+          if ($directiveOptions['base'] !== 'none') {
+            if (!empty($directiveFormData['sources'])) {
+              $directiveOptions['sources'] = array_filter(preg_split('/,?\s+/', $directiveFormData['sources']));
+            }
+            if ($directiveName != 'frame-ancestors') {
+              $directiveFormData['flags'] = array_filter($directiveFormData['flags']);
+              if (!empty($directiveFormData['flags'])) {
+                $directiveOptions['flags'] = array_keys($directiveFormData['flags']);
+              }
             }
           }
         }
