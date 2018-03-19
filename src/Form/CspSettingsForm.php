@@ -315,6 +315,12 @@ class CspSettingsForm extends ConfigFormBase {
         ];
       }
 
+      $form[$policyTypeKey]['directives']['plugin-types']['#states'] = [
+        'visible' => [
+          [':input[name="' . $policyTypeKey . '[directives][object-src][base]"]' => ['!value' => 'none']],
+        ],
+      ];
+
       $form[$policyTypeKey]['directives']['plugin-types']['options']['mime-types'] = [
         '#type' => 'textfield',
         '#parents' => [$policyTypeKey, 'directives', 'plugin-types', 'mime-types'],
