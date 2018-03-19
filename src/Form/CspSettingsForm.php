@@ -290,6 +290,15 @@ class CspSettingsForm extends ConfigFormBase {
             '#default_value' => $config->get($policyTypeKey . '.directives.' . $directiveName . '.flags') ?: [],
           ];
         }
+        if (!empty($autoDirectives[$directiveName])) {
+          $form[$policyTypeKey]['directives'][$directiveName]['options']['auto'] = [
+            '#type' => 'textfield',
+            '#parents' => [$policyTypeKey, 'directives', $directiveName, 'auto'],
+            '#title' => 'Auto Sources',
+            '#value' => implode(' ', $autoDirectives[$directiveName]),
+            '#disabled' => TRUE,
+          ];
+        }
         $form[$policyTypeKey]['directives'][$directiveName]['options']['sources'] = [
           '#type' => 'textfield',
           '#parents' => [$policyTypeKey, 'directives', $directiveName, 'sources'],
