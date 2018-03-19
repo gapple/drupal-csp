@@ -388,6 +388,29 @@ class CspSettingsForm extends ConfigFormBase {
       }
     }
 
+    foreach (['report-only', 'enforce'] as $policyTypeKey) {
+
+      // Don't validate if not enabled; value will be skipped on save.
+      if ($form_state->getValue([$policyTypeKey, 'directives', 'plugin-types', 'enable'])) {
+        $invalidTypes = array_reduce(
+          preg_split(
+            '/,?\s+/',
+            $form_state->getValue([$policyTypeKey, 'directives', 'plugin-types', 'mime-types'], '')
+          ),
+          function ($return, $value) {
+            return $return || !preg_match('<^([\w-]+/[\w-]+)?$>', $value);
+          },
+          FALSE
+        );
+        if ($invalidTypes) {
+          $form_state->setError(
+            $form[$policyTypeKey]['directives']['plugin-types']['options']['mime-types'],
+            $this->t('Invalid MIME-Type provided.')
+          );
+        }
+      }
+    }
+
     parent::validateForm($form, $form_state);
   }
 
@@ -453,7 +476,7 @@ class CspSettingsForm extends ConfigFormBase {
         elseif (in_array($directiveName, $arrayDirectives)) {
           if ($directiveName == 'plugin-types') {
             if (!empty($directiveFormData['mime-types'])) {
-              $directiveOptions = preg_split('/,? /', $directiveFormData['mime-types']);
+              $directiveOptions = preg_split('/,?\s+/', $directiveFormData['mime-types']);
             }
           }
           else {
@@ -463,7 +486,7 @@ class CspSettingsForm extends ConfigFormBase {
         elseif (!in_array($directiveName, $customOptionsDirectives)) {
           $directiveOptions['base'] = $directiveFormData['base'];
           if (!empty($directiveFormData['sources'])) {
-            $directiveOptions['sources'] = $sources = preg_split('/,? /', $directiveFormData['sources']);
+            $directiveOptions['sources'] = $sources = preg_split('/,?\s+/', $directiveFormData['sources']);
           }
           if ($directiveName != 'frame-ancestors') {
             $directiveFormData['flags'] = array_filter($directiveFormData['flags']);
