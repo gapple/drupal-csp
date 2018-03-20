@@ -399,6 +399,25 @@ class CspSettingsForm extends ConfigFormBase {
 
     foreach (['report-only', 'enforce'] as $policyTypeKey) {
 
+      $directiveNames = $this->getConfigurableDirectives();
+      foreach ($directiveNames as $directiveName) {
+        if (($directiveSources = $form_state->getValue([$policyTypeKey, 'directives', $directiveName, 'sources']))) {
+          $invalidSources = array_reduce(
+            preg_split('/,?\s+/', $directiveSources),
+            function ($return, $value) {
+              return $return || !(preg_match('<^([a-z]+:)?$>', $value) || static::isValidHost($value));
+            },
+            FALSE
+          );
+          if ($invalidSources) {
+            $form_state->setError(
+              $form[$policyTypeKey]['directives'][$directiveName]['options']['sources'],
+              $this->t('Invalid domain or protocol provided.')
+            );
+          }
+        }
+      }
+
       // Don't validate if not enabled; value will be skipped on save.
       if ($form_state->getValue([$policyTypeKey, 'directives', 'plugin-types', 'enable'])) {
         $invalidTypes = array_reduce(
@@ -421,6 +440,38 @@ class CspSettingsForm extends ConfigFormBase {
     }
 
     parent::validateForm($form, $form_state);
+  }
+
+  /**
+   * Verifies the syntax of the given URL.
+   *
+   * Similar to UrlHelper::isValid(), except:
+   * - protocol is optional; can only be http or https.
+   * - domains must have at least a top-level and secondary domain.
+   * - query is not allowed.
+   *
+   * @param string $url
+   *   The URL to verify.
+   *
+   * @return bool
+   *   TRUE if the URL is in a valid format, FALSE otherwise.
+   */
+  private static function isValidHost($url) {
+    return (bool) preg_match("
+        /^                                                      # Start at the beginning of the text
+        (?:https?:\/\/)?                                        # Look for http or https schemes (optional)
+        (?:
+          (?:                                                   # A domain name or a IPv4 address
+            (?:(?:[a-z0-9\-\.]|%[0-9a-f]{2})+\.)+
+            (?:[a-z0-9\-\.]|%[0-9a-f]{2})+
+          )
+          |(?:\[(?:[0-9a-f]{0,4}:)*(?:[0-9a-f]{0,4})\])         # or a well formed IPv6 address
+        )
+        (?::[0-9]+)?                                            # Server port number (optional)
+        (?:[\/|\?]
+          (?:[\w#!:\.\+=&@$'~*,;\/\(\)\[\]\-]|%[0-9a-f]{2})     # The path (optional)
+        *)?
+      $/xi", $url);
   }
 
   /**
