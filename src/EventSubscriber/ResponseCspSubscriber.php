@@ -140,6 +140,7 @@ class ResponseCspSubscriber implements EventSubscriberInterface {
       // @see CssCollectionRenderer::render()
       // @see HtmlResponseAttachmentsProcessor::processAssetLibraries()
       if ((
+          TRUE ||
           version_compare(\Drupal::VERSION, '8.6', '<')
           || $this->moduleHandler->moduleExists('ie9')
         ) && (

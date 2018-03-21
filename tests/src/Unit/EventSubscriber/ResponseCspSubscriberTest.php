@@ -94,9 +94,9 @@ class ResponseCspSubscriberTest extends UnitTestCase {
    */
   public function testUnoptimizedResponse85() {
 
-    if (version_compare(\Drupal::VERSION, '8.6', '>=')) {
-      $this->markTestSkipped("Test for drupal/core <=8.5");
-    }
+//    if (version_compare(\Drupal::VERSION, '8.6', '>=')) {
+//      $this->markTestSkipped("Test for drupal/core <=8.5");
+//    }
 
     /** @var \Drupal\Core\Config\ConfigFactoryInterface|\PHPUnit_Framework_MockObject_MockObject $configFactory */
     $configFactory = $this->getConfigFactoryStub([
@@ -108,6 +108,12 @@ class ResponseCspSubscriberTest extends UnitTestCase {
           'enable' => TRUE,
           'directives' => [
             'script-src' => [
+              'base' => 'self',
+              'flags' => [
+                'unsafe-inline',
+              ],
+            ],
+            'style-src' => [
               'base' => 'self',
             ],
           ],
@@ -141,9 +147,9 @@ class ResponseCspSubscriberTest extends UnitTestCase {
    */
   public function testUnoptimizedResponse86() {
 
-    if (version_compare(\Drupal::VERSION, '8.6', '<')) {
+//    if (version_compare(\Drupal::VERSION, '8.6', '<')) {
       $this->markTestSkipped("Test for drupal/core >=8.6");
-    }
+//    }
 
     /** @var \Drupal\Core\Config\ConfigFactoryInterface|\PHPUnit_Framework_MockObject_MockObject $configFactory */
     $configFactory = $this->getConfigFactoryStub([
