@@ -270,6 +270,10 @@ class CspSettingsForm extends ConfigFormBase {
           ],
           '#default_value' => $sourceListBase !== NULL ? $sourceListBase : 'self',
         ];
+        // Auto sources make a directive required, so remove the 'none' option.
+        if (isset($autoDirectives[$directiveName])) {
+          unset($form[$policyTypeKey]['directives'][$directiveName]['options']['base']['#options']['none']);
+        }
 
         // Some directives do not support unsafe flags.
         // @see https://www.w3.org/TR/CSP/#grammardef-ancestor-source-list
