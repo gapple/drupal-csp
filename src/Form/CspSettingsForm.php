@@ -6,6 +6,7 @@ use Drupal\Component\Utility\UrlHelper;
 use Drupal\Core\Config\ConfigFactoryInterface;
 use Drupal\Core\Form\ConfigFormBase;
 use Drupal\Core\Form\FormStateInterface;
+use Drupal\Core\Messenger\MessengerInterface;
 use Drupal\csp\Csp;
 use Drupal\csp\LibraryPolicyBuilder;
 use Symfony\Component\DependencyInjection\ContainerInterface;
@@ -45,10 +46,13 @@ class CspSettingsForm extends ConfigFormBase {
    *   The factory for configuration objects.
    * @param \Drupal\csp\LibraryPolicyBuilder $libraryPolicyBuilder
    *   The Library Policy Builder service.
+   * @param \Drupal\Core\Messenger\MessengerInterface|null $messenger
+   *   The Messenger service.
    */
-  public function __construct(ConfigFactoryInterface $config_factory, LibraryPolicyBuilder $libraryPolicyBuilder) {
+  public function __construct(ConfigFactoryInterface $config_factory, LibraryPolicyBuilder $libraryPolicyBuilder, MessengerInterface $messenger = NULL) {
     parent::__construct($config_factory);
     $this->libraryPolicyBuilder = $libraryPolicyBuilder;
+    $this->messenger = $messenger;
   }
 
   /**
@@ -57,7 +61,8 @@ class CspSettingsForm extends ConfigFormBase {
   public static function create(ContainerInterface $container) {
     return new static(
       $container->get('config.factory'),
-      $container->get('csp.library_policy_builder')
+      $container->get('csp.library_policy_builder'),
+      $container->get('messenger', ContainerInterface::NULL_ON_INVALID_REFERENCE)
     );
   }
 
@@ -372,7 +377,16 @@ class CspSettingsForm extends ConfigFormBase {
         return $config->get($policyTypeKey . '.enable');
       });
       if (empty($enabledPolicies)) {
-        drupal_set_message($this->t('No policies are currently enabled.'), 'warning');
+        $message = $this->t('No policies are currently enabled.');
+        // $this->messenger() is available via MessengerTrait in 8.5+.
+        if (method_exists($this, 'messenger')) {
+          $this->messenger()->addWarning($message);
+        }
+        else {
+          // TODO: Remove drupal_set_message() once Drupal 8.4 is no longer
+          // supported.
+          drupal_set_message($message, 'warning');
+        }
       }
     }
 
