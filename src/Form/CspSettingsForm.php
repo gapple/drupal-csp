@@ -535,7 +535,10 @@ class CspSettingsForm extends ConfigFormBase {
         }
         elseif (in_array($directiveName, $arrayDirectives)) {
           if ($directiveName == 'plugin-types') {
-            if (!empty($directiveFormData['mime-types'])) {
+            // If "object-src: none" all plugins will be blocked even if type is
+            // allowed.  The form field is hidden and skips validation, so make
+            // sure value is not saved.
+            if (!empty($directiveFormData['mime-types']) && $policyFormData['directives']['object-src']['base'] != 'none') {
               $directiveOptions = preg_split('/,?\s+/', $directiveFormData['mime-types']);
             }
           }
