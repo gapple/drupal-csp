@@ -301,7 +301,7 @@ class CspSettingsForm extends ConfigFormBase {
         }
         if (!empty($autoDirectives[$directiveName])) {
           $form[$policyTypeKey]['directives'][$directiveName]['options']['auto'] = [
-            '#type' => 'textfield',
+            '#type' => 'textarea',
             '#parents' => [$policyTypeKey, 'directives', $directiveName, 'auto'],
             '#title' => 'Auto Sources',
             '#value' => implode(' ', $autoDirectives[$directiveName]),
@@ -309,7 +309,7 @@ class CspSettingsForm extends ConfigFormBase {
           ];
         }
         $form[$policyTypeKey]['directives'][$directiveName]['options']['sources'] = [
-          '#type' => 'textfield',
+          '#type' => 'textarea',
           '#parents' => [$policyTypeKey, 'directives', $directiveName, 'sources'],
           '#title' => $this->t('Additional Sources'),
           '#description' => $this->t('Additional domains or protocols to allow for this directive.'),
