@@ -271,7 +271,7 @@ class CspSettingsForm extends ConfigFormBase {
           '#default_value' => $sourceListBase !== NULL ? $sourceListBase : 'self',
         ];
         // Auto sources make a directive required, so remove the 'none' option.
-        if (isset($autoDirectives[$directiveName])) {
+        if ($forceEnable) {
           unset($form[$policyTypeKey]['directives'][$directiveName]['options']['base']['#options']['none']);
         }
 
@@ -295,6 +295,10 @@ class CspSettingsForm extends ConfigFormBase {
             '#options' => [
               'unsafe-inline' => "<code>'unsafe-inline'</code>",
               'unsafe-eval' => "<code>'unsafe-eval'</code>",
+              'unsafe-hashes' => "<code>'unsafe-hashes'</code>",
+              'unsafe-allow-redirects' => "<code>'unsafe-allow-redirects'</code>",
+              'strict-dynamic' => "<code>'strict-dynamic'</code>",
+              'report-sample' => "<code>'report-sample'</code>",
             ],
             '#default_value' => $config->get($policyTypeKey . '.directives.' . $directiveName . '.flags') ?: [],
           ];

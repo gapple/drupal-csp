@@ -18,6 +18,8 @@ class Csp {
    * The available fetch directive keys.
    *
    * @var array
+   *
+   * @see https://www.w3.org/TR/CSP3/#directives-fetch
    */
   private static $fetchDirectiveNames = [
     'default-src',
@@ -29,6 +31,7 @@ class Csp {
     'manifest-src',
     'media-src',
     'object-src',
+    'prefetch-src',
     'script-src',
     'style-src',
     'worker-src',
@@ -38,6 +41,8 @@ class Csp {
    * The available document directive keys.
    *
    * @var array
+   *
+   * @see https://www.w3.org/TR/CSP3/#directives-document
    */
   private static $documentDirectiveNames = [
     'base-uri',
@@ -49,16 +54,21 @@ class Csp {
    * The available navigation directive keys.
    *
    * @var array
+   *
+   * @see https://www.w3.org/TR/CSP3/#directives-navigation
    */
   private static $navigationDirectiveNames = [
     'form-action',
     'frame-ancestors',
+    'navigate-to',
   ];
 
   /**
    * The available reporting directive keys.
    *
    * @var array
+   *
+   * @see https://www.w3.org/TR/CSP3/#directives-reporting
    */
   private static $reportingDirectiveNames = [
     'report-uri',
@@ -69,6 +79,8 @@ class Csp {
    * The available other directive keys.
    *
    * @var array
+   *
+   * @see https://www.w3.org/TR/CSP3/#directives-elsewhere
    */
   private static $otherDirectiveNames = [
     'block-all-mixed-content',
@@ -148,7 +160,7 @@ class Csp {
    *
    * @param string $name
    *   The directive name.
-   * @param array|string $value
+   * @param array|bool|string $value
    *   The directive value.
    */
   public function setDirective($name, $value) {
