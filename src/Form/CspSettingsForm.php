@@ -506,8 +506,7 @@ class CspSettingsForm extends ConfigFormBase {
       'style-src' => [],
     ];
 
-    $config = $this->config('csp.settings')
-      ->set('enforce', $form_state->getValue('enforce'));
+    $config = $this->config('csp.settings');
 
     $reportHandler = $form_state->getValue(['report', 'handler']);
     $config->set('report.handler', $reportHandler);
