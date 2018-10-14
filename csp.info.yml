@@ -2,3 +2,6 @@ name: Content Security Policy
 type: module
 description: Provide Content-Security-Policy headers
 core: 8.x
+
+dependencies:
+- drupal:system (>= 8.5)

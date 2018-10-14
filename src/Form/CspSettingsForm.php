@@ -49,10 +49,10 @@ class CspSettingsForm extends ConfigFormBase {
    * @param \Drupal\Core\Messenger\MessengerInterface|null $messenger
    *   The Messenger service.
    */
-  public function __construct(ConfigFactoryInterface $config_factory, LibraryPolicyBuilder $libraryPolicyBuilder, MessengerInterface $messenger = NULL) {
+  public function __construct(ConfigFactoryInterface $config_factory, LibraryPolicyBuilder $libraryPolicyBuilder, MessengerInterface $messenger) {
     parent::__construct($config_factory);
     $this->libraryPolicyBuilder = $libraryPolicyBuilder;
-    $this->messenger = $messenger;
+    $this->setMessenger($messenger);
   }
 
   /**
@@ -62,7 +62,7 @@ class CspSettingsForm extends ConfigFormBase {
     return new static(
       $container->get('config.factory'),
       $container->get('csp.library_policy_builder'),
-      $container->get('messenger', ContainerInterface::NULL_ON_INVALID_REFERENCE)
+      $container->get('messenger')
     );
   }
 
@@ -385,16 +385,8 @@ class CspSettingsForm extends ConfigFormBase {
         return $config->get($policyTypeKey . '.enable');
       });
       if (empty($enabledPolicies)) {
-        $message = $this->t('No policies are currently enabled.');
-        // $this->messenger() is available via MessengerTrait in 8.5+.
-        if (method_exists($this, 'messenger')) {
-          $this->messenger()->addWarning($message);
-        }
-        else {
-          // TODO: Remove drupal_set_message() once Drupal 8.4 is no longer
-          // supported.
-          drupal_set_message($message, 'warning');
-        }
+        $this->messenger()
+          ->addWarning($this->t('No policies are currently enabled.'));
       }
     }
 
