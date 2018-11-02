@@ -326,6 +326,12 @@ class CspSettingsForm extends ConfigFormBase {
         ];
       }
 
+      $form[$policyTypeKey]['directives']['child-src']['options']['note'] = [
+        '#type' => 'markup',
+        '#markup' => '<em>' . $this->t('Instead of child-src, nested browsing contexts and workers should use the frame-src and worker-src directives, respectively.') . '</em>',
+        '#weight' => -10,
+      ];
+
       if ($policyTypeKey === 'enforce') {
         // block-all-mixed content is a no-op if upgrade-insecure-requests is
         // enabled.
