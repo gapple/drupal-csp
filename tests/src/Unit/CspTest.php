@@ -8,7 +8,7 @@ use Drupal\Tests\UnitTestCase;
 /**
  * Test Csp behaviour.
  *
- * @coversDefaultClass Drupal\csp\Csp
+ * @coversDefaultClass \Drupal\csp\Csp
  * @group csp
  */
 class CspTest extends UnitTestCase {

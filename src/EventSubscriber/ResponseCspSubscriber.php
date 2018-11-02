@@ -131,17 +131,16 @@ class ResponseCspSubscriber implements EventSubscriberInterface {
         $policy->appendDirective($directiveName, $sources);
       }
 
-      // Prior to Drupal 8.6, in order to support IE9, CssCollectionRenderer
+      // Prior to Drupal 8.7, in order to support IE9, CssCollectionRenderer
       // outputs more than 31 stylesheets as inline @import statements.
-      // @see https://www.drupal.org/node/2897408
+      // @see https://www.drupal.org/node/2993171
       // Since checking the actual number of stylesheets included on the page is
       // more difficult, just check the optimization settings, as in
       // HtmlResponseAttachmentsProcessor::processAssetLibraries()
       // @see CssCollectionRenderer::render()
       // @see HtmlResponseAttachmentsProcessor::processAssetLibraries()
       if ((
-          TRUE ||
-          version_compare(\Drupal::VERSION, '8.6', '<')
+          version_compare(\Drupal::VERSION, '8.7', '<')
           || $this->moduleHandler->moduleExists('ie9')
         ) && (
           defined('MAINTENANCE_MODE')
