@@ -23,7 +23,7 @@ class ReportUri implements ContainerInjectionInterface {
   private $requestStack;
 
   /**
-   * The Logger service.
+   * The Logger channel.
    *
    * @var \Psr\Log\LoggerInterface
    */
@@ -35,7 +35,7 @@ class ReportUri implements ContainerInjectionInterface {
    * @param \Symfony\Component\HttpFoundation\RequestStack $requestStack
    *   The Request Stack service.
    * @param \Psr\Log\LoggerInterface $logger
-   *   The Logger Factory service.
+   *   The Logger channel.
    */
   public function __construct(RequestStack $requestStack, LoggerInterface $logger) {
     $this->requestStack = $requestStack;
