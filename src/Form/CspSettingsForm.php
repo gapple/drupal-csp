@@ -482,6 +482,7 @@ class CspSettingsForm extends ConfigFormBase {
         (?:https?:\/\/)?                                        # Look for http or https schemes (optional)
         (?:
           (?:                                                   # A domain name or a IPv4 address
+            (?:\*\.)?                                           # Wildcard prefix (optional)
             (?:(?:[a-z0-9\-\.]|%[0-9a-f]{2})+\.)+
             (?:[a-z0-9\-\.]|%[0-9a-f]{2})+
           )
