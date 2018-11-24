@@ -25,10 +25,13 @@ function csp_requirements($phase) {
         'title' => 'Content Security Policy IE9',
         'value' => "'unsafe-inline'",
         'description' => t(
-          'Support for IE9 requires allowing inline styles when CSS aggregation is disabled.  <br><a href=":system-performance">Enable CSS aggregation</a> to prevent allowing inline CSS.',
+          \Drupal::moduleHandler()->moduleExists('ie9') ?
+            'Support for IE9 requires allowing inline styles when CSS aggregation is disabled.  <br><a href=":system-performance">Enable CSS aggregation</a> to prevent allowing inline CSS.' :
+            'Legacy support for IE9 requires allowing inline styles when CSS aggregation is disabled.  <br><a href=":system-performance">Enable CSS aggregation</a>, or <a href=":change-record-url">upgrade to Drupal 8.7</a> to prevent allowing inline CSS.',
           [
             ':system-performance' => \Drupal::urlGenerator()
               ->generateFromRoute('system.performance_settings'),
+            ':change-record-url' => 'https://www.drupal.org/node/2993171',
           ]
         ),
         'severity' => REQUIREMENT_WARNING,
