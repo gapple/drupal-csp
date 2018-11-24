@@ -13,8 +13,11 @@ function csp_requirements($phase) {
 
   if ($phase === 'runtime') {
     if ((
-      version_compare(\Drupal::VERSION, '8.6', '<')
-      || \Drupal::moduleHandler()->moduleExists('ie9')
+      // IE9 workaround was removed in 8.7.0.
+      // @see https://www.drupal.org/node/2993171
+      version_compare(\Drupal::VERSION, '8.7', '<')
+      ||
+      \Drupal::moduleHandler()->moduleExists('ie9')
     )
     && !\Drupal::config('system.performance')->get('css.preprocess')
     ) {
