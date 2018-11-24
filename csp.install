@@ -51,6 +51,26 @@ function csp_requirements($phase) {
         'severity' => REQUIREMENT_WARNING,
       ];
     }
+
+    // Warn if CSP is also enabled in Security Kit module configuration.
+    if (
+      \Drupal::moduleHandler()->moduleExists('seckit')
+      &&
+      \Drupal::config('seckit.settings')->get('seckit_xss.csp.checkbox')
+    ) {
+      $requirements['csp_seckit'] = [
+        'title' => 'Content Security Policy - Security Kit',
+        'value' => t('Enabling Content Security Policy in Security Kit is likely to cause policy conflicts.'),
+        'description' => t(
+          'Disable the Content Security Policy settings in <a href=":seckit-settings">Security Kit configuration</a>.',
+          [
+            ':seckit-settings' => \Drupal::urlGenerator()
+              ->generateFromRoute('seckit.settings'),
+          ]
+        ),
+        'severity' => REQUIREMENT_WARNING,
+      ];
+    }
   }
 
   return $requirements;
