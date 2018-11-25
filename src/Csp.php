@@ -209,16 +209,36 @@ class Csp {
         continue;
       }
 
-      // TODO reduce to minimal set
-      // e.g.
-      // - Wildcards and matching subdomains (*.example.com, sub.example.com)
-      // - Protocols (example.com, https://example.com)
-      // - Remove if same value as default-src
-      $value = array_unique($value);
+      if (in_array(self::$directiveSchemaMap[$name], [
+        self::DIRECTIVE_SCHEMA_SOURCE_LIST,
+        self::DIRECTIVE_ANCESTOR_SOURCE_LIST,
+      ])) {
+        $value = self::reduceSourceList($value);
+      }
+      // TODO Skip if directive inherits from default-src, and has same value.
       $output[] = $name . ' ' . implode(' ', $value);
     }
 
     return implode('; ', $output);
+  }
+
+  /**
+   * Reduce a list of sources to a minimal set.
+   *
+   * @param array $sources
+   *   The array of sources.
+   *
+   * @return array
+   *   The reduced set of sources.
+   */
+  private static function reduceSourceList(array $sources) {
+    $sources = array_unique($sources);
+
+    // Global wildcard.
+    // Wildcards and matching subdomains (*.example.com, sub.example.com)
+    // Protocols (example.com, https://example.com)
+
+    return $sources;
   }
 
   /**
