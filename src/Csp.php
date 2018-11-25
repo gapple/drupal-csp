@@ -14,86 +14,52 @@ class Csp {
   const POLICY_UNSAFE_EVAL = "'unsafe-eval'";
   const POLICY_UNSAFE_INLINE = "'unsafe-inline'";
 
-  /**
-   * The available fetch directive keys.
-   *
-   * @var array
-   *
-   * @see https://www.w3.org/TR/CSP3/#directives-fetch
-   */
-  private static $fetchDirectiveNames = [
-    'default-src',
-    'child-src',
-    'connect-src',
-    'font-src',
-    'frame-src',
-    'img-src',
-    'manifest-src',
-    'media-src',
-    'object-src',
-    'prefetch-src',
-    'script-src',
-    'style-src',
-    'worker-src',
-  ];
+  // https://www.w3.org/TR/CSP/#grammardef-serialized-source-list
+  const DIRECTIVE_SCHEMA_SOURCE_LIST = 'serialized-source-list';
+  // https://www.w3.org/TR/CSP/#grammardef-ancestor-source-list
+  const DIRECTIVE_ANCESTOR_SOURCE_LIST = 'ancestor-source-list';
+  // https://www.w3.org/TR/CSP/#grammardef-media-type-list
+  const DIRECTIVE_SCHEMA_MEDIA_TYPE_LIST = 'media-type-list';
+  const DIRECTIVE_SCHEMA_TOKEN_LIST = 'token-list';
+  const DIRECTIVE_SCHEMA_TOKEN = 'token';
+  const DIRECTIVE_SCHEMA_URI_REFERENCE_LIST = 'uri-reference-list';
+  const DIRECTIVE_SCHEMA_BOOLEAN = 'boolean';
 
-  /**
-   * The available document directive keys.
-   *
-   * @var array
-   *
-   * @see https://www.w3.org/TR/CSP3/#directives-document
-   */
-  private static $documentDirectiveNames = [
-    'base-uri',
-    'plugin-types',
-    'sandbox',
-  ];
-
-  /**
-   * The available navigation directive keys.
-   *
-   * @var array
-   *
-   * @see https://www.w3.org/TR/CSP3/#directives-navigation
-   */
-  private static $navigationDirectiveNames = [
-    'form-action',
-    'frame-ancestors',
-    'navigate-to',
-  ];
-
-  /**
-   * The available reporting directive keys.
-   *
-   * @var array
-   *
-   * @see https://www.w3.org/TR/CSP3/#directives-reporting
-   */
-  private static $reportingDirectiveNames = [
-    'report-uri',
-    'report-to',
-  ];
-
-  /**
-   * The available other directive keys.
-   *
-   * @var array
-   *
-   * @see https://www.w3.org/TR/CSP3/#directives-elsewhere
-   */
-  private static $otherDirectiveNames = [
-    'block-all-mixed-content',
-    'require-sri-for',
-    'upgrade-insecure-requests',
-  ];
-
-  private static $directiveNameVariables = [
-    'fetchDirectiveNames',
-    'documentDirectiveNames',
-    'navigationDirectiveNames',
-    'reportingDirectiveNames',
-    'otherDirectiveNames',
+  private static $directiveSchemaMap = [
+    // Fetch Directives.
+    // @see https://www.w3.org/TR/CSP3/#directives-fetch
+    'default-src' => self::DIRECTIVE_SCHEMA_SOURCE_LIST,
+    'child-src' => self::DIRECTIVE_SCHEMA_SOURCE_LIST,
+    'connect-src' => self::DIRECTIVE_SCHEMA_SOURCE_LIST,
+    'font-src' => self::DIRECTIVE_SCHEMA_SOURCE_LIST,
+    'frame-src' => self::DIRECTIVE_SCHEMA_SOURCE_LIST,
+    'img-src' => self::DIRECTIVE_SCHEMA_SOURCE_LIST,
+    'manifest-src' => self::DIRECTIVE_SCHEMA_SOURCE_LIST,
+    'media-src' => self::DIRECTIVE_SCHEMA_SOURCE_LIST,
+    'object-src' => self::DIRECTIVE_SCHEMA_SOURCE_LIST,
+    'prefetch-src' => self::DIRECTIVE_SCHEMA_SOURCE_LIST,
+    'script-src' => self::DIRECTIVE_SCHEMA_SOURCE_LIST,
+    'style-src' => self::DIRECTIVE_SCHEMA_SOURCE_LIST,
+    'worker-src' => self::DIRECTIVE_SCHEMA_SOURCE_LIST,
+    // Document Directives.
+    // @see https://www.w3.org/TR/CSP3/#directives-document
+    'base-uri' => self::DIRECTIVE_SCHEMA_SOURCE_LIST,
+    'plugin-types' => self::DIRECTIVE_SCHEMA_MEDIA_TYPE_LIST,
+    'sandbox' => self::DIRECTIVE_SCHEMA_TOKEN_LIST,
+    // Navigation Directives.
+    // @see https://www.w3.org/TR/CSP3/#directives-navigation
+    'form-action' => self::DIRECTIVE_SCHEMA_SOURCE_LIST,
+    'frame-ancestors' => self::DIRECTIVE_ANCESTOR_SOURCE_LIST,
+    'navigate-to' => self::DIRECTIVE_SCHEMA_SOURCE_LIST,
+    // Reporting Directives.
+    // @see https://www.w3.org/TR/CSP3/#directives-reporting
+    'report-uri' => self::DIRECTIVE_SCHEMA_URI_REFERENCE_LIST,
+    'report-to' => self::DIRECTIVE_SCHEMA_TOKEN,
+    // Other directives.
+    // @see https://www.w3.org/TR/CSP/#directives-elsewhere
+    'block-all-mixed-content' => self::DIRECTIVE_SCHEMA_BOOLEAN,
+    'require-sri-for' => self::DIRECTIVE_SCHEMA_TOKEN_LIST,
+    'upgrade-insecure-requests' => self::DIRECTIVE_SCHEMA_BOOLEAN,
   ];
 
   /**
@@ -130,13 +96,7 @@ class Csp {
    *   True if the directive name is valid.
    */
   public static function isValidDirectiveName($name) {
-    foreach (self::$directiveNameVariables as $directiveNameVariable) {
-      if (in_array($name, static::${$directiveNameVariable})) {
-        return TRUE;
-      }
-    }
-
-    return FALSE;
+    return array_key_exists($name, static::$directiveSchemaMap);
   }
 
   /**
@@ -146,13 +106,7 @@ class Csp {
    *   An array of directive names.
    */
   public static function getDirectiveNames() {
-    $names = [];
-
-    foreach (self::$directiveNameVariables as $directiveNameVariable) {
-      $names = array_merge($names, static::${$directiveNameVariable});
-    }
-
-    return $names;
+    return array_keys(self::$directiveSchemaMap);
   }
 
   /**
