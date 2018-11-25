@@ -252,21 +252,6 @@ class Csp {
   }
 
   /**
-   * The report-uri endpoint.
-   *
-   * Set to 'FALSE' to disable.
-   *
-   * @param string|bool $reportUri
-   *   A URI.
-   *
-   * @deprecated in 8.x-1.0-beta2, will be removed before 8.x-1.0. Use
-   * setDirective('report-uri') instead.
-   */
-  public function setReportUri($reportUri) {
-    $this->setDirective('report-uri', $reportUri);
-  }
-
-  /**
    * Create the string header representation.
    *
    * @return string
