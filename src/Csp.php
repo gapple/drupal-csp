@@ -21,6 +21,8 @@ class Csp {
   // https://www.w3.org/TR/CSP/#grammardef-media-type-list
   const DIRECTIVE_SCHEMA_MEDIA_TYPE_LIST = 'media-type-list';
   const DIRECTIVE_SCHEMA_TOKEN_LIST = 'token-list';
+  // 'sandbox' may have an empty value, or a set of tokens.
+  const DIRECTIVE_SCHEMA_OPTIONAL_TOKEN_LIST = 'optional-token-list';
   const DIRECTIVE_SCHEMA_TOKEN = 'token';
   const DIRECTIVE_SCHEMA_URI_REFERENCE_LIST = 'uri-reference-list';
   const DIRECTIVE_SCHEMA_BOOLEAN = 'boolean';
@@ -45,7 +47,7 @@ class Csp {
     // @see https://www.w3.org/TR/CSP3/#directives-document
     'base-uri' => self::DIRECTIVE_SCHEMA_SOURCE_LIST,
     'plugin-types' => self::DIRECTIVE_SCHEMA_MEDIA_TYPE_LIST,
-    'sandbox' => self::DIRECTIVE_SCHEMA_TOKEN_LIST,
+    'sandbox' => self::DIRECTIVE_SCHEMA_OPTIONAL_TOKEN_LIST,
     // Navigation Directives.
     // @see https://www.w3.org/TR/CSP3/#directives-navigation
     'form-action' => self::DIRECTIVE_SCHEMA_SOURCE_LIST,
@@ -199,11 +201,15 @@ class Csp {
     $output = [];
 
     foreach ($this->directives as $name => $value) {
-      if (empty($value)) {
+      if (empty($value) && self::$directiveSchemaMap[$name] !== self::DIRECTIVE_SCHEMA_OPTIONAL_TOKEN_LIST) {
         continue;
       }
 
-      if (self::$directiveSchemaMap[$name] === self::DIRECTIVE_SCHEMA_BOOLEAN) {
+      if (
+        self::$directiveSchemaMap[$name] === self::DIRECTIVE_SCHEMA_BOOLEAN
+        ||
+        self::$directiveSchemaMap[$name] === self::DIRECTIVE_SCHEMA_OPTIONAL_TOKEN_LIST && empty($value)
+      ) {
         $output[] = $name;
         continue;
       }
