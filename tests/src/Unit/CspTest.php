@@ -14,6 +14,8 @@ use Drupal\Tests\UnitTestCase;
 class CspTest extends UnitTestCase {
 
   /**
+   * Test that changing the policy's report-only flag updates the header name.
+   *
    * @covers ::reportOnly
    * @covers ::getHeaderName
    */
@@ -39,6 +41,8 @@ class CspTest extends UnitTestCase {
   }
 
   /**
+   * Test that invalid directive names cause an exception.
+   *
    * @covers ::setDirective
    * @covers ::isValidDirectiveName
    *
@@ -51,6 +55,8 @@ class CspTest extends UnitTestCase {
   }
 
   /**
+   * Test that invalid directive names cause an exception.
+   *
    * @covers ::appendDirective
    * @covers ::isValidDirectiveName
    *
@@ -63,6 +69,8 @@ class CspTest extends UnitTestCase {
   }
 
   /**
+   * Test setting a single value to a directive.
+   *
    * @covers ::setDirective
    * @covers ::isValidDirectiveName
    * @covers ::getHeaderValue
@@ -79,6 +87,8 @@ class CspTest extends UnitTestCase {
   }
 
   /**
+   * Test appending a single value to an uninitialized directive.
+   *
    * @covers ::appendDirective
    * @covers ::isValidDirectiveName
    * @covers ::getHeaderValue
@@ -95,6 +105,8 @@ class CspTest extends UnitTestCase {
   }
 
   /**
+   * Test that a directive is overridden when set with a new value.
+   *
    * @covers ::setDirective
    * @covers ::isValidDirectiveName
    * @covers ::getHeaderValue
@@ -114,6 +126,8 @@ class CspTest extends UnitTestCase {
   }
 
   /**
+   * Test that appending to a directive extends the existing value.
+   *
    * @covers ::appendDirective
    * @covers ::isValidDirectiveName
    * @covers ::getHeaderValue
@@ -132,13 +146,14 @@ class CspTest extends UnitTestCase {
   }
 
   /**
+   * Test that setting an empty value removes a directive.
+   *
    * @covers ::setDirective
    * @covers ::isValidDirectiveName
    * @covers ::getHeaderValue
    */
   public function testSetEmpty() {
     $policy = new Csp();
-
     $policy->setDirective('default-src', Csp::POLICY_SELF);
     $policy->setDirective('script-src', [Csp::POLICY_SELF]);
     $policy->setDirective('script-src', []);
@@ -148,8 +163,8 @@ class CspTest extends UnitTestCase {
       $policy->getHeaderValue()
     );
 
-    $policy = new Csp();
 
+    $policy = new Csp();
     $policy->setDirective('default-src', Csp::POLICY_SELF);
     $policy->setDirective('script-src', [Csp::POLICY_SELF]);
     $policy->setDirective('script-src', '');
@@ -161,6 +176,8 @@ class CspTest extends UnitTestCase {
   }
 
   /**
+   * Test that appending an empty value doesn't change the directive.
+   *
    * @covers ::appendDirective
    * @covers ::isValidDirectiveName
    * @covers ::getHeaderValue
@@ -169,20 +186,13 @@ class CspTest extends UnitTestCase {
     $policy = new Csp();
 
     $policy->appendDirective('default-src', Csp::POLICY_SELF);
-    $policy->appendDirective('default-src', '');
-    $policy->appendDirective('script-src', []);
-
     $this->assertEquals(
       "default-src 'self'",
       $policy->getHeaderValue()
     );
 
-    $policy = new Csp();
-
-    $policy->setDirective('default-src', Csp::POLICY_SELF);
-    $policy->setDirective('script-src', [Csp::POLICY_SELF]);
-    $policy->setDirective('script-src', '');
-
+    $policy->appendDirective('default-src', '');
+    $policy->appendDirective('script-src', []);
     $this->assertEquals(
       "default-src 'self'",
       $policy->getHeaderValue()
@@ -190,6 +200,8 @@ class CspTest extends UnitTestCase {
   }
 
   /**
+   * Test that source values are not repeated in the header.
+   *
    * @covers ::setDirective
    * @covers ::appendDirective
    * @covers ::isValidDirectiveName
@@ -211,6 +223,8 @@ class CspTest extends UnitTestCase {
   }
 
   /**
+   * Test that removed directives are not output in the header.
+   *
    * @covers ::removeDirective
    * @covers ::isValidDirectiveName
    * @covers ::getHeaderValue
@@ -230,6 +244,8 @@ class CspTest extends UnitTestCase {
   }
 
   /**
+   * Test that removing an invalid directive name causes an exception.
+   *
    * @covers ::removeDirective
    * @covers ::isValidDirectiveName
    *
@@ -242,6 +258,8 @@ class CspTest extends UnitTestCase {
   }
 
   /**
+   * Test that invalid directive values cause an exception.
+   *
    * @covers ::appendDirective
    *
    * @expectedException \InvalidArgumentException
