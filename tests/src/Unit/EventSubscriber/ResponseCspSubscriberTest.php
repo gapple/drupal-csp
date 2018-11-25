@@ -404,7 +404,7 @@ class ResponseCspSubscriberTest extends UnitTestCase {
       ->withConsecutive(
         [
           $this->equalTo('Content-Security-Policy-Report-Only'),
-          $this->equalTo("script-src * 'unsafe-inline'; style-src * 'unsafe-inline'"),
+          $this->equalTo("script-src 'unsafe-inline' *; style-src 'unsafe-inline' *"),
         ],
         [
           $this->equalTo('Content-Security-Policy'),
