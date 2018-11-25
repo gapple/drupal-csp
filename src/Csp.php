@@ -234,9 +234,19 @@ class Csp {
   private static function reduceSourceList(array $sources) {
     $sources = array_unique($sources);
 
-    // Global wildcard.
-    // Wildcards and matching subdomains (*.example.com, sub.example.com)
-    // Protocols (example.com, https://example.com)
+    // Global wildcard covers all network scheme sources.
+    if (in_array('*', $sources)) {
+      $sources = array_filter($sources, function ($source) {
+        // Keep any values that are a quoted string, or non-network scheme.
+        // e.g. '* https: data: example.com' -> 'data: *'
+        // https://www.w3.org/TR/CSP/#match-url-to-source-expression
+        return strpos($source, "'") === 0 || preg_match('<^(?!ftp|https?:)([a-z]+:)>', $source);
+      });
+
+      $sources[] = '*';
+
+      return $sources;
+    }
 
     return $sources;
   }
