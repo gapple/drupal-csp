@@ -251,17 +251,9 @@ class Csp {
    */
   public function getHeaderValue() {
     $output = [];
+    $optimizedDirectives = [];
 
-    $directives = $this->directives;
-
-    $defaultSrc = '';
-    if (isset($directives['default-src'])) {
-      $defaultSrc = self::reduceSourceList($directives['default-src']);
-      unset($directives['default-src']);
-      $output[] = 'default-src ' . implode(' ', $defaultSrc);
-    }
-
-    foreach ($directives as $name => $value) {
+    foreach ($this->directives as $name => $value) {
       if (empty($value) && self::$directiveSchemaMap[$name] !== self::DIRECTIVE_SCHEMA_OPTIONAL_TOKEN_LIST) {
         continue;
       }
@@ -282,13 +274,14 @@ class Csp {
         $value = self::reduceSourceList($value);
       }
 
-      // Skip if directive inherits from default-src, and has same value.
-      if (
-        in_array('default-src', self::getDirectiveFallbackList($name))
-        &&
-        $value === $defaultSrc
-      ) {
-        continue;
+      $optimizedDirectives[$name] = $value;
+    }
+
+    foreach ($optimizedDirectives as $name => $value) {
+      foreach (self::getDirectiveFallbackList($name) as $fallbackDirective) {
+        if (isset($optimizedDirectives[$fallbackDirective]) && $optimizedDirectives[$fallbackDirective] === $value) {
+          continue 2;
+        }
       }
 
       $output[] = $name . ' ' . implode(' ', $value);

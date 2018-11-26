@@ -310,6 +310,57 @@ class CspTest extends UnitTestCase {
   }
 
   /**
+   * Test optimizing policy based on the worker-src fallback list.
+   *
+   * @covers ::getDirectiveFallbackList
+   * @covers ::reduceSourceList
+   */
+  public function testWorkerSrcFallback() {
+    $policy = new Csp();
+
+    // Fallback should progresses as more policies in the list are added.
+    $policy->setDirective('worker-src', Csp::POLICY_SELF);
+    $this->assertEquals(
+      "worker-src 'self'",
+      $policy->getHeaderValue()
+    );
+
+    $policy->setDirective('child-src', Csp::POLICY_SELF);
+    $this->assertEquals(
+      "child-src 'self'",
+      $policy->getHeaderValue()
+    );
+
+    $policy->setDirective('script-src', Csp::POLICY_SELF);
+    $this->assertEquals(
+      "script-src 'self'",
+      $policy->getHeaderValue()
+    );
+
+    $policy->setDirective('default-src', Csp::POLICY_SELF);
+    $this->assertEquals(
+      "default-src 'self'",
+      $policy->getHeaderValue()
+    );
+
+    // A missing directive from the list should not prevent fallback.
+    $policy->removeDirective('child-src');
+    $this->assertEquals(
+      "default-src 'self'",
+      $policy->getHeaderValue()
+    );
+
+    // Fallback should only progress to the nearest matching directive.
+    $policy->setDirective('worker-src', [Csp::POLICY_SELF, 'example.com']);
+    $policy->setDirective('child-src', [Csp::POLICY_SELF, 'example.com']);
+
+    $this->assertEquals(
+      "default-src 'self'; child-src 'self' example.com",
+      $policy->getHeaderValue()
+    );
+  }
+
+  /**
    * @covers ::__toString
    */
   public function testToString() {
