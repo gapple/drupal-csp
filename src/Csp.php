@@ -151,6 +151,23 @@ class Csp {
   }
 
   /**
+   * Get the schema constant for a directive.
+   *
+   * @param string $name
+   *   The directive name.
+   *
+   * @return string
+   *   A DIRECTIVE_SCHEMA_* constant value
+   */
+  public static function getDirectiveSchema($name) {
+    if (!static::isValidDirectiveName($name)) {
+      throw new \InvalidArgumentException("Invalid directive name provided");
+    }
+
+    return self::$directiveSchemaMap[$name];
+  }
+
+  /**
    * Get the fallback list for a directive.
    *
    * @param string $name

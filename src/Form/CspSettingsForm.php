@@ -86,22 +86,6 @@ class CspSettingsForm extends ConfigFormBase {
   }
 
   /**
-   * Get the directives which don't use a source-list.
-   *
-   * @return array
-   *   An array of directive names.
-   */
-  private function getCustomOptionsDirectives() {
-    return [
-      'plugin-types',
-      'sandbox',
-      'block-all-mixed-content',
-      'require-sri-for',
-      'upgrade-insecure-requests',
-    ];
-  }
-
-  /**
    * {@inheritdoc}
    */
   public function buildForm(array $form, FormStateInterface $form_state) {
@@ -185,8 +169,6 @@ class CspSettingsForm extends ConfigFormBase {
     ];
 
     $directiveNames = $this->getConfigurableDirectives();
-    // These directives may have custom options instead of sources.
-    $customOptionDirectives = $this->getCustomOptionsDirectives();
     $enforceOnlyDirectives = [
       // upgrade-insecure-requests is ignored when sent via a
       // Content-Security-Policy-Report-Only header.
@@ -233,6 +215,8 @@ class CspSettingsForm extends ConfigFormBase {
           continue;
         }
 
+        $directiveSchema = Csp::getDirectiveSchema($directiveName);
+
         $form[$policyTypeKey]['directives'][$directiveName] = [
           '#type' => 'container',
         ];
@@ -254,7 +238,10 @@ class CspSettingsForm extends ConfigFormBase {
           ],
         ];
 
-        if (in_array($directiveName, $customOptionDirectives)) {
+        if (!in_array($directiveSchema, [
+          Csp::DIRECTIVE_SCHEMA_SOURCE_LIST,
+          Csp::DIRECTIVE_ANCESTOR_SOURCE_LIST,
+        ])) {
           continue;
         }
 
@@ -277,7 +264,7 @@ class CspSettingsForm extends ConfigFormBase {
 
         // Some directives do not support unsafe flags.
         // @see https://www.w3.org/TR/CSP/#grammardef-ancestor-source-list
-        if (!in_array($directiveName, ['frame-ancestors'])) {
+        if ($directiveSchema == Csp::DIRECTIVE_SCHEMA_SOURCE_LIST) {
           // States currently don't work on checkboxes elements, so need to be
           // applied to a wrapper.
           // @see https://www.drupal.org/project/drupal/issues/994360
@@ -530,9 +517,6 @@ class CspSettingsForm extends ConfigFormBase {
     }
 
     $directiveNames = $this->getConfigurableDirectives();
-    $booleanDirectives = ['block-all-mixed-content', 'upgrade-insecure-requests'];
-    $arrayDirectives = ['plugin-types', 'sandbox', 'require-sri-for'];
-    $customOptionsDirectives = $this->getCustomOptionsDirectives();
     foreach (['report-only', 'enforce'] as $policyTypeKey) {
       $config->clear($policyTypeKey);
 
@@ -555,10 +539,16 @@ class CspSettingsForm extends ConfigFormBase {
           continue;
         }
 
-        if (in_array($directiveName, $booleanDirectives)) {
+        $directiveSchema = Csp::getDirectiveSchema($directiveName);
+
+        if ($directiveSchema === Csp::DIRECTIVE_SCHEMA_BOOLEAN) {
           $directiveOptions = TRUE;
         }
-        elseif (in_array($directiveName, $arrayDirectives)) {
+        elseif (in_array($directiveSchema, [
+          Csp::DIRECTIVE_SCHEMA_MEDIA_TYPE_LIST,
+          Csp::DIRECTIVE_SCHEMA_TOKEN_LIST,
+          Csp::DIRECTIVE_SCHEMA_OPTIONAL_TOKEN_LIST,
+        ])) {
           if ($directiveName == 'plugin-types') {
             // If "object-src: none" all plugins will be blocked even if type is
             // allowed.  The form field is hidden and skips validation, so make
@@ -571,7 +561,10 @@ class CspSettingsForm extends ConfigFormBase {
             $directiveOptions = array_keys(array_filter($directiveFormData['keys']));
           }
         }
-        elseif (!in_array($directiveName, $customOptionsDirectives)) {
+        elseif (in_array($directiveSchema, [
+          Csp::DIRECTIVE_SCHEMA_SOURCE_LIST,
+          Csp::DIRECTIVE_ANCESTOR_SOURCE_LIST,
+        ])) {
           if ($directiveFormData['base'] !== 'none') {
             if (!empty($directiveFormData['sources'])) {
               $directiveOptions['sources'] = array_filter(preg_split('/,?\s+/', $directiveFormData['sources']));
