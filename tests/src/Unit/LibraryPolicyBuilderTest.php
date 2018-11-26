@@ -166,7 +166,9 @@ class LibraryPolicyBuilderTest extends UnitTestCase {
     $this->assertArrayEquals(
       [
         'script-src' => ['js.example.com', 'js.example.org'],
+        'script-src-elem' => ['js.example.com', 'js.example.org'],
         'style-src' => ['css.example.com'],
+        'style-src-elem' => ['css.example.com'],
       ],
       $libraryPolicy->getSources()
     );
