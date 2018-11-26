@@ -71,6 +71,10 @@ class Csp {
     'block-all-mixed-content' => self::DIRECTIVE_SCHEMA_BOOLEAN,
     'require-sri-for' => self::DIRECTIVE_SCHEMA_TOKEN_LIST,
     'upgrade-insecure-requests' => self::DIRECTIVE_SCHEMA_BOOLEAN,
+    // Deprecated directives.
+    // Referrer isn't in the Level 1 spec, but was accepted until Chrome 56 and
+    // Firefox 62.
+    'referrer' => self::DIRECTIVE_SCHEMA_TOKEN,
   ];
 
   /**
