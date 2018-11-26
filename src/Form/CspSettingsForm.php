@@ -170,10 +170,10 @@ class CspSettingsForm extends ConfigFormBase {
 
     $directiveNames = $this->getConfigurableDirectives();
     $enforceOnlyDirectives = [
-      // upgrade-insecure-requests is ignored when sent via a
-      // Content-Security-Policy-Report-Only header.
       // @see https://w3c.github.io/webappsec-upgrade-insecure-requests/#delivery
       'upgrade-insecure-requests',
+      // @see https://www.w3.org/TR/CSP/#directive-sandbox
+      'sandbox',
     ];
 
     $policyTypes = [
