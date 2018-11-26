@@ -240,7 +240,7 @@ class CspSettingsForm extends ConfigFormBase {
 
         if (!in_array($directiveSchema, [
           Csp::DIRECTIVE_SCHEMA_SOURCE_LIST,
-          Csp::DIRECTIVE_ANCESTOR_SOURCE_LIST,
+          Csp::DIRECTIVE_SCHEMA_ANCESTOR_SOURCE_LIST,
         ])) {
           continue;
         }
@@ -563,7 +563,7 @@ class CspSettingsForm extends ConfigFormBase {
         }
         elseif (in_array($directiveSchema, [
           Csp::DIRECTIVE_SCHEMA_SOURCE_LIST,
-          Csp::DIRECTIVE_ANCESTOR_SOURCE_LIST,
+          Csp::DIRECTIVE_SCHEMA_ANCESTOR_SOURCE_LIST,
         ])) {
           if ($directiveFormData['base'] !== 'none') {
             if (!empty($directiveFormData['sources'])) {

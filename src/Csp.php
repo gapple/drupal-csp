@@ -17,7 +17,7 @@ class Csp {
   // https://www.w3.org/TR/CSP/#grammardef-serialized-source-list
   const DIRECTIVE_SCHEMA_SOURCE_LIST = 'serialized-source-list';
   // https://www.w3.org/TR/CSP/#grammardef-ancestor-source-list
-  const DIRECTIVE_ANCESTOR_SOURCE_LIST = 'ancestor-source-list';
+  const DIRECTIVE_SCHEMA_ANCESTOR_SOURCE_LIST = 'ancestor-source-list';
   // https://www.w3.org/TR/CSP/#grammardef-media-type-list
   const DIRECTIVE_SCHEMA_MEDIA_TYPE_LIST = 'media-type-list';
   const DIRECTIVE_SCHEMA_TOKEN_LIST = 'token-list';
@@ -60,7 +60,7 @@ class Csp {
     // Navigation Directives.
     // @see https://www.w3.org/TR/CSP3/#directives-navigation
     'form-action' => self::DIRECTIVE_SCHEMA_SOURCE_LIST,
-    'frame-ancestors' => self::DIRECTIVE_ANCESTOR_SOURCE_LIST,
+    'frame-ancestors' => self::DIRECTIVE_SCHEMA_ANCESTOR_SOURCE_LIST,
     'navigate-to' => self::DIRECTIVE_SCHEMA_SOURCE_LIST,
     // Reporting Directives.
     // @see https://www.w3.org/TR/CSP3/#directives-reporting
@@ -294,7 +294,7 @@ class Csp {
 
       if (in_array(self::$directiveSchemaMap[$name], [
         self::DIRECTIVE_SCHEMA_SOURCE_LIST,
-        self::DIRECTIVE_ANCESTOR_SOURCE_LIST,
+        self::DIRECTIVE_SCHEMA_ANCESTOR_SOURCE_LIST,
       ])) {
         $value = self::reduceSourceList($value);
       }
