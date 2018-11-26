@@ -276,6 +276,7 @@ class CspTest extends UnitTestCase {
   /**
    * Test optimizing policy based on directives which fallback to default-src.
    *
+   * @covers ::getHeaderValue
    * @covers ::getDirectiveFallbackList
    * @covers ::reduceSourceList
    */
@@ -312,6 +313,7 @@ class CspTest extends UnitTestCase {
   /**
    * Test optimizing policy based on the worker-src fallback list.
    *
+   * @covers ::getHeaderValue
    * @covers ::getDirectiveFallbackList
    * @covers ::reduceSourceList
    */
@@ -364,6 +366,60 @@ class CspTest extends UnitTestCase {
     $policy->setDirective('worker-src', [Csp::POLICY_SELF, 'example.com']);
     $this->assertEquals(
       "default-src 'self'; child-src 'self' example.com",
+      $policy->getHeaderValue()
+    );
+  }
+
+  /**
+   * Test optimizing policy based on the script-src fallback list.
+   *
+   * @covers ::getHeaderValue
+   * @covers ::getDirectiveFallbackList
+   * @covers ::reduceSourceList
+   */
+  public function testScriptSrcFallback() {
+    $policy = new Csp();
+
+    $policy->setDirective('default-src', Csp::POLICY_SELF);
+    $policy->setDirective('script-src', [Csp::POLICY_SELF, Csp::POLICY_UNSAFE_INLINE]);
+    // script-src-elem should not fall back to default-src.
+    $policy->setDirective('script-src-elem', Csp::POLICY_SELF);
+    $policy->setDirective('script-src-attr', Csp::POLICY_UNSAFE_INLINE);
+    $this->assertEquals(
+      "default-src 'self'; script-src 'self' 'unsafe-inline'; script-src-elem 'self'; script-src-attr 'unsafe-inline'",
+      $policy->getHeaderValue()
+    );
+
+    $policy->setDirective('script-src-attr', [Csp::POLICY_SELF, Csp::POLICY_UNSAFE_INLINE]);
+    $this->assertEquals(
+      "default-src 'self'; script-src 'self' 'unsafe-inline'; script-src-elem 'self'",
+      $policy->getHeaderValue()
+    );
+  }
+
+  /**
+   * Test optimizing policy based on the style-src fallback list.
+   *
+   * @covers ::getHeaderValue
+   * @covers ::getDirectiveFallbackList
+   * @covers ::reduceSourceList
+   */
+  public function testStyleSrcFallback() {
+    $policy = new Csp();
+
+    $policy->setDirective('default-src', Csp::POLICY_SELF);
+    $policy->setDirective('style-src', [Csp::POLICY_SELF, Csp::POLICY_UNSAFE_INLINE]);
+    // style-src-elem should not fall back to default-src.
+    $policy->setDirective('style-src-elem', Csp::POLICY_SELF);
+    $policy->setDirective('style-src-attr', Csp::POLICY_UNSAFE_INLINE);
+    $this->assertEquals(
+      "default-src 'self'; style-src 'self' 'unsafe-inline'; style-src-elem 'self'; style-src-attr 'unsafe-inline'",
+      $policy->getHeaderValue()
+    );
+
+    $policy->setDirective('style-src-attr', [Csp::POLICY_SELF, Csp::POLICY_UNSAFE_INLINE]);
+    $this->assertEquals(
+      "default-src 'self'; style-src 'self' 'unsafe-inline'; style-src-elem 'self'",
       $policy->getHeaderValue()
     );
   }

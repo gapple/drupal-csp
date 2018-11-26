@@ -46,7 +46,11 @@ class Csp {
     'object-src' => self::DIRECTIVE_SCHEMA_SOURCE_LIST,
     'prefetch-src' => self::DIRECTIVE_SCHEMA_SOURCE_LIST,
     'script-src' => self::DIRECTIVE_SCHEMA_SOURCE_LIST,
+    'script-src-elem' => self::DIRECTIVE_SCHEMA_SOURCE_LIST,
+    'script-src-attr' => self::DIRECTIVE_SCHEMA_SOURCE_LIST,
     'style-src' => self::DIRECTIVE_SCHEMA_SOURCE_LIST,
+    'style-src-elem' => self::DIRECTIVE_SCHEMA_SOURCE_LIST,
+    'style-src-attr' => self::DIRECTIVE_SCHEMA_SOURCE_LIST,
     'worker-src' => self::DIRECTIVE_SCHEMA_SOURCE_LIST,
     // Document Directives.
     // @see https://www.w3.org/TR/CSP3/#directives-document
