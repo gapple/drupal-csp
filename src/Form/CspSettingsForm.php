@@ -226,7 +226,14 @@ class CspSettingsForm extends ConfigFormBase {
         $form[$policyTypeKey]['directives'][$directiveName]['enable'] = [
           '#type' => 'checkbox',
           '#title' => $directiveName,
-          '#default_value' => $forceEnable || !empty($config->get($policyTypeKey . '.directives.' . $directiveName)),
+          '#default_value' => (
+            $forceEnable
+            // Csp::DIRECTIVE_SCHEMA_OPTIONAL_TOKEN_LIST may be an empty array,
+            // so is_null() must be used instead of empty().
+            // Directives which cannot be empty should not be present in config.
+            // (e.g. boolean directives should only be present if TRUE).
+            || !is_null($config->get($policyTypeKey . '.directives.' . $directiveName))
+          ),
           '#disabled' => $forceEnable,
         ];
         $form[$policyTypeKey]['directives'][$directiveName]['options'] = [
@@ -343,6 +350,10 @@ class CspSettingsForm extends ConfigFormBase {
         '#default_value' => implode(' ', $config->get($policyTypeKey . '.directives.plugin-types') ?: []),
       ];
 
+      // 'sandbox' token values are defined by HTML specification for the iframe
+      // sandbox attribute.
+      // @see https://www.w3.org/TR/CSP/#directive-sandbox
+      // @see https://html.spec.whatwg.org/multipage/iframe-embed-object.html#attr-iframe-sandbox
       $form[$policyTypeKey]['directives']['sandbox']['options']['keys'] = [
         '#type' => 'checkboxes',
         '#parents' => [$policyTypeKey, 'directives', 'sandbox', 'keys'],
@@ -584,7 +595,7 @@ class CspSettingsForm extends ConfigFormBase {
           }
         }
 
-        if (!empty($directiveOptions)) {
+        if (!empty($directiveOptions) || $directiveSchema == Csp::DIRECTIVE_SCHEMA_OPTIONAL_TOKEN_LIST) {
           $config->set($policyTypeKey . '.directives.' . $directiveName, $directiveOptions);
         }
       }
