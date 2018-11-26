@@ -368,6 +368,7 @@ class CspSettingsForm extends ConfigFormBase {
           'allow-same-origin' => '<code>allow-same-origin</code>',
           'allow-scripts' => '<code>allow-scripts</code>',
           'allow-top-navigation' => '<code>allow-top-navigation</code>',
+          'allow-top-navigation-by-user-activation' => '<code>allow-top-navigation-by-user-activation</code>',
         ],
         '#default_value' => $config->get($policyTypeKey . '.directives.sandbox') ?: [],
       ];
