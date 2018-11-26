@@ -351,9 +351,17 @@ class CspTest extends UnitTestCase {
     );
 
     // Fallback should only progress to the nearest matching directive.
-    $policy->setDirective('worker-src', [Csp::POLICY_SELF, 'example.com']);
+    // Since child-src differs from worker-src, both should be included.
+    // script-src does not appear since it matches default-src.
     $policy->setDirective('child-src', [Csp::POLICY_SELF, 'example.com']);
+    $this->assertEquals(
+      "worker-src 'self'; default-src 'self'; child-src 'self' example.com",
+      $policy->getHeaderValue()
+    );
 
+    // Fallback should only progress to the nearest matching directive.
+    // worker-src now matches child-src, so it should be removed.
+    $policy->setDirective('worker-src', [Csp::POLICY_SELF, 'example.com']);
     $this->assertEquals(
       "default-src 'self'; child-src 'self' example.com",
       $policy->getHeaderValue()

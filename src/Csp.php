@@ -279,8 +279,17 @@ class Csp {
 
     foreach ($optimizedDirectives as $name => $value) {
       foreach (self::getDirectiveFallbackList($name) as $fallbackDirective) {
-        if (isset($optimizedDirectives[$fallbackDirective]) && $optimizedDirectives[$fallbackDirective] === $value) {
-          continue 2;
+        if (isset($optimizedDirectives[$fallbackDirective])) {
+          if ($optimizedDirectives[$fallbackDirective] === $value) {
+            // Omit directive if it matches nearest defined directive in its
+            // fallback list.
+            continue 2;
+          }
+          else {
+            // If directive doesn't match nearest defined fallback, further
+            // fallback directives must not be checked.
+            break;
+          }
         }
       }
 
