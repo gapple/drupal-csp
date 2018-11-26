@@ -115,12 +115,12 @@ class CspTest extends UnitTestCase {
     $policy = new Csp();
 
     $policy->setDirective('default-src', Csp::POLICY_SELF);
-    $policy->setDirective('default-src', [Csp::POLICY_SELF, 'example.com']);
-    $policy->setDirective('script-src', Csp::POLICY_SELF . ' example.com');
+    $policy->setDirective('default-src', [Csp::POLICY_SELF, 'one.example.com']);
+    $policy->setDirective('script-src', Csp::POLICY_SELF . ' two.example.com');
     $policy->setDirective('report-uri', 'example.com/report-uri');
 
     $this->assertEquals(
-      "default-src 'self' example.com; script-src 'self' example.com; report-uri example.com/report-uri",
+      "default-src 'self' one.example.com; script-src 'self' two.example.com; report-uri example.com/report-uri",
       $policy->getHeaderValue()
     );
   }
@@ -136,11 +136,11 @@ class CspTest extends UnitTestCase {
     $policy = new Csp();
 
     $policy->appendDirective('default-src', Csp::POLICY_SELF);
-    $policy->appendDirective('script-src', [Csp::POLICY_SELF, 'example.com']);
-    $policy->appendDirective('default-src', 'example.com');
+    $policy->appendDirective('script-src', [Csp::POLICY_SELF, 'two.example.com']);
+    $policy->appendDirective('default-src', 'one.example.com');
 
     $this->assertEquals(
-      "default-src 'self' example.com; script-src 'self' example.com",
+      "default-src 'self' one.example.com; script-src 'self' two.example.com",
       $policy->getHeaderValue()
     );
   }
@@ -210,14 +210,17 @@ class CspTest extends UnitTestCase {
   public function testDuplicate() {
     $policy = new Csp();
 
+    // Provide identical sources in an array.
     $policy->setDirective('default-src', [Csp::POLICY_SELF, Csp::POLICY_SELF]);
-    $policy->setDirective('script-src', 'example.com example.com');
+    // Provide identical sources in a string.
+    $policy->setDirective('script-src', 'one.example.com one.example.com');
 
-    $policy->setDirective('style-src', [Csp::POLICY_SELF, Csp::POLICY_SELF]);
-    $policy->appendDirective('style-src', [Csp::POLICY_SELF, Csp::POLICY_SELF]);
+    // Provide identical sources through both set and append.
+    $policy->setDirective('style-src', ['two.example.com', 'two.example.com']);
+    $policy->appendDirective('style-src', ['two.example.com', 'two.example.com']);
 
     $this->assertEquals(
-      "default-src 'self'; script-src example.com; style-src 'self'",
+      "default-src 'self'; script-src one.example.com; style-src two.example.com",
       $policy->getHeaderValue()
     );
   }
@@ -271,16 +274,52 @@ class CspTest extends UnitTestCase {
   }
 
   /**
+   * Test optimizing policy based on directives which fallback to default-src.
+   *
+   * @covers ::getDirectiveFallbackList
+   * @covers ::reduceSourceList
+   */
+  public function testDefaultSrcFallback() {
+    $policy = new Csp();
+    $policy->setDirective('default-src', Csp::POLICY_SELF);
+
+    // Directives which fallback to default-src.
+    $policy->setDirective('script-src', Csp::POLICY_SELF);
+    $policy->setDirective('style-src', Csp::POLICY_SELF);
+    $policy->setDirective('worker-src', Csp::POLICY_SELF);
+    $policy->setDirective('child-src', Csp::POLICY_SELF);
+    $policy->setDirective('connect-src', Csp::POLICY_SELF);
+    $policy->setDirective('manifest-src', Csp::POLICY_SELF);
+    $policy->setDirective('prefetch-src', Csp::POLICY_SELF);
+    $policy->setDirective('object-src', Csp::POLICY_SELF);
+    $policy->setDirective('frame-src', Csp::POLICY_SELF);
+    $policy->setDirective('media-src', Csp::POLICY_SELF);
+    $policy->setDirective('font-src', Csp::POLICY_SELF);
+    $policy->setDirective('img-src', Csp::POLICY_SELF);
+
+    // Directives which do not fallback to default-src.
+    $policy->setDirective('base-uri', Csp::POLICY_SELF);
+    $policy->setDirective('form-action', Csp::POLICY_SELF);
+    $policy->setDirective('frame-ancestors', Csp::POLICY_SELF);
+    $policy->setDirective('navigate-to', Csp::POLICY_SELF);
+
+    $this->assertEquals(
+      "default-src 'self'; base-uri 'self'; form-action 'self'; frame-ancestors 'self'; navigate-to 'self'",
+      $policy->getHeaderValue()
+    );
+  }
+
+  /**
    * @covers ::__toString
    */
   public function testToString() {
     $policy = new Csp();
 
     $policy->setDirective('default-src', Csp::POLICY_SELF);
-    $policy->setDirective('script-src', Csp::POLICY_SELF);
+    $policy->setDirective('script-src', [Csp::POLICY_SELF, 'example.com']);
 
     $this->assertEquals(
-      "Content-Security-Policy: default-src 'self'; script-src 'self'",
+      "Content-Security-Policy: default-src 'self'; script-src 'self' example.com",
       $policy->__toString()
     );
   }

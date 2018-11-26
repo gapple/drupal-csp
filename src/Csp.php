@@ -27,6 +27,11 @@ class Csp {
   const DIRECTIVE_SCHEMA_URI_REFERENCE_LIST = 'uri-reference-list';
   const DIRECTIVE_SCHEMA_BOOLEAN = 'boolean';
 
+  /**
+   * The schema type for each directive.
+   *
+   * @var array
+   */
   private static $directiveSchemaMap = [
     // Fetch Directives.
     // @see https://www.w3.org/TR/CSP3/#directives-fetch
@@ -62,6 +67,32 @@ class Csp {
     'block-all-mixed-content' => self::DIRECTIVE_SCHEMA_BOOLEAN,
     'require-sri-for' => self::DIRECTIVE_SCHEMA_TOKEN_LIST,
     'upgrade-insecure-requests' => self::DIRECTIVE_SCHEMA_BOOLEAN,
+  ];
+
+  /**
+   * Fallback order for each directive.
+   *
+   * @var array
+   *
+   * @see https://www.w3.org/TR/CSP/#directive-fallback-list
+   */
+  private static $directiveFallbackList = [
+    'script-src-elem' => ['script-src', 'default-src'],
+    'script-src-attr' => ['script-src', 'default-src'],
+    'script-src' => ['default-src'],
+    'style-src-elem' => ['style-src', 'default-src'],
+    'style-src-attr' => ['style-src', 'default-src'],
+    'style-src' => ['default-src'],
+    'worker-src' => ['child-src', 'script-src', 'default-src'],
+    'child-src' => ['script-src', 'default-src'],
+    'connect-src' => ['default-src'],
+    'manifest-src' => ['default-src'],
+    'prefetch-src' => ['default-src'],
+    'object-src' => ['default-src'],
+    'frame-src' => ['child-src', 'default-src'],
+    'media-src' => ['default-src'],
+    'font-src' => ['default-src'],
+    'img-src' => ['default-src'],
   ];
 
   /**
@@ -109,6 +140,27 @@ class Csp {
    */
   public static function getDirectiveNames() {
     return array_keys(self::$directiveSchemaMap);
+  }
+
+  /**
+   * Get the fallback list for a directive.
+   *
+   * @param string $name
+   *   The directive name.
+   *
+   * @return array
+   *   An ordered list of fallback directives.
+   */
+  public static function getDirectiveFallbackList($name) {
+    if (!static::isValidDirectiveName($name)) {
+      throw new \InvalidArgumentException("Invalid directive name provided");
+    }
+
+    if (array_key_exists($name, self::$directiveFallbackList)) {
+      return self::$directiveFallbackList[$name];
+    }
+
+    return [];
   }
 
   /**
@@ -200,7 +252,16 @@ class Csp {
   public function getHeaderValue() {
     $output = [];
 
-    foreach ($this->directives as $name => $value) {
+    $directives = $this->directives;
+
+    $defaultSrc = '';
+    if (isset($directives['default-src'])) {
+      $defaultSrc = self::reduceSourceList($directives['default-src']);
+      unset($directives['default-src']);
+      $output[] = 'default-src ' . implode(' ', $defaultSrc);
+    }
+
+    foreach ($directives as $name => $value) {
       if (empty($value) && self::$directiveSchemaMap[$name] !== self::DIRECTIVE_SCHEMA_OPTIONAL_TOKEN_LIST) {
         continue;
       }
@@ -220,7 +281,16 @@ class Csp {
       ])) {
         $value = self::reduceSourceList($value);
       }
-      // TODO Skip if directive inherits from default-src, and has same value.
+
+      // Skip if directive inherits from default-src, and has same value.
+      if (
+        in_array('default-src', self::getDirectiveFallbackList($name))
+        &&
+        $value === $defaultSrc
+      ) {
+        continue;
+      }
+
       $output[] = $name . ' ' . implode(' ', $value);
     }
 
