@@ -33,7 +33,8 @@ class Uri extends ReportingHandlerBase {
       '#default_value' => isset($this->configuration['uri']) ? $this->configuration['uri'] : '',
       '#states' => [
         'required' => [
-          ':input[name="report[handler]"]' => ['value' => $this->pluginId],
+          ':input[name="' . $this->configuration['type'] . '[enable]"]' => ['checked' => TRUE],
+          ':input[name="' . $this->configuration['type'] . '[reporting][handler]"]' => ['value' => $this->pluginId],
         ],
       ],
     ];

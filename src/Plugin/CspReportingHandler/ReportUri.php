@@ -36,7 +36,8 @@ class ReportUri extends ReportingHandlerBase {
       '#default_value' => isset($this->configuration['subdomain']) ? $this->configuration['subdomain'] : '',
       '#states' => [
         'required' => [
-          ':input[name="report[handler]"]' => ['value' => $this->pluginId],
+          ':input[name="' . $this->configuration['type'] . '[enable]"]' => ['checked' => TRUE],
+          ':input[name="' . $this->configuration['type'] . '[reporting][handler]"]' => ['value' => $this->pluginId],
         ],
       ],
     ];

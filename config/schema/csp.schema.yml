@@ -10,15 +10,6 @@ csp.settings:
     enforce:
       type: csp_policy
       label: 'Enforce Policy'
-    report:
-      type: mapping
-      label: 'Reporting'
-      mapping:
-        plugin:
-          type: string
-          label: 'The Reporting Handler Plugin ID'
-        options:
-          type: csp_reporting_handler.[%parent.plugin]
 
 csp_policy:
   type: mapping
@@ -32,6 +23,16 @@ csp_policy:
       label: 'Directives'
       sequence:
         type: csp_directive.[%key]
+    reporting:
+      type: mapping
+      label: 'Reporting'
+      mapping:
+        plugin:
+          type: string
+          label: 'The Reporting Handler Plugin ID'
+        options:
+          type: csp_reporting_handler.[%parent.plugin]
+          label: 'Reporting Plugin Options'
 
 csp_directive_source_list:
   type: mapping

@@ -108,47 +108,9 @@ class CspSettingsForm extends ConfigFormBase {
       'style-src' => [],
     ];
 
-    $form['#attached']['library'][] = 'csp/admin';
-
-    $form['report'] = [
-      '#type' => 'fieldset',
-      '#title' => $this->t('Reporting'),
-      '#tree' => TRUE,
-    ];
-    $form['report']['handler'] = [
-      '#type' => 'radios',
-      '#title' => $this->t('Handler'),
-      '#options' => [],
-      '#default_value' => $config->get('report.plugin'),
-    ];
-
     $reportingHandlerPluginDefinitions = $this->reportingHandlerPluginManager->getDefinitions();
-    foreach ($reportingHandlerPluginDefinitions as $reportingHandlerPluginDefinition) {
-      try {
-        $reportingHandlerPlugin = $this->reportingHandlerPluginManager->createInstance(
-          $reportingHandlerPluginDefinition['id'],
-          ($config->get('report.plugin') == $reportingHandlerPluginDefinition['id']) ?
-            ($config->get('report.options') ?: []) : []
-        );
-      }
-      catch (PluginException $e) {
-        watchdog_exception('csp', $e);
-        continue;
-      }
 
-      $form['report']['handler']['#options'][$reportingHandlerPluginDefinition['id']] = $reportingHandlerPluginDefinition['label'];
-
-      $form['report'][$reportingHandlerPluginDefinition['id']] = $reportingHandlerPlugin->getForm([
-        '#type' => 'item',
-        '#description' => $reportingHandlerPluginDefinition['description'],
-        '#states' => [
-          'visible' => [
-            ':input[name="report[handler]"]' => ['value' => $reportingHandlerPluginDefinition['id']],
-          ],
-        ],
-        '#CspReportingHandlerPlugin' => $reportingHandlerPlugin,
-      ]);
-    }
+    $form['#attached']['library'][] = 'csp/admin';
 
     $form['policies'] = [
       '#type' => 'vertical_tabs',
@@ -369,6 +331,57 @@ class CspSettingsForm extends ConfigFormBase {
         ],
         '#default_value' => $config->get($policyTypeKey . '.directives.require-sri-for') ?: [],
       ];
+
+
+      $form[$policyTypeKey]['reporting'] = [
+        '#type' => 'fieldset',
+        '#title' => $this->t('Reporting'),
+        '#tree' => TRUE,
+        '#states' => [
+          'visible' => [
+            ':input[name="' . $policyTypeKey . '[enable]"]' => ['checked' => TRUE],
+          ],
+        ],
+      ];
+      $form[$policyTypeKey]['reporting']['handler'] = [
+        '#type' => 'radios',
+        '#title' => $this->t('Handler'),
+        '#options' => [],
+        '#default_value' => $config->get($policyTypeKey . '.reporting.plugin') ?: 'none',
+      ];
+
+      foreach ($reportingHandlerPluginDefinitions as $reportingHandlerPluginDefinition) {
+        $reportingHandlerOptions = [
+          'type' => $policyTypeKey,
+        ];
+        if ($config->get($policyTypeKey . '.reporting.plugin') == $reportingHandlerPluginDefinition['id']) {
+          $reportingHandlerOptions += $config->get($policyTypeKey . '.reporting.options') ?: [];
+        }
+
+        try {
+          $reportingHandlerPlugin = $this->reportingHandlerPluginManager->createInstance(
+            $reportingHandlerPluginDefinition['id'],
+            $reportingHandlerOptions
+          );
+        }
+        catch (PluginException $e) {
+          watchdog_exception('csp', $e);
+          continue;
+        }
+
+        $form[$policyTypeKey]['reporting']['handler']['#options'][$reportingHandlerPluginDefinition['id']] = $reportingHandlerPluginDefinition['label'];
+
+        $form[$policyTypeKey]['reporting'][$reportingHandlerPluginDefinition['id']] = $reportingHandlerPlugin->getForm([
+          '#type' => 'item',
+          '#description' => $reportingHandlerPluginDefinition['description'],
+          '#states' => [
+            'visible' => [
+              ':input[name="' . $policyTypeKey . '[reporting][handler]"]' => ['value' => $reportingHandlerPluginDefinition['id']],
+            ],
+          ],
+          '#CspReportingHandlerPlugin' => $reportingHandlerPlugin,
+        ]);
+      }
     }
 
     // Skip this check when building the form before validation/submission.
@@ -390,11 +403,12 @@ class CspSettingsForm extends ConfigFormBase {
    */
   public function validateForm(array &$form, FormStateInterface $form_state) {
 
-    $reportingHandlerPluginId = $form_state->getValue(['report', 'handler']);
-    $form['report'][$reportingHandlerPluginId]['#CspReportingHandlerPlugin']
-      ->validateForm($form['report'][$reportingHandlerPluginId], $form_state);
-
     foreach (['report-only', 'enforce'] as $policyTypeKey) {
+
+      // No options are saved for disabled policies, so skip validation.
+      if (!$form_state->getValue([$policyTypeKey, 'enable'])) {
+        continue;
+      }
 
       $directiveNames = $this->getConfigurableDirectives();
       foreach ($directiveNames as $directiveName) {
@@ -433,6 +447,17 @@ class CspSettingsForm extends ConfigFormBase {
             $this->t('Invalid MIME-Type provided.')
           );
         }
+      }
+
+      if (($reportingHandlerPluginId = $form_state->getValue([$policyTypeKey, 'reporting', 'handler']))) {
+        $form[$policyTypeKey]['reporting'][$reportingHandlerPluginId]['#CspReportingHandlerPlugin']
+          ->validateForm($form[$policyTypeKey]['reporting'][$reportingHandlerPluginId], $form_state);
+      }
+      else {
+        $form_state->setError(
+          $form[$policyTypeKey]['reporting']['handler'],
+          $this->t('Reporting Handler is required for enables policies.')
+        );
       }
     }
 
@@ -483,13 +508,6 @@ class CspSettingsForm extends ConfigFormBase {
     ];
 
     $config = $this->config('csp.settings');
-
-    $reportHandlerPluginId = $form_state->getValue(['report', 'handler']);
-    $config->set('report', ['plugin' => $reportHandlerPluginId]);
-    $reportHandlerOptions = $form_state->getValue(['report', $reportHandlerPluginId]);
-    if ($reportHandlerOptions) {
-      $config->set('report.options', $reportHandlerOptions);
-    }
 
     $directiveNames = $this->getConfigurableDirectives();
     foreach (['report-only', 'enforce'] as $policyTypeKey) {
@@ -564,6 +582,12 @@ class CspSettingsForm extends ConfigFormBase {
         }
       }
 
+      $reportHandlerPluginId = $form_state->getValue([$policyTypeKey, 'reporting', 'handler']);
+      $config->set($policyTypeKey . '.reporting', ['plugin' => $reportHandlerPluginId]);
+      $reportHandlerOptions = $form_state->getValue([$policyTypeKey, 'reporting', $reportHandlerPluginId]);
+      if ($reportHandlerOptions) {
+        $config->set($policyTypeKey . '.reporting.options', $reportHandlerOptions);
+      }
     }
 
     $config->save();

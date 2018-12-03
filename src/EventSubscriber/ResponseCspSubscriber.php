@@ -164,14 +164,14 @@ class ResponseCspSubscriber implements EventSubscriberInterface {
       }
 
       try {
-        $reportingOptions = $cspConfig->get('report.options') ?: [];
+        $reportingOptions = $cspConfig->get($policyType . '.reporting.options') ?: [];
         $reportingOptions += [
           'type' => $policyType,
         ];
 
         $this->reportingHandlerPluginManager
           ->createInstance(
-            $cspConfig->get('report.plugin'),
+            $cspConfig->get($policyType . '.reporting.plugin'),
             $reportingOptions
           )
           ->alterPolicy($policy);

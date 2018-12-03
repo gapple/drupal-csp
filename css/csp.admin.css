@@ -1,10 +1,10 @@
-form.csp-settings [data-drupal-selector="edit-report-handler"] .form-radios,
+form.csp-settings [data-drupal-selector$="reporting-handler"] .form-radios,
 form.csp-settings [data-drupal-selector$="directives"] .form-radios,
 form.csp-settings [data-drupal-selector$="directives"] .form-checkboxes {
   display: flex;
   flex-wrap: wrap;
 }
-form.csp-settings [data-drupal-selector="edit-report-handler"] .form-radios .form-item,
+form.csp-settings [data-drupal-selector$="reporting-handler"] .form-radios .form-item,
 form.csp-settings [data-drupal-selector$="directives"] .form-radios .form-item,
 form.csp-settings [data-drupal-selector$="directives"] .form-checkboxes .form-item {
   margin-right: 3ex;

@@ -1,5 +1,3 @@
-report:
-  plugin: none
 report-only:
   enable: true
   directives:
@@ -16,5 +14,7 @@ report-only:
       base: 'self'
     style-src:
       base: 'self'
+  reporting:
+    plugin: none
 enforce:
   enable: false
