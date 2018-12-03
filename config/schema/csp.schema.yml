@@ -14,11 +14,11 @@ csp.settings:
       type: mapping
       label: 'Reporting'
       mapping:
-        handler:
+        plugin:
           type: string
-          label: 'Handler'
+          label: 'The Reporting Handler Plugin ID'
         options:
-          type: csp_report_handler.[%parent.handler]
+          type: csp_reporting_handler.[%parent.plugin]
 
 csp_policy:
   type: mapping
@@ -98,14 +98,20 @@ csp_directive.require-sri-for:
 csp_directive.upgrade-insecure-requests:
   type: boolean
 
-csp_report_handler.report-uri-com:
+csp_reporting_handler.none:
   type: mapping
-  label: 'Report-URI.com'
+  label: 'None'
+csp_reporting_handler.sitelog:
+  type: mapping
+  label: 'Site Log'
+csp_reporting_handler.report-uri-com:
+  type: mapping
+  label: 'Report URI'
   mapping:
     subdomain:
       type: string
       label: 'Subdomain'
-csp_report_handler.uri:
+csp_reporting_handler.uri:
   type: mapping
   label: 'URI'
   mapping:

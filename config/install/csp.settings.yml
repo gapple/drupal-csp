@@ -1,5 +1,5 @@
 report:
-  handler: csp-module
+  plugin: none
 report-only:
   enable: true
   directives:

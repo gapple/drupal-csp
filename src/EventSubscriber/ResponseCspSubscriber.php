@@ -2,11 +2,13 @@
 
 namespace Drupal\csp\EventSubscriber;
 
+use Drupal\Component\Plugin\Exception\PluginException;
 use Drupal\Core\Config\ConfigFactoryInterface;
 use Drupal\Core\Extension\ModuleHandlerInterface;
 use Drupal\Core\Url;
 use Drupal\csp\Csp;
 use Drupal\csp\LibraryPolicyBuilder;
+use Drupal\csp\ReportingHandlerPluginManager;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 use Symfony\Component\HttpKernel\Event\FilterResponseEvent;
 use Symfony\Component\HttpKernel\KernelEvents;
@@ -38,6 +40,13 @@ class ResponseCspSubscriber implements EventSubscriberInterface {
   protected $libraryPolicyBuilder;
 
   /**
+   * The Reporting Handler Plugin Manager service.
+   *
+   * @var \Drupal\csp\ReportingHandlerPluginManager
+   */
+  private $reportingHandlerPluginManager;
+
+  /**
    * Constructs a new ResponseSubscriber object.
    *
    * @param \Drupal\Core\Config\ConfigFactoryInterface $configFactory
@@ -46,15 +55,19 @@ class ResponseCspSubscriber implements EventSubscriberInterface {
    *   The Module Handler service.
    * @param \Drupal\csp\LibraryPolicyBuilder $libraryPolicyBuilder
    *   The Library Parser service.
+   * @param \Drupal\csp\ReportingHandlerPluginManager $reportingHandlerPluginManager
+   *   The Reporting Handler Plugin Manager service.
    */
   public function __construct(
     ConfigFactoryInterface $configFactory,
     ModuleHandlerInterface $moduleHandler,
-    LibraryPolicyBuilder $libraryPolicyBuilder
+    LibraryPolicyBuilder $libraryPolicyBuilder,
+    ReportingHandlerPluginManager $reportingHandlerPluginManager
   ) {
     $this->configFactory = $configFactory;
     $this->moduleHandler = $moduleHandler;
     $this->libraryPolicyBuilder = $libraryPolicyBuilder;
+    $this->reportingHandlerPluginManager = $reportingHandlerPluginManager;
   }
 
   /**
@@ -150,21 +163,21 @@ class ResponseCspSubscriber implements EventSubscriberInterface {
         $policy->appendDirective('style-src', [Csp::POLICY_UNSAFE_INLINE]);
       }
 
-      $reportHandler = $cspConfig->get('report.handler');
-      if ($reportHandler == 'csp-module') {
-        $reportUri = Url::fromRoute(
-          'csp.reporturi',
-          ['type' => ($policyType == 'enforce') ? 'enforce' : 'reportOnly'],
-          ['absolute' => TRUE]
-        );
-        $policy->setDirective('report-uri', $reportUri->toString());
+      try {
+        $reportingOptions = $cspConfig->get('report.options') ?: [];
+        $reportingOptions += [
+          'type' => $policyType,
+        ];
+
+        $this->reportingHandlerPluginManager
+          ->createInstance(
+            $cspConfig->get('report.plugin'),
+            $reportingOptions
+          )
+          ->alterPolicy($policy);
       }
-      elseif ($reportHandler == 'report-uri-com') {
-        $reportUri = 'https://' . $cspConfig->get('report.options.subdomain') . '.report-uri.com/r/d/csp/' . (($policyType == 'enforce') ? 'enforce' : 'reportOnly');
-        $policy->setDirective('report-uri', $reportUri);
-      }
-      elseif ($reportHandler == 'uri') {
-        $policy->setDirective('report-uri', $cspConfig->get('report.options.uri'));
+      catch (PluginException $e) {
+        watchdog_exception('csp', $e);
       }
 
       $response->headers->set($policy->getHeaderName(), $policy->getHeaderValue());

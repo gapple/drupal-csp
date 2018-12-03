@@ -2,13 +2,14 @@
 
 namespace Drupal\csp\Form;
 
-use Drupal\Component\Utility\UrlHelper;
+use Drupal\Component\Plugin\Exception\PluginException;
 use Drupal\Core\Config\ConfigFactoryInterface;
 use Drupal\Core\Form\ConfigFormBase;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Messenger\MessengerInterface;
 use Drupal\csp\Csp;
 use Drupal\csp\LibraryPolicyBuilder;
+use Drupal\csp\ReportingHandlerPluginManager;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
@@ -22,6 +23,13 @@ class CspSettingsForm extends ConfigFormBase {
    * @var \Drupal\csp\LibraryPolicyBuilder
    */
   private $libraryPolicyBuilder;
+
+  /**
+   * The Reporting Handler Plugin Manager service.
+   *
+   * @var \Drupal\csp\ReportingHandlerPluginManager
+   */
+  private $reportingHandlerPluginManager;
 
   /**
    * {@inheritdoc}
@@ -46,12 +54,15 @@ class CspSettingsForm extends ConfigFormBase {
    *   The factory for configuration objects.
    * @param \Drupal\csp\LibraryPolicyBuilder $libraryPolicyBuilder
    *   The Library Policy Builder service.
+   * @param \Drupal\csp\ReportingHandlerPluginManager $reportingHandlerPluginManager
+   *   The Reporting Handler Plugin Manger service.
    * @param \Drupal\Core\Messenger\MessengerInterface|null $messenger
    *   The Messenger service.
    */
-  public function __construct(ConfigFactoryInterface $config_factory, LibraryPolicyBuilder $libraryPolicyBuilder, MessengerInterface $messenger) {
+  public function __construct(ConfigFactoryInterface $config_factory, LibraryPolicyBuilder $libraryPolicyBuilder, ReportingHandlerPluginManager $reportingHandlerPluginManager, MessengerInterface $messenger) {
     parent::__construct($config_factory);
     $this->libraryPolicyBuilder = $libraryPolicyBuilder;
+    $this->reportingHandlerPluginManager = $reportingHandlerPluginManager;
     $this->setMessenger($messenger);
   }
 
@@ -62,6 +73,7 @@ class CspSettingsForm extends ConfigFormBase {
     return new static(
       $container->get('config.factory'),
       $container->get('csp.library_policy_builder'),
+      $container->get('plugin.manager.csp_reporting_handler'),
       $container->get('messenger')
     );
   }
@@ -106,62 +118,37 @@ class CspSettingsForm extends ConfigFormBase {
     $form['report']['handler'] = [
       '#type' => 'radios',
       '#title' => $this->t('Handler'),
-      '#options' => [
-        'csp-module' => $this->t('Internal'),
-        'report-uri-com' => 'Report-URI.com',
-        'uri' => $this->t('External URI'),
-        '' => $this->t('None'),
-      ],
-      '#default_value' => $config->get('report.handler'),
+      '#options' => [],
+      '#default_value' => $config->get('report.plugin'),
     ];
-    $form['report']['none'] = [
-      '#type' => 'item',
-      '#description' => $this->t('Reporting is disabled.'),
-      '#states' => [
-        'visible' => [
-          ':input[name="report[handler]"]' => ['value' => ''],
+
+    $reportingHandlerPluginDefinitions = $this->reportingHandlerPluginManager->getDefinitions();
+    foreach ($reportingHandlerPluginDefinitions as $reportingHandlerPluginDefinition) {
+      try {
+        $reportingHandlerPlugin = $this->reportingHandlerPluginManager->createInstance(
+          $reportingHandlerPluginDefinition['id'],
+          ($config->get('report.plugin') == $reportingHandlerPluginDefinition['id']) ?
+            ($config->get('report.options') ?: []) : []
+        );
+      }
+      catch (PluginException $e) {
+        watchdog_exception('csp', $e);
+        continue;
+      }
+
+      $form['report']['handler']['#options'][$reportingHandlerPluginDefinition['id']] = $reportingHandlerPluginDefinition['label'];
+
+      $form['report'][$reportingHandlerPluginDefinition['id']] = $reportingHandlerPlugin->getForm([
+        '#type' => 'item',
+        '#description' => $reportingHandlerPluginDefinition['description'],
+        '#states' => [
+          'visible' => [
+            ':input[name="report[handler]"]' => ['value' => $reportingHandlerPluginDefinition['id']],
+          ],
         ],
-      ],
-    ];
-    $form['report']['csp-module'] = [
-      '#type' => 'item',
-      '#description' => $this->t('Reports will be added to the site log.'),
-      '#states' => [
-        'visible' => [
-          ':input[name="report[handler]"]' => ['value' => 'csp-module'],
-        ],
-      ],
-    ];
-    $form['report']['report-uri-com']['subdomain'] = [
-      '#type' => 'textfield',
-      '#title' => $this->t('Subdomain'),
-      '#description' => $this->t('Your <a href=":url">Report-URI.com subdomain</a>.', [
-        ':url' => 'https://report-uri.com/account/setup/',
-      ]),
-      '#default_value' => $config->get('report.options.subdomain'),
-      '#states' => [
-        'visible' => [
-          ':input[name="report[handler]"]' => ['value' => 'report-uri-com'],
-        ],
-        'required' => [
-          ':input[name="report[handler]"]' => ['value' => 'report-uri-com'],
-        ],
-      ],
-    ];
-    $form['report']['uri']['uri'] = [
-      '#type' => 'textfield',
-      '#title' => $this->t('URI'),
-      '#description' => $this->t('The URI to send reports to.'),
-      '#default_value' => $config->get('report.options.uri'),
-      '#states' => [
-        'visible' => [
-          ':input[name="report[handler]"]' => ['value' => 'uri'],
-        ],
-        'required' => [
-          ':input[name="report[handler]"]' => ['value' => 'uri'],
-        ],
-      ],
-    ];
+        '#CspReportingHandlerPlugin' => $reportingHandlerPlugin,
+      ]);
+    }
 
     $form['policies'] = [
       '#type' => 'vertical_tabs',
@@ -403,18 +390,9 @@ class CspSettingsForm extends ConfigFormBase {
    */
   public function validateForm(array &$form, FormStateInterface $form_state) {
 
-    $reportHandler = $form_state->getValue(['report', 'handler']);
-    if ($reportHandler == 'report-uri-com') {
-      if (!preg_match('/^[a-z\d]{4,30}$/i', $form_state->getValue(['report', 'report-uri-com', 'subdomain']))) {
-        $form_state->setError($form['report']['report-uri-com']['subdomain'], 'Must be 4-30 alphanumeric characters.');
-      }
-    }
-    elseif ($reportHandler == 'uri') {
-      $uri = $form_state->getValue(['report', 'uri', 'uri']);
-      if (!(UrlHelper::isValid($uri, TRUE) && preg_match('/^https?:/', $uri))) {
-        $form_state->setError($form['report']['uri']['uri'], 'Must be a valid http or https URL.');
-      }
-    }
+    $reportingHandlerPluginId = $form_state->getValue(['report', 'handler']);
+    $form['report'][$reportingHandlerPluginId]['#CspReportingHandlerPlugin']
+      ->validateForm($form['report'][$reportingHandlerPluginId], $form_state);
 
     foreach (['report-only', 'enforce'] as $policyTypeKey) {
 
@@ -506,26 +484,11 @@ class CspSettingsForm extends ConfigFormBase {
 
     $config = $this->config('csp.settings');
 
-    $reportHandler = $form_state->getValue(['report', 'handler']);
-    $config->set('report.handler', $reportHandler);
-    if ($reportHandler == 'report-uri-com') {
-      $config->set(
-        'report.options',
-        [
-          'subdomain' => $form_state->getValue(['report', 'report-uri-com', 'subdomain']),
-        ]
-      );
-    }
-    elseif ($reportHandler == 'uri') {
-      $config->set(
-        'report.options',
-        [
-          'uri' => $form_state->getValue(['report', 'uri', 'uri']),
-        ]
-      );
-    }
-    else {
-      $config->clear('report.options');
+    $reportHandlerPluginId = $form_state->getValue(['report', 'handler']);
+    $config->set('report', ['plugin' => $reportHandlerPluginId]);
+    $reportHandlerOptions = $form_state->getValue(['report', $reportHandlerPluginId]);
+    if ($reportHandlerOptions) {
+      $config->set('report.options', $reportHandlerOptions);
     }
 
     $directiveNames = $this->getConfigurableDirectives();
