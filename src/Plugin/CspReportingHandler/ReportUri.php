@@ -42,6 +42,17 @@ class ReportUri extends ReportingHandlerBase {
       ],
     ];
 
+    if ($this->configuration['type'] == 'report-only') {
+      $form['wizard'] = [
+        '#type' => 'checkbox',
+        '#title' => $this->t('Enable Wizard'),
+        '#description' => $this->t('Send reports to the <a href=":url">CSP Wizard</a> reporting address.', [
+          ':url' => 'https://report-uri.com/account/wizard/csp/',
+        ]),
+        '#default_value' => !empty($this->configuration['wizard']),
+      ];
+    }
+
     unset($form['#description']);
 
     return $form;
@@ -61,8 +72,16 @@ class ReportUri extends ReportingHandlerBase {
    * {@inheritdoc}
    */
   public function alterPolicy(Csp $policy) {
-    $reportUri = 'https://' . $this->configuration['subdomain'] . '.report-uri.com/r/d/csp/' . (($this->configuration['type'] == 'enforce') ? 'enforce' : 'reportOnly');
-    $policy->setDirective('report-uri', $reportUri);
+    $type = 'enforce';
+
+    if ($this->configuration['type'] == 'report-only') {
+      $type = empty($this->configuration['wizard']) ? 'reportOnly' : 'wizard';
+    }
+
+    $policy->setDirective(
+      'report-uri',
+      'https://' . $this->configuration['subdomain'] . '.report-uri.com/r/d/csp/' . $type
+    );
   }
 
 }

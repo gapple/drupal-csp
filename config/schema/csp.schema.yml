@@ -112,6 +112,9 @@ csp_reporting_handler.report-uri-com:
     subdomain:
       type: string
       label: 'Subdomain'
+    wizard:
+      type: boolean
+      label: 'Wizard'
 csp_reporting_handler.uri:
   type: mapping
   label: 'URI'
