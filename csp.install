@@ -156,3 +156,22 @@ function csp_update_8101() {
     ->set('report', $reportConfig)
     ->save();
 }
+
+/**
+ * Update configuration with per-policy reporting settings.
+ */
+function csp_update_8102() {
+  $config = \Drupal::configFactory()->getEditable('csp.settings');
+
+  $reportingOptions = $config->get('report');
+  $config->clear('report');
+
+  foreach (['enforce', 'report-only'] as $policyType) {
+    if (!$config->get($policyType . '.enable')) {
+      continue;
+    }
+    $config->set($policyType . '.reporting', $reportingOptions);
+  }
+
+  $config->save();
+}
