@@ -134,3 +134,25 @@ function csp_update_8003() {
     ])
     ->save();
 }
+
+/**
+ * Update configuration for Reporting Plugins.
+ */
+function csp_update_8101() {
+  $config = \Drupal::configFactory()->getEditable('csp.settings');
+
+  $pluginMap = [
+    '' => 'none',
+    'report-uri-com' => 'report-uri-com',
+    'csp-module' => 'sitelog',
+    'uri' => 'uri',
+  ];
+
+  $reportConfig = $config->get('report');
+  $reportConfig['plugin'] = $pluginMap[$reportConfig['handler']];
+  unset($reportConfig['handler']);
+
+  $config
+    ->set('report', $reportConfig)
+    ->save();
+}
