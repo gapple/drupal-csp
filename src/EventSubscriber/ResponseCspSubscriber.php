@@ -163,21 +163,20 @@ class ResponseCspSubscriber implements EventSubscriberInterface {
         $policy->appendDirective('style-src', [Csp::POLICY_UNSAFE_INLINE]);
       }
 
-      try {
+      $reportingPluginId = $cspConfig->get($policyType . '.reporting.plugin');
+      if ($reportingPluginId) {
         $reportingOptions = $cspConfig->get($policyType . '.reporting.options') ?: [];
         $reportingOptions += [
           'type' => $policyType,
         ];
-
-        $this->reportingHandlerPluginManager
-          ->createInstance(
-            $cspConfig->get($policyType . '.reporting.plugin'),
-            $reportingOptions
-          )
-          ->alterPolicy($policy);
-      }
-      catch (PluginException $e) {
-        watchdog_exception('csp', $e);
+        try {
+          $this->reportingHandlerPluginManager
+            ->createInstance($reportingPluginId, $reportingOptions)
+            ->alterPolicy($policy);
+        }
+        catch (PluginException $e) {
+          watchdog_exception('csp', $e);
+        }
       }
 
       $response->headers->set($policy->getHeaderName(), $policy->getHeaderValue());

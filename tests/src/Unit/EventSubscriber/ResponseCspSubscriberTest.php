@@ -6,6 +6,7 @@ use Drupal\Core\Extension\ModuleHandler;
 use Drupal\Core\Render\HtmlResponse;
 use Drupal\csp\EventSubscriber\ResponseCspSubscriber;
 use Drupal\csp\LibraryPolicyBuilder;
+use Drupal\csp\ReportingHandlerPluginManager;
 use Drupal\Tests\UnitTestCase;
 use Symfony\Component\HttpFoundation\ResponseHeaderBag;
 use Symfony\Component\HttpKernel\Event\FilterResponseEvent;
@@ -46,6 +47,13 @@ class ResponseCspSubscriberTest extends UnitTestCase {
   private $libraryPolicy;
 
   /**
+   * The Reporting Handler Plugin Manager service.
+   *
+   * @var \Drupal\csp\ReportingHandlerPluginManager|\PHPUnit_Framework_MockObject_MockObject
+   */
+  private $reportingHandlerPluginManager;
+
+  /**
    * {@inheritdoc}
    */
   public function setUp() {
@@ -74,6 +82,10 @@ class ResponseCspSubscriberTest extends UnitTestCase {
       ->getMock();
 
     $this->libraryPolicy = $this->getMockBuilder(LibraryPolicyBuilder::class)
+      ->disableOriginalConstructor()
+      ->getMock();
+
+    $this->reportingHandlerPluginManager = $this->getMockBuilder(ReportingHandlerPluginManager::class)
       ->disableOriginalConstructor()
       ->getMock();
   }
@@ -185,7 +197,7 @@ class ResponseCspSubscriberTest extends UnitTestCase {
       ->method('getSources')
       ->willReturn([]);
 
-    $subscriber = new ResponseCspSubscriber($configFactory, $this->moduleHandler, $this->libraryPolicy);
+    $subscriber = new ResponseCspSubscriber($configFactory, $this->moduleHandler, $this->libraryPolicy, $this->reportingHandlerPluginManager);
 
     $this->response->headers->expects($this->once())
       ->method('set')
@@ -239,7 +251,7 @@ class ResponseCspSubscriberTest extends UnitTestCase {
       ->method('getSources')
       ->willReturn([]);
 
-    $subscriber = new ResponseCspSubscriber($configFactory, $this->moduleHandler, $this->libraryPolicy);
+    $subscriber = new ResponseCspSubscriber($configFactory, $this->moduleHandler, $this->libraryPolicy, $this->reportingHandlerPluginManager);
 
     $this->response->headers->expects($this->once())
       ->method('set')
@@ -288,7 +300,7 @@ class ResponseCspSubscriberTest extends UnitTestCase {
       ->method('getSources')
       ->willReturn([]);
 
-    $subscriber = new ResponseCspSubscriber($configFactory, $this->moduleHandler, $this->libraryPolicy);
+    $subscriber = new ResponseCspSubscriber($configFactory, $this->moduleHandler, $this->libraryPolicy, $this->reportingHandlerPluginManager);
 
     $this->response->headers->expects($this->once())
       ->method('set')
@@ -337,7 +349,7 @@ class ResponseCspSubscriberTest extends UnitTestCase {
       ->method('getSources')
       ->willReturn([]);
 
-    $subscriber = new ResponseCspSubscriber($configFactory, $this->moduleHandler, $this->libraryPolicy);
+    $subscriber = new ResponseCspSubscriber($configFactory, $this->moduleHandler, $this->libraryPolicy, $this->reportingHandlerPluginManager);
 
     $this->response->headers->expects($this->once())
       ->method('set')
@@ -397,7 +409,7 @@ class ResponseCspSubscriberTest extends UnitTestCase {
       ->method('getSources')
       ->willReturn([]);
 
-    $subscriber = new ResponseCspSubscriber($configFactory, $this->moduleHandler, $this->libraryPolicy);
+    $subscriber = new ResponseCspSubscriber($configFactory, $this->moduleHandler, $this->libraryPolicy, $this->reportingHandlerPluginManager);
 
     $this->response->headers->expects($this->exactly(2))
       ->method('set')

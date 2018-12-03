@@ -10,7 +10,7 @@ use Drupal\csp\LibraryPolicyBuilder;
 use Drupal\Tests\UnitTestCase;
 
 /**
- * @coversDefaultClass Drupal\csp\LibraryPolicyBuilder
+ * @coversDefaultClass \Drupal\csp\LibraryPolicyBuilder
  * @group csp
  */
 class LibraryPolicyBuilderTest extends UnitTestCase {
