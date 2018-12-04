@@ -142,7 +142,7 @@ class ResponseCspSubscriberTest extends UnitTestCase {
       ->method('getSources')
       ->willReturn([]);
 
-    $subscriber = new ResponseCspSubscriber($configFactory, $this->moduleHandler, $this->libraryPolicy);
+    $subscriber = new ResponseCspSubscriber($configFactory, $this->moduleHandler, $this->libraryPolicy, $this->reportingHandlerPluginManager);
 
     $this->response->headers->expects($this->once())
       ->method('set')
