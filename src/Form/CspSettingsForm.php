@@ -542,22 +542,26 @@ class CspSettingsForm extends ConfigFormBase {
         if ($directiveSchema === Csp::DIRECTIVE_SCHEMA_BOOLEAN) {
           $directiveOptions = TRUE;
         }
+        elseif ($directiveSchema === Csp::DIRECTIVE_SCHEMA_MEDIA_TYPE_LIST) {
+          // If "object-src: none" all plugins will be blocked even if type is
+          // allowed.  The form field is hidden and skips validation, so make
+          // sure value is not saved.
+          if (
+            $directiveName == 'plugin-types'
+            &&
+            $policyFormData['directives']['object-src']['enable']
+            &&
+            $policyFormData['directives']['object-src']['base'] == 'none'
+          ) {
+            continue;
+          }
+          $directiveOptions = preg_split('/,?\s+/', $directiveFormData['mime-types']);
+        }
         elseif (in_array($directiveSchema, [
-          Csp::DIRECTIVE_SCHEMA_MEDIA_TYPE_LIST,
           Csp::DIRECTIVE_SCHEMA_TOKEN_LIST,
           Csp::DIRECTIVE_SCHEMA_OPTIONAL_TOKEN_LIST,
         ])) {
-          if ($directiveName == 'plugin-types') {
-            // If "object-src: none" all plugins will be blocked even if type is
-            // allowed.  The form field is hidden and skips validation, so make
-            // sure value is not saved.
-            if (!empty($directiveFormData['mime-types']) && $policyFormData['directives']['object-src']['base'] != 'none') {
-              $directiveOptions = preg_split('/,?\s+/', $directiveFormData['mime-types']);
-            }
-          }
-          else {
-            $directiveOptions = array_keys(array_filter($directiveFormData['keys']));
-          }
+          $directiveOptions = array_keys(array_filter($directiveFormData['keys']));
         }
         elseif (in_array($directiveSchema, [
           Csp::DIRECTIVE_SCHEMA_SOURCE_LIST,
