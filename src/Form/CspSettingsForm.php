@@ -160,14 +160,11 @@ class CspSettingsForm extends ConfigFormBase {
       ];
 
       foreach ($directiveNames as $directiveName) {
-        if ($policyTypeKey !== 'enforce' && in_array($directiveName, $enforceOnlyDirectives)) {
-          continue;
-        }
-
         $directiveSchema = Csp::getDirectiveSchema($directiveName);
 
         $form[$policyTypeKey]['directives'][$directiveName] = [
           '#type' => 'container',
+          '#access' => $policyTypeKey == 'enforce' || !in_array($directiveName, $enforceOnlyDirectives),
         ];
 
         $forceEnable = isset($autoDirectives[$directiveName]);
