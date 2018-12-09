@@ -574,7 +574,14 @@ class CspSettingsForm extends ConfigFormBase {
           }
         }
 
-        if (!empty($directiveOptions) || $directiveSchema == Csp::DIRECTIVE_SCHEMA_OPTIONAL_TOKEN_LIST) {
+        if (
+          !empty($directiveOptions)
+          ||
+          in_array($directiveSchema, [
+            Csp::DIRECTIVE_SCHEMA_OPTIONAL_TOKEN_LIST,
+            Csp::DIRECTIVE_SCHEMA_MEDIA_TYPE_LIST,
+          ])
+        ) {
           $config->set($policyTypeKey . '.directives.' . $directiveName, $directiveOptions);
         }
       }
