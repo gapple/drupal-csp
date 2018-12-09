@@ -285,7 +285,15 @@ class CspSettingsForm extends ConfigFormBase {
 
       $form[$policyTypeKey]['directives']['plugin-types']['#states'] = [
         'visible' => [
-          [':input[name="' . $policyTypeKey . '[directives][object-src][base]"]' => ['!value' => 'none']],
+          [
+            ':input[name="' . $policyTypeKey . '[directives][object-src][base]"]' => ['!value' => 'none'],
+            // states.js has a bug which requires that the first OR group
+            // include all selectors used.  'enable' isn't really required for
+            // this condition, but is need for the later FALSE to work.
+            ':input[name="' . $policyTypeKey . '[directives][object-src][enable]"]' => ['checked' => TRUE],
+          ],
+          'or',
+          [':input[name="' . $policyTypeKey . '[directives][object-src][enable]"]' => ['checked' => FALSE]],
         ],
       ];
 
