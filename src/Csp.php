@@ -141,6 +141,20 @@ class Csp {
   }
 
   /**
+   * Check if a directive name is valid, throwing an exception if not.
+   *
+   * @param string $name
+   *   The directive name.
+   *
+   * @throws \InvalidArgumentException
+   */
+  private static function validateDirectiveName($name) {
+    if (!static::isValidDirectiveName($name)) {
+      throw new \InvalidArgumentException("Invalid directive name provided");
+    }
+  }
+
+  /**
    * Get the valid directive names.
    *
    * @return array
@@ -160,9 +174,7 @@ class Csp {
    *   A DIRECTIVE_SCHEMA_* constant value
    */
   public static function getDirectiveSchema($name) {
-    if (!static::isValidDirectiveName($name)) {
-      throw new \InvalidArgumentException("Invalid directive name provided");
-    }
+    self::validateDirectiveName($name);
 
     return self::$directiveSchemaMap[$name];
   }
@@ -177,9 +189,7 @@ class Csp {
    *   An ordered list of fallback directives.
    */
   public static function getDirectiveFallbackList($name) {
-    if (!static::isValidDirectiveName($name)) {
-      throw new \InvalidArgumentException("Invalid directive name provided");
-    }
+    self::validateDirectiveName($name);
 
     if (array_key_exists($name, self::$directiveFallbackList)) {
       return self::$directiveFallbackList[$name];
@@ -197,9 +207,7 @@ class Csp {
    *   The directive value.
    */
   public function setDirective($name, $value) {
-    if (!static::isValidDirectiveName($name)) {
-      throw new \InvalidArgumentException("Invalid directive name provided");
-    }
+    self::validateDirectiveName($name);
 
     if (self::$directiveSchemaMap[$name] === self::DIRECTIVE_SCHEMA_BOOLEAN) {
       $this->directives[$name] = (bool) $value;
@@ -222,9 +230,7 @@ class Csp {
    *   The directive value.
    */
   public function appendDirective($name, $value) {
-    if (!static::isValidDirectiveName($name)) {
-      throw new \InvalidArgumentException("Invalid directive name provided");
-    }
+    self::validateDirectiveName($name);
 
     if (empty($value)) {
       return;
@@ -251,9 +257,7 @@ class Csp {
    *   The directive name.
    */
   public function removeDirective($name) {
-    if (!static::isValidDirectiveName($name)) {
-      throw new \InvalidArgumentException("Invalid directive name provided");
-    }
+    self::validateDirectiveName($name);
 
     unset($this->directives[$name]);
   }
