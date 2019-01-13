@@ -151,14 +151,19 @@ class ResponseCspSubscriber implements EventSubscriberInterface {
       // HtmlResponseAttachmentsProcessor::processAssetLibraries()
       // @see CssCollectionRenderer::render()
       // @see HtmlResponseAttachmentsProcessor::processAssetLibraries()
-      if ((
+      if (
+        (
           version_compare(\Drupal::VERSION, '8.7', '<')
-          || $this->moduleHandler->moduleExists('ie9')
-        ) && (
+          ||
+          $this->moduleHandler->moduleExists('ie9')
+        )
+        &&
+        (
           defined('MAINTENANCE_MODE')
-          || !$this->configFactory->get('system.performance')
-            ->get('css.preprocess')
-        )) {
+          ||
+          !$this->configFactory->get('system.performance')->get('css.preprocess')
+        )
+      ) {
         $policy->appendDirective('style-src', [Csp::POLICY_UNSAFE_INLINE]);
       }
 
