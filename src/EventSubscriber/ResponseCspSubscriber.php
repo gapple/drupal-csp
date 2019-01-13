@@ -165,6 +165,11 @@ class ResponseCspSubscriber implements EventSubscriberInterface {
         )
       ) {
         $policy->appendDirective('style-src', [Csp::POLICY_UNSAFE_INLINE]);
+        // style-src-elem may not be set, if it is expected to fall back to
+        // style-src.
+        if ($policy->hasDirective('style-src-elem')) {
+          $policy->appendDirective('style-src-elem', [Csp::POLICY_UNSAFE_INLINE]);
+        }
       }
 
       $reportingPluginId = $cspConfig->get($policyType . '.reporting.plugin');

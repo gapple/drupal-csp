@@ -199,6 +199,19 @@ class Csp {
   }
 
   /**
+   * Check if the policy currently has the specified directive.
+   *
+   * @param string $name
+   *   The directive name.
+   *
+   * @return bool
+   *   If the policy has the specified directive.
+   */
+  public function hasDirective($name) {
+    return isset($this->directives[$name]);
+  }
+
+  /**
    * Add a new directive to the policy, or replace an existing directive.
    *
    * @param string $name
