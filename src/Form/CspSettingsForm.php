@@ -101,14 +101,9 @@ class CspSettingsForm extends ConfigFormBase {
    * {@inheritdoc}
    */
   public function buildForm(array $form, FormStateInterface $form_state) {
-    $config = $this->config('csp.settings');
-    // Script and Style must always be enabled.
-    $autoDirectives = $this->libraryPolicyBuilder->getSources() + [
-      'script-src' => [],
-      'style-src' => [],
-    ];
-
     $reportingHandlerPluginDefinitions = $this->reportingHandlerPluginManager->getDefinitions();
+    $config = $this->config('csp.settings');
+    $autoDirectives = $this->libraryPolicyBuilder->getSources();
 
     $form['#attached']['library'][] = 'csp/admin';
 
@@ -167,21 +162,23 @@ class CspSettingsForm extends ConfigFormBase {
           '#access' => $policyTypeKey == 'enforce' || !in_array($directiveName, $enforceOnlyDirectives),
         ];
 
-        $forceEnable = isset($autoDirectives[$directiveName]);
-
         $form[$policyTypeKey]['directives'][$directiveName]['enable'] = [
           '#type' => 'checkbox',
           '#title' => $directiveName,
-          '#default_value' => (
-            $forceEnable
-            // Csp::DIRECTIVE_SCHEMA_OPTIONAL_TOKEN_LIST may be an empty array,
-            // so is_null() must be used instead of empty().
-            // Directives which cannot be empty should not be present in config.
-            // (e.g. boolean directives should only be present if TRUE).
-            || !is_null($config->get($policyTypeKey . '.directives.' . $directiveName))
-          ),
-          '#disabled' => $forceEnable,
         ];
+        if ($config->get($policyTypeKey . '.enable')) {
+          // Csp::DIRECTIVE_SCHEMA_OPTIONAL_TOKEN_LIST may be an empty array,
+          // so is_null() must be used instead of empty().
+          // Directives which cannot be empty should not be present in config.
+          // (e.g. boolean directives should only be present if TRUE).
+          $form[$policyTypeKey]['directives'][$directiveName]['enable']['#default_value'] = !is_null($config->get($policyTypeKey . '.directives.' . $directiveName));
+        }
+        else {
+          // Enable the directive by default if it has any automatically
+          // detected values.
+          $form[$policyTypeKey]['directives'][$directiveName]['enable']['#default_value'] = isset($autoDirectives[$directiveName]);
+        }
+
         $form[$policyTypeKey]['directives'][$directiveName]['options'] = [
           '#type' => 'container',
           '#states' => [
@@ -211,7 +208,7 @@ class CspSettingsForm extends ConfigFormBase {
           '#default_value' => $sourceListBase !== NULL ? $sourceListBase : 'self',
         ];
         // Auto sources make a directive required, so remove the 'none' option.
-        if ($forceEnable) {
+        if (isset($autoDirectives[$directiveName])) {
           unset($form[$policyTypeKey]['directives'][$directiveName]['options']['base']['#options']['none']);
         }
 
