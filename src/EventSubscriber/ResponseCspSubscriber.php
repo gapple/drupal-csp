@@ -5,7 +5,6 @@ namespace Drupal\csp\EventSubscriber;
 use Drupal\Component\Plugin\Exception\PluginException;
 use Drupal\Core\Config\ConfigFactoryInterface;
 use Drupal\Core\Extension\ModuleHandlerInterface;
-use Drupal\Core\Url;
 use Drupal\csp\Csp;
 use Drupal\csp\LibraryPolicyBuilder;
 use Drupal\csp\ReportingHandlerPluginManager;
