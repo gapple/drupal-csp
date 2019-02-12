@@ -427,4 +427,112 @@ class ResponseCspSubscriberTest extends UnitTestCase {
     $subscriber->onKernelResponse($this->event);
   }
 
+  /**
+   * Test that library sources are included.
+   *
+   * @covers ::onKernelResponse
+   */
+  public function testWithLibraryDirective() {
+
+    /** @var \Drupal\Core\Config\ConfigFactoryInterface|\PHPUnit_Framework_MockObject_MockObject $configFactory */
+    $configFactory = $this->getConfigFactoryStub([
+      'system.performance' => [
+        'css.preprocess' => TRUE,
+      ],
+      'csp.settings' => [
+        'report-only' => [
+          'enable' => TRUE,
+          'directives' => [
+            'script-src' => [
+              'base' => 'any',
+              'flags' => [
+                'unsafe-inline',
+              ],
+            ],
+            'style-src' => [
+              'base' => 'self',
+              'flags' => [
+                'unsafe-inline',
+              ],
+            ],
+            'style-src-elem' => [
+              'base' => 'self',
+            ],
+          ],
+        ],
+      ],
+    ]);
+
+    $this->libraryPolicy->expects($this->any())
+      ->method('getSources')
+      ->willReturn([
+        'style-src' => ['example.com'],
+        'style-src-elem' => ['example.com'],
+      ]);
+
+    $subscriber = new ResponseCspSubscriber($configFactory, $this->moduleHandler, $this->libraryPolicy, $this->reportingHandlerPluginManager);
+
+    $this->response->headers->expects($this->once())
+      ->method('set')
+      ->with(
+        $this->equalTo('Content-Security-Policy-Report-Only'),
+        $this->equalTo("script-src 'unsafe-inline' *; style-src 'self' 'unsafe-inline' example.com; style-src-elem 'self' example.com")
+      );
+
+    $subscriber->onKernelResponse($this->event);
+  }
+
+  /**
+   * Test that library sources do not override a disabled directive.
+   *
+   * @covers ::onKernelResponse
+   */
+  public function testDisabledLibraryDirective() {
+
+    /** @var \Drupal\Core\Config\ConfigFactoryInterface|\PHPUnit_Framework_MockObject_MockObject $configFactory */
+    $configFactory = $this->getConfigFactoryStub([
+      'system.performance' => [
+        'css.preprocess' => TRUE,
+      ],
+      'csp.settings' => [
+        'report-only' => [
+          'enable' => TRUE,
+          'directives' => [
+            'script-src' => [
+              'base' => 'any',
+              'flags' => [
+                'unsafe-inline',
+              ],
+            ],
+            'style-src' => [
+              'base' => 'self',
+              'flags' => [
+                'unsafe-inline',
+              ],
+            ],
+            // style-src-elem is purposefully omitted.
+          ],
+        ],
+      ],
+    ]);
+
+    $this->libraryPolicy->expects($this->any())
+      ->method('getSources')
+      ->willReturn([
+        'style-src' => ['example.com'],
+        'style-src-elem' => ['example.com'],
+      ]);
+
+    $subscriber = new ResponseCspSubscriber($configFactory, $this->moduleHandler, $this->libraryPolicy, $this->reportingHandlerPluginManager);
+
+    $this->response->headers->expects($this->once())
+      ->method('set')
+      ->with(
+        $this->equalTo('Content-Security-Policy-Report-Only'),
+        $this->equalTo("script-src 'unsafe-inline' *; style-src 'self' 'unsafe-inline' example.com")
+      );
+
+    $subscriber->onKernelResponse($this->event);
+  }
+
 }

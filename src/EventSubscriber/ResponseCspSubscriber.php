@@ -89,6 +89,7 @@ class ResponseCspSubscriber implements EventSubscriberInterface {
     }
 
     $cspConfig = $this->configFactory->get('csp.settings');
+    $libraryDirectives = $this->libraryPolicyBuilder->getSources();
 
     $response = $event->getResponse();
 
@@ -137,10 +138,10 @@ class ResponseCspSubscriber implements EventSubscriberInterface {
         if (!empty($directiveOptions['sources'])) {
           $policy->appendDirective($directiveName, $directiveOptions['sources']);
         }
-      }
 
-      foreach ($this->libraryPolicyBuilder->getSources() as $directiveName => $sources) {
-        $policy->appendDirective($directiveName, $sources);
+        if (isset($libraryDirectives[$directiveName])) {
+          $policy->appendDirective($directiveName, $libraryDirectives[$directiveName]);
+        }
       }
 
       // Prior to Drupal 8.7, in order to support IE9, CssCollectionRenderer
