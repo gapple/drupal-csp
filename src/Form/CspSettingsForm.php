@@ -32,6 +32,30 @@ class CspSettingsForm extends ConfigFormBase {
   private $reportingHandlerPluginManager;
 
   /**
+   * A map of keywords and the directives which they are valid for.
+   *
+   * @var array
+   */
+  private static $keywordDirectiveMap = [
+    // A violation’s sample will be populated with the first 40 characters of an
+    // inline script, event handler, or style that caused an violation.
+    // Violations which stem from an external file will not include a sample in
+    // the violation report.
+    // @see https://www.w3.org/TR/CSP3/#framework-violation
+    'report-sample' => ['default-src', 'script-src', 'script-src-attr', 'script-src-elem', 'style-src', 'style-src-attr', 'style-src-elem'],
+    'strict-dynamic' => ['default-src', 'script-src'],
+    'unsafe-allow-redirects' => ['navigate-to'],
+    // Since "unsafe-eval" acts as a global page flag, script-src-attr and
+    // script-src-elem are not used when performing this check, instead
+    // script-src (or it’s fallback directive) is always used.
+    // @see https://www.w3.org/TR/CSP3/#directive-script-src
+    'unsafe-eval' => ['default-src', 'script-src', 'style-src'],
+    // Unsafe-hashes only applies to inline attributes.
+    'unsafe-hashes' => ['default-src', 'script-src', 'script-src-attr', 'style-src', 'style-src-attr'],
+    'unsafe-inline' => ['default-src', 'script-src', 'script-src-attr', 'script-src-elem', 'style-src', 'style-src-attr', 'style-src-elem'],
+  ];
+
+  /**
    * {@inheritdoc}
    */
   public function getFormId() {
@@ -95,6 +119,30 @@ class CspSettingsForm extends ConfigFormBase {
     );
 
     return $directives;
+  }
+
+  /**
+   * Get the valid keyword options for a directive.
+   *
+   * @param string $directive
+   *   The directive to get keywords for.
+   *
+   * @return array
+   *   An array of keywords.
+   */
+  private function getKeywordOptions($directive) {
+    $allKeywords = [
+      'unsafe-inline',
+      'unsafe-eval',
+      'unsafe-hashes',
+      'unsafe-allow-redirects',
+      'strict-dynamic',
+      'report-sample',
+    ];
+
+    return array_filter($allKeywords, function ($keyword) use ($directive) {
+      return !array_key_exists($keyword, self::$keywordDirectiveMap) || in_array($directive, self::$keywordDirectiveMap[$keyword]);
+    });
   }
 
   /**
@@ -212,8 +260,7 @@ class CspSettingsForm extends ConfigFormBase {
           unset($form[$policyTypeKey]['directives'][$directiveName]['options']['base']['#options']['none']);
         }
 
-        // Some directives do not support unsafe flags.
-        // @see https://www.w3.org/TR/CSP/#grammardef-ancestor-source-list
+        // Keywords are only applicable to serialized-source-list directives.
         if ($directiveSchema == Csp::DIRECTIVE_SCHEMA_SOURCE_LIST) {
           // States currently don't work on checkboxes elements, so need to be
           // applied to a wrapper.
@@ -226,17 +273,18 @@ class CspSettingsForm extends ConfigFormBase {
               ],
             ],
           ];
+
+          $keywordOptions = self::getKeywordOptions($directiveName);
+          $keywordOptions = array_combine(
+            $keywordOptions,
+            array_map(function ($keyword) {
+              return "<code>'" . $keyword . "'</code>";
+            }, $keywordOptions)
+          );
           $form[$policyTypeKey]['directives'][$directiveName]['options']['flags_wrapper']['flags'] = [
             '#type' => 'checkboxes',
             '#parents' => [$policyTypeKey, 'directives', $directiveName, 'flags'],
-            '#options' => [
-              'unsafe-inline' => "<code>'unsafe-inline'</code>",
-              'unsafe-eval' => "<code>'unsafe-eval'</code>",
-              'unsafe-hashes' => "<code>'unsafe-hashes'</code>",
-              'unsafe-allow-redirects' => "<code>'unsafe-allow-redirects'</code>",
-              'strict-dynamic' => "<code>'strict-dynamic'</code>",
-              'report-sample' => "<code>'report-sample'</code>",
-            ],
+            '#options' => $keywordOptions,
             '#default_value' => $config->get($policyTypeKey . '.directives.' . $directiveName . '.flags') ?: [],
           ];
         }
