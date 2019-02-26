@@ -506,7 +506,7 @@ class CspSettingsForm extends ConfigFormBase {
       else {
         $form_state->setError(
           $form[$policyTypeKey]['reporting']['handler'],
-          $this->t('Reporting Handler is required for enables policies.')
+          $this->t('Reporting Handler is required for enabled policies.')
         );
       }
     }
