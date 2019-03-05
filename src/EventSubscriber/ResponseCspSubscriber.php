@@ -3,6 +3,7 @@
 namespace Drupal\csp\EventSubscriber;
 
 use Drupal\Component\Plugin\Exception\PluginException;
+use Drupal\Core\Cache\CacheableResponseInterface;
 use Drupal\Core\Config\ConfigFactoryInterface;
 use Drupal\Core\Extension\ModuleHandlerInterface;
 use Drupal\csp\Csp;
@@ -92,6 +93,11 @@ class ResponseCspSubscriber implements EventSubscriberInterface {
     $libraryDirectives = $this->libraryPolicyBuilder->getSources();
 
     $response = $event->getResponse();
+
+    if ($response instanceof CacheableResponseInterface) {
+      $response->getCacheableMetadata()
+        ->addCacheTags(['config:csp.settings']);
+    }
 
     foreach (['report-only', 'enforce'] as $policyType) {
 
