@@ -2,6 +2,7 @@
 
 namespace Drupal\Tests\csp\Unit\EventSubscriber;
 
+use Drupal\Core\Cache\CacheableMetadata;
 use Drupal\Core\Extension\ModuleHandler;
 use Drupal\Core\Render\HtmlResponse;
 use Drupal\csp\EventSubscriber\ResponseCspSubscriber;
@@ -65,6 +66,10 @@ class ResponseCspSubscriberTest extends UnitTestCase {
     $this->response->headers = $this->getMockBuilder(ResponseHeaderBag::class)
       ->disableOriginalConstructor()
       ->getMock();
+    $responseCacheableMetadata = $this->getMockBuilder(CacheableMetadata::class)
+      ->getMock();
+    $this->response->method('getCacheableMetadata')
+      ->willReturn($responseCacheableMetadata);
 
     /** @var \Symfony\Component\HttpKernel\Event\FilterResponseEvent|\PHPUnit_Framework_MockObject_MockObject $event */
     $this->event = $this->getMockBuilder(FilterResponseEvent::class)
@@ -150,6 +155,10 @@ class ResponseCspSubscriberTest extends UnitTestCase {
         $this->equalTo('Content-Security-Policy-Report-Only'),
         $this->equalTo("script-src 'self' 'unsafe-inline'; style-src 'self'")
       );
+    $this->response->getCacheableMetadata()
+      ->expects($this->once())
+      ->method('addCacheTags')
+      ->with(['config:csp.settings']);
 
     $subscriber->onKernelResponse($this->event);
   }
@@ -205,6 +214,10 @@ class ResponseCspSubscriberTest extends UnitTestCase {
         $this->equalTo('Content-Security-Policy-Report-Only'),
         $this->equalTo("script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'")
       );
+    $this->response->getCacheableMetadata()
+      ->expects($this->once())
+      ->method('addCacheTags')
+      ->with(['config:csp.settings']);
 
     $subscriber->onKernelResponse($this->event);
   }
