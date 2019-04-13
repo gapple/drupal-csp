@@ -12,6 +12,6 @@
   },
   "require": {
     "ext-json": "*",
-    "drupal/core" : "^8.5"
+    "drupal/core": "^8.5"
   }
 }
