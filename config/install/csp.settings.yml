@@ -14,7 +14,14 @@ report-only:
       base: 'self'
     style-src:
       base: 'self'
+    frame-ancestors:
+      base: 'self'
   reporting:
     plugin: none
 enforce:
-  enable: false
+  enable: true
+  directives:
+    frame-ancestors:
+      base: self
+  reporting:
+    plugin: sitelog
