@@ -7,6 +7,8 @@ namespace Drupal\csp;
  */
 class Csp {
 
+  const HASH_ALGORITHMS = ['sha256', 'sha384', 'sha512'];
+
   const POLICY_ANY = "*";
   const POLICY_NONE = "'none'";
   const POLICY_SELF = "'self'";
@@ -116,6 +118,26 @@ class Csp {
    * @var array
    */
   protected $directives = [];
+
+  /**
+   * Calculate the Base64 encoded hash of a script.
+   *
+   * @param $data
+   *   The source data to hash.
+   * @param string $algorithm
+   *   The hash algorithm to use.
+   *   Supported values are defined in \Drupal\csp\Csp::HASH_ALGORITHMS
+   *
+   * @return string
+   *   The hash value in the format <hash-algorithm>-<base64-value>
+   */
+  public static function calculateHash($data, $algorithm = 'sha256') {
+    if (!in_array($algorithm, self::HASH_ALGORITHMS)) {
+      throw new \InvalidArgumentException("Specified hash algorithm is not supported");
+    }
+
+    return $algorithm . '-' . base64_encode(hash($algorithm, $data, TRUE));
+  }
 
   /**
    * Set the policy to report-only.
