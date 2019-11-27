@@ -123,15 +123,15 @@ class ResponseCspSubscriber implements EventSubscriberInterface {
 
         switch ($directiveOptions['base']) {
           case 'self':
-            $policy->setDirective($directiveName, "'self'");
+            $policy->setDirective($directiveName, [Csp::POLICY_SELF]);
             break;
 
           case 'none':
-            $policy->setDirective($directiveName, "'none'");
+            $policy->setDirective($directiveName, [Csp::POLICY_NONE]);
             break;
 
           case 'any':
-            $policy->setDirective($directiveName, "*");
+            $policy->setDirective($directiveName, [Csp::POLICY_ANY]);
             break;
         }
 
