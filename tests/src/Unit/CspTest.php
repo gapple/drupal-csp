@@ -114,7 +114,7 @@ class CspTest extends UnitTestCase {
   public function testSetMultiple() {
     $policy = new Csp();
 
-    $policy->setDirective('default-src', Csp::POLICY_SELF);
+    $policy->setDirective('default-src', Csp::POLICY_ANY);
     $policy->setDirective('default-src', [Csp::POLICY_SELF, 'one.example.com']);
     $policy->setDirective('script-src', Csp::POLICY_SELF . ' two.example.com');
     $policy->setDirective('report-uri', 'example.com/report-uri');
@@ -420,6 +420,50 @@ class CspTest extends UnitTestCase {
     $policy->setDirective('style-src-attr', [Csp::POLICY_SELF, Csp::POLICY_UNSAFE_INLINE]);
     $this->assertEquals(
       "default-src 'self'; style-src 'self' 'unsafe-inline'; style-src-elem 'self'",
+      $policy->getHeaderValue()
+    );
+  }
+
+  /**
+   * Test reducing source list when any host allowed.
+   */
+  public function testReduceSourceListAny() {
+    $policy = new Csp();
+
+    $policy->setDirective('default-src', [
+      Csp::POLICY_ANY,
+      // Hosts and network protocols should be removed.
+      'example.com',
+      'https://example.com',
+      'http:',
+      'https:',
+      'ftp:',
+      // Non-network protocols should be kept
+      'data:',
+      // Additional keywords should be kept
+      Csp::POLICY_UNSAFE_INLINE,
+      "'hash-123abc'",
+      "'nonce-abc123'",
+    ]);
+    $this->assertEquals(
+      "default-src data: 'unsafe-inline' 'hash-123abc' 'nonce-abc123' *",
+      $policy->getHeaderValue()
+    );
+  }
+
+  /**
+   * Test reducing the source list when 'none' is included.
+   */
+  public function testReduceSourceListWithNone() {
+    $policy = new Csp();
+
+    $policy->setDirective('object-src', [
+      Csp::POLICY_NONE,
+      'example.com',
+      "'hash-123abc'"
+    ]);
+    $this->assertEquals(
+      "object-src 'none'",
       $policy->getHeaderValue()
     );
   }

@@ -375,8 +375,13 @@ class Csp {
   private static function reduceSourceList(array $sources) {
     $sources = array_unique($sources);
 
+    // 'none' overrides any other sources.
+    if (in_array(Csp::POLICY_NONE, $sources)) {
+      return [Csp::POLICY_NONE];
+    }
+
     // Global wildcard covers all network scheme sources.
-    if (in_array('*', $sources)) {
+    if (in_array(Csp::POLICY_ANY, $sources)) {
       $sources = array_filter($sources, function ($source) {
         // Keep any values that are a quoted string, or non-network scheme.
         // e.g. '* https: data: example.com' -> 'data: *'
