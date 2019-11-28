@@ -15,6 +15,7 @@ class Csp {
   const POLICY_STRICT_DYNAMIC = "'strict-dynamic'";
   const POLICY_UNSAFE_EVAL = "'unsafe-eval'";
   const POLICY_UNSAFE_INLINE = "'unsafe-inline'";
+  const POLICY_UNSAFE_HASHES = "'unsafe-hashes'";
 
   // https://www.w3.org/TR/CSP/#grammardef-serialized-source-list
   const DIRECTIVE_SCHEMA_SOURCE_LIST = 'serialized-source-list';
