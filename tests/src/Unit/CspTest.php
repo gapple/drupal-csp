@@ -473,6 +473,69 @@ class CspTest extends UnitTestCase {
   }
 
   /**
+   * Test reducing the source list when 'http:' is included.
+   *
+   * @covers ::reduceSourceList
+   */
+  public function testReduceSourceListWithHttp() {
+    $policy = new Csp();
+
+    $policy->setDirective('default-src', [
+      'http:',
+      // Hosts without protocol should be kept.
+      // (e.g. this would allow ftp://example.com)
+      'example.com',
+      // HTTP hosts should be removed.
+      'http://example.org',
+      'https://example.net',
+      // Other network protocols should be kept.
+      'ftp:',
+      // Non-network protocols should be kept.
+      'data:',
+      // Additional keywords should be kept.
+      Csp::POLICY_UNSAFE_INLINE,
+      "'hash-123abc'",
+      "'nonce-abc123'",
+    ]);
+
+    $this->assertEquals(
+      "default-src http: example.com ftp: data: 'unsafe-inline' 'hash-123abc' 'nonce-abc123'",
+      $policy->getHeaderValue()
+    );
+  }
+
+  /**
+   * Test reducing the source list when 'https:' is included.
+   *
+   * @covers ::reduceSourceList
+   */
+  public function testReduceSourceListWithHttps() {
+    $policy = new Csp();
+
+    $policy->setDirective('default-src', [
+      'https:',
+      // Non-secure hosts should be kept.
+      'example.com',
+      'http://example.org',
+      // Secure Hosts should be removed.
+      'https://example.net',
+      // Other network protocols should be kept.
+      'ftp:',
+      // Non-network protocols should be kept.
+      'data:',
+      // Additional keywords should be kept.
+      Csp::POLICY_UNSAFE_INLINE,
+      "'hash-123abc'",
+      "'nonce-abc123'",
+    ]);
+
+    $this->assertEquals(
+      "default-src https: example.com http://example.org ftp: data: 'unsafe-inline' 'hash-123abc' 'nonce-abc123'",
+      $policy->getHeaderValue()
+    );
+  }
+
+  /**
    * @covers ::__toString
    */
   public function testToString() {

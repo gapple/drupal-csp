@@ -392,6 +392,20 @@ class Csp {
       array_unshift($sources, Csp::POLICY_ANY);
     }
 
+    // Remove protocol-prefixed hosts if protocol is allowed.
+    // e.g. 'http: data: example.com https://example.com' -> 'http: data: example.com'
+    $protocols = array_filter($sources, function ($source) {
+      return preg_match('<^(https?|ftp):$>', $source);
+    });
+    if (in_array('http:', $protocols)) {
+      $protocols[] = 'https:';
+    }
+    foreach ($protocols as $protocol) {
+      $sources = array_filter($sources, function ($source) use ($protocol) {
+        return strpos($source, $protocol . '//') !== 0;
+      });
+    }
+
     return $sources;
   }
 
