@@ -425,7 +425,28 @@ class CspTest extends UnitTestCase {
   }
 
   /**
+   * Test reducing the source list when 'none' is included.
+   *
+   * @covers ::reduceSourceList
+   */
+  public function testReduceSourceListWithNone() {
+    $policy = new Csp();
+
+    $policy->setDirective('object-src', [
+      Csp::POLICY_NONE,
+      'example.com',
+      "'hash-123abc'",
+    ]);
+    $this->assertEquals(
+      "object-src 'none'",
+      $policy->getHeaderValue()
+    );
+  }
+
+  /**
    * Test reducing source list when any host allowed.
+   *
+   * @covers ::reduceSourceList
    */
   public function testReduceSourceListAny() {
     $policy = new Csp();
@@ -446,24 +467,7 @@ class CspTest extends UnitTestCase {
       "'nonce-abc123'",
     ]);
     $this->assertEquals(
-      "default-src data: 'unsafe-inline' 'hash-123abc' 'nonce-abc123' *",
-      $policy->getHeaderValue()
-    );
-  }
-
-  /**
-   * Test reducing the source list when 'none' is included.
-   */
-  public function testReduceSourceListWithNone() {
-    $policy = new Csp();
-
-    $policy->setDirective('object-src', [
-      Csp::POLICY_NONE,
-      'example.com',
-      "'hash-123abc'",
-    ]);
-    $this->assertEquals(
-      "object-src 'none'",
+      "default-src * data: 'unsafe-inline' 'hash-123abc' 'nonce-abc123'",
       $policy->getHeaderValue()
     );
   }

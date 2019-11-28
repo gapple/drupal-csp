@@ -384,14 +384,12 @@ class Csp {
     if (in_array(Csp::POLICY_ANY, $sources)) {
       $sources = array_filter($sources, function ($source) {
         // Keep any values that are a quoted string, or non-network scheme.
-        // e.g. '* https: data: example.com' -> 'data: *'
+        // e.g. '* https: data: example.com' -> '* data:'
         // https://www.w3.org/TR/CSP/#match-url-to-source-expression
         return strpos($source, "'") === 0 || preg_match('<^(?!ftp|https?:)([a-z]+:)>', $source);
       });
 
-      $sources[] = '*';
-
-      return $sources;
+      array_unshift($sources, Csp::POLICY_ANY);
     }
 
     return $sources;
