@@ -4,6 +4,7 @@
  */
 
 (function ($, Drupal) {
+
   /**
    * Sets summary of policy tabs.
    *
@@ -13,33 +14,33 @@
    *   Attaches summary behaviour for policy form tabs.
    */
   Drupal.behaviors.cspPolicySummary = {
-    attach(context) {
+    attach: function (context) {
       $(context)
         .find('[data-drupal-selector="edit-policies"] > details')
         .each(function () {
-          const $details = $(this);
-          const elementPrefix = $details.data('drupal-selector');
-          const createPolicyElementSelector = function (name) {
+          var $details = $(this);
+          var elementPrefix = $details.data('drupal-selector');
+          var createPolicyElementSelector = function (name) {
             return '[data-drupal-selector="' + elementPrefix + '-' + name + '"]';
           };
 
           $details.drupalSetSummary(function () {
             if ($details.find(createPolicyElementSelector('enable')).prop('checked')) {
-              const directiveCount = $details
+              var directiveCount = $details
                 .find(createPolicyElementSelector('directives') + ' [name$="[enable]"]:checked')
                 .length;
               return Drupal.formatPlural(
                 directiveCount,
                 'Enabled, @directiveCount directive',
                 'Enabled, @directiveCount directives',
-                { '@directiveCount': directiveCount },
+                { '@directiveCount': directiveCount }
               );
             }
 
             return Drupal.t('Disabled');
           });
         });
-    },
+    }
   };
 
   /**
@@ -51,13 +52,13 @@
    * @type {Drupal~behavior}
    */
   Drupal.behaviors.cspBlockAllMixedDisabled = {
-    attach(context) {
-      let blockState = false;
+    attach: function (context) {
+      var blockState = false;
 
       $(context)
         .find('input[data-drupal-selector="edit-enforce-directives-upgrade-insecure-requests-enable"]')
         .on('change', function () {
-          const blockInput = $(context).find('input[data-drupal-selector="edit-enforce-directives-block-all-mixed-content-enable"]');
+          var blockInput = $(context).find('input[data-drupal-selector="edit-enforce-directives-block-all-mixed-content-enable"]');
           if (!this.checked) {
             blockInput.prop('checked', blockState);
             return;
@@ -65,6 +66,6 @@
           blockState = blockInput.prop('checked');
           blockInput.prop('checked', false);
         });
-    },
+    }
   };
 }(jQuery, Drupal));
