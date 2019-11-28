@@ -438,9 +438,9 @@ class CspTest extends UnitTestCase {
       'http:',
       'https:',
       'ftp:',
-      // Non-network protocols should be kept
+      // Non-network protocols should be kept.
       'data:',
-      // Additional keywords should be kept
+      // Additional keywords should be kept.
       Csp::POLICY_UNSAFE_INLINE,
       "'hash-123abc'",
       "'nonce-abc123'",
@@ -460,7 +460,7 @@ class CspTest extends UnitTestCase {
     $policy->setDirective('object-src', [
       Csp::POLICY_NONE,
       'example.com',
-      "'hash-123abc'"
+      "'hash-123abc'",
     ]);
     $this->assertEquals(
       "object-src 'none'",

@@ -122,11 +122,11 @@ class Csp {
   /**
    * Calculate the Base64 encoded hash of a script.
    *
-   * @param $data
+   * @param string $data
    *   The source data to hash.
    * @param string $algorithm
    *   The hash algorithm to use.
-   *   Supported values are defined in \Drupal\csp\Csp::HASH_ALGORITHMS
+   *   Supported values are defined in \Drupal\csp\Csp::HASH_ALGORITHMS.
    *
    * @return string
    *   The hash value in the format <hash-algorithm>-<base64-value>
