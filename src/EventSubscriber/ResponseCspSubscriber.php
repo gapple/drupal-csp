@@ -5,7 +5,6 @@ namespace Drupal\csp\EventSubscriber;
 use Drupal\Component\Plugin\Exception\PluginException;
 use Drupal\Core\Cache\CacheableResponseInterface;
 use Drupal\Core\Config\ConfigFactoryInterface;
-use Drupal\Core\Extension\ModuleHandlerInterface;
 use Drupal\csp\Csp;
 use Drupal\csp\CspEvents;
 use Drupal\csp\Event\PolicyAlterEvent;
@@ -27,13 +26,6 @@ class ResponseCspSubscriber implements EventSubscriberInterface {
    * @var \Drupal\Core\Config\ConfigFactoryInterface
    */
   protected $configFactory;
-
-  /**
-   * The module handler service.
-   *
-   * @var \Drupal\Core\Extension\ModuleHandlerInterface
-   */
-  protected $moduleHandler;
 
   /**
    * The Library Policy Builder service.
@@ -61,8 +53,6 @@ class ResponseCspSubscriber implements EventSubscriberInterface {
    *
    * @param \Drupal\Core\Config\ConfigFactoryInterface $configFactory
    *   Config Factory service.
-   * @param \Drupal\Core\Extension\ModuleHandlerInterface $moduleHandler
-   *   The Module Handler service.
    * @param \Drupal\csp\LibraryPolicyBuilder $libraryPolicyBuilder
    *   The Library Parser service.
    * @param \Drupal\csp\ReportingHandlerPluginManager $reportingHandlerPluginManager
@@ -72,13 +62,11 @@ class ResponseCspSubscriber implements EventSubscriberInterface {
    */
   public function __construct(
     ConfigFactoryInterface $configFactory,
-    ModuleHandlerInterface $moduleHandler,
     LibraryPolicyBuilder $libraryPolicyBuilder,
     ReportingHandlerPluginManager $reportingHandlerPluginManager,
     EventDispatcherInterface $eventDispatcher
   ) {
     $this->configFactory = $configFactory;
-    $this->moduleHandler = $moduleHandler;
     $this->libraryPolicyBuilder = $libraryPolicyBuilder;
     $this->reportingHandlerPluginManager = $reportingHandlerPluginManager;
     $this->eventDispatcher = $eventDispatcher;
@@ -166,35 +154,6 @@ class ResponseCspSubscriber implements EventSubscriberInterface {
 
         if (isset($libraryDirectives[$directiveName])) {
           $policy->appendDirective($directiveName, $libraryDirectives[$directiveName]);
-        }
-      }
-
-      // Prior to Drupal 8.7, in order to support IE9, CssCollectionRenderer
-      // outputs more than 31 stylesheets as inline @import statements.
-      // @see https://www.drupal.org/node/2993171
-      // Since checking the actual number of stylesheets included on the page is
-      // more difficult, just check the optimization settings, as in
-      // HtmlResponseAttachmentsProcessor::processAssetLibraries()
-      // @see CssCollectionRenderer::render()
-      // @see HtmlResponseAttachmentsProcessor::processAssetLibraries()
-      if (
-        (
-          version_compare(\Drupal::VERSION, '8.7', '<')
-          ||
-          $this->moduleHandler->moduleExists('ie9')
-        )
-        &&
-        (
-          defined('MAINTENANCE_MODE')
-          ||
-          !$this->configFactory->get('system.performance')->get('css.preprocess')
-        )
-      ) {
-        $policy->appendDirective('style-src', [Csp::POLICY_UNSAFE_INLINE]);
-        // style-src-elem may not be set, if it is expected to fall back to
-        // style-src.
-        if ($policy->hasDirective('style-src-elem')) {
-          $policy->appendDirective('style-src-elem', [Csp::POLICY_UNSAFE_INLINE]);
         }
       }
 

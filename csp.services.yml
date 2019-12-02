@@ -3,7 +3,6 @@ services:
     class: Drupal\csp\EventSubscriber\ResponseCspSubscriber
     arguments:
       - '@config.factory'
-      - '@module_handler'
       - '@csp.library_policy_builder'
       - '@plugin.manager.csp_reporting_handler'
       - '@event_dispatcher'
@@ -25,6 +24,13 @@ services:
     class: Drupal\csp\EventSubscriber\CoreCspSubscriber
     arguments:
       - '@library.dependency_resolver'
+    tags:
+      - { name: event_subscriber }
+  csp.ie9_csp_subscriber:
+    class: Drupal\csp\EventSubscriber\Ie9CspSubscriber
+    arguments:
+      - '@config.factory'
+      - '@module_handler'
     tags:
       - { name: event_subscriber }
 
