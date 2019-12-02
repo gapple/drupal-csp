@@ -398,12 +398,12 @@ class Csp {
     $protocols = array_filter($sources, function ($source) {
       return preg_match('<^(https?|ftp):$>', $source);
     });
-    if (in_array('http:', $protocols)) {
-      $protocols[] = 'https:';
-    }
-    foreach ($protocols as $protocol) {
-      $sources = array_filter($sources, function ($source) use ($protocol) {
-        return strpos($source, $protocol . '//') !== 0;
+    if (!empty($protocols)) {
+      if (in_array('http:', $protocols)) {
+        $protocols[] = 'https:';
+      }
+      $sources = array_filter($sources, function ($source) use ($protocols) {
+        return !preg_match('<^(' . implode('|', $protocols) . ')//>', $source);
       });
     }
 
