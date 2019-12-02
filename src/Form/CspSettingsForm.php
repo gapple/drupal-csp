@@ -551,12 +551,6 @@ class CspSettingsForm extends ConfigFormBase {
    * {@inheritdoc}
    */
   public function submitForm(array &$form, FormStateInterface $form_state) {
-    // Script and Style must always be enabled.
-    $autoDirectives = $this->libraryPolicyBuilder->getSources() + [
-      'script-src' => [],
-      'style-src' => [],
-    ];
-
     $config = $this->config('csp.settings');
 
     $directiveNames = $this->getConfigurableDirectives();
@@ -624,11 +618,7 @@ class CspSettingsForm extends ConfigFormBase {
             }
           }
 
-          // Don't store empty base type if no additional values set.
-          // Always store non-empty base value.
-          if (!($directiveFormData['base'] === '' && empty($directiveOptions) && empty($autoDirectives[$directiveName]))) {
-            $directiveOptions['base'] = $directiveFormData['base'];
-          }
+          $directiveOptions['base'] = $directiveFormData['base'];
         }
 
         if (

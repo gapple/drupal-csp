@@ -6,6 +6,7 @@ services:
       - '@module_handler'
       - '@csp.library_policy_builder'
       - '@plugin.manager.csp_reporting_handler'
+      - '@event_dispatcher'
     tags:
       - { name: event_subscriber }
   csp.library_policy_builder:
@@ -19,6 +20,13 @@ services:
   plugin.manager.csp_reporting_handler:
     class: Drupal\csp\ReportingHandlerPluginManager
     parent: default_plugin_manager
+
+  csp.core_csp_subscriber:
+    class: Drupal\csp\EventSubscriber\CoreCspSubscriber
+    arguments:
+      - '@library.dependency_resolver'
+    tags:
+      - { name: event_subscriber }
 
   logger.channel.csp:
     parent: logger.channel_base

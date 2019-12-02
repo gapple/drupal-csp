@@ -7,8 +7,11 @@ use Drupal\Core\Cache\CacheableResponseInterface;
 use Drupal\Core\Config\ConfigFactoryInterface;
 use Drupal\Core\Extension\ModuleHandlerInterface;
 use Drupal\csp\Csp;
+use Drupal\csp\CspEvents;
+use Drupal\csp\Event\PolicyAlterEvent;
 use Drupal\csp\LibraryPolicyBuilder;
 use Drupal\csp\ReportingHandlerPluginManager;
+use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 use Symfony\Component\HttpKernel\Event\FilterResponseEvent;
 use Symfony\Component\HttpKernel\KernelEvents;
@@ -47,6 +50,13 @@ class ResponseCspSubscriber implements EventSubscriberInterface {
   private $reportingHandlerPluginManager;
 
   /**
+   * The Event Dispatcher service.
+   *
+   * @var \Symfony\Component\EventDispatcher\EventDispatcherInterface
+   */
+  private $eventDispatcher;
+
+  /**
    * Constructs a new ResponseSubscriber object.
    *
    * @param \Drupal\Core\Config\ConfigFactoryInterface $configFactory
@@ -57,17 +67,21 @@ class ResponseCspSubscriber implements EventSubscriberInterface {
    *   The Library Parser service.
    * @param \Drupal\csp\ReportingHandlerPluginManager $reportingHandlerPluginManager
    *   The Reporting Handler Plugin Manager service.
+   * @param \Symfony\Component\EventDispatcher\EventDispatcherInterface $eventDispatcher
+   *   The Event Dispatcher Service.
    */
   public function __construct(
     ConfigFactoryInterface $configFactory,
     ModuleHandlerInterface $moduleHandler,
     LibraryPolicyBuilder $libraryPolicyBuilder,
-    ReportingHandlerPluginManager $reportingHandlerPluginManager
+    ReportingHandlerPluginManager $reportingHandlerPluginManager,
+    EventDispatcherInterface $eventDispatcher
   ) {
     $this->configFactory = $configFactory;
     $this->moduleHandler = $moduleHandler;
     $this->libraryPolicyBuilder = $libraryPolicyBuilder;
     $this->reportingHandlerPluginManager = $reportingHandlerPluginManager;
+    $this->eventDispatcher = $eventDispatcher;
   }
 
   /**
@@ -133,6 +147,11 @@ class ResponseCspSubscriber implements EventSubscriberInterface {
           case 'any':
             $policy->setDirective($directiveName, [Csp::POLICY_ANY]);
             break;
+
+          default:
+            // Initialize to an empty value so that any alter subscribers can
+            // tell that this directive was enabled.
+            $policy->setDirective($directiveName, []);
         }
 
         if (!empty($directiveOptions['flags'])) {
@@ -194,6 +213,11 @@ class ResponseCspSubscriber implements EventSubscriberInterface {
           watchdog_exception('csp', $e);
         }
       }
+
+      $this->eventDispatcher->dispatch(
+        CspEvents::POLICY_ALTER,
+        new PolicyAlterEvent($policy, $response)
+      );
 
       $response->headers->set($policy->getHeaderName(), $policy->getHeaderValue());
     }

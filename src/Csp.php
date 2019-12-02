@@ -141,16 +141,6 @@ class Csp {
   }
 
   /**
-   * Set the policy to report-only.
-   *
-   * @param bool $value
-   *   The report-only status.
-   */
-  public function reportOnly($value = TRUE) {
-    $this->reportOnly = $value;
-  }
-
-  /**
    * Check if a directive name is valid.
    *
    * @param string $name
@@ -222,6 +212,26 @@ class Csp {
   }
 
   /**
+   * Set the policy to report-only.
+   *
+   * @param bool $value
+   *   The report-only status.
+   */
+  public function reportOnly($value = TRUE) {
+    $this->reportOnly = $value;
+  }
+
+  /**
+   * Retrieve whether this policy is report-only.
+   *
+   * @return bool
+   *   The report-only status.
+   */
+  public function isReportOnly() {
+    return $this->reportOnly;
+  }
+
+  /**
    * Check if the policy currently has the specified directive.
    *
    * @param string $name
@@ -232,6 +242,21 @@ class Csp {
    */
   public function hasDirective($name) {
     return isset($this->directives[$name]);
+  }
+
+  /**
+   * Get the value of a directive.
+   *
+   * @param string $name
+   *   The directive name.
+   *
+   * @return array
+   *   The directive's values.
+   */
+  public function getDirective($name) {
+    self::validateDirectiveName($name);
+
+    return $this->directives[$name];
   }
 
   /**
