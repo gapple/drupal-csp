@@ -66,6 +66,27 @@ class CoreCspSubscriberTest extends UnitTestCase {
   }
 
   /**
+   * Test a response with no attachments.
+   *
+   * Classes like AjaxResponse may return an empty array, so an error shouldn't
+   * be thrown if the 'library' element does not exist.
+   *
+   * @covers ::onCspPolicyAlter
+   */
+  public function testNoAttachments() {
+    $policy = new Csp();
+
+    $this->response->method('getAttachments')
+      ->willReturn([]);
+
+    $alterEvent = new PolicyAlterEvent($policy, $this->response);
+
+    $this->coreCspSubscriber->onCspPolicyAlter($alterEvent);
+
+    $this->addToAssertionCount(1);
+  }
+
+  /**
    * CKEditor shouldn't alter the policy if no directives are enabled.
    *
    * @covers ::onCspPolicyAlter
