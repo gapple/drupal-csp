@@ -14,6 +14,43 @@ use Drupal\Tests\UnitTestCase;
 class CspTest extends UnitTestCase {
 
   /**
+   * Test calculating hash values.
+   *
+   * @covers ::calculateHash
+   */
+  public function testHash() {
+    $this->assertEquals(
+      'sha256-BnZSlC9IkS7BVcseRf0CAOmLntfifZIosT2C1OMQ088=',
+      Csp::calculateHash('alert("Hello World");')
+    );
+
+    $this->assertEquals(
+      'sha256-BnZSlC9IkS7BVcseRf0CAOmLntfifZIosT2C1OMQ088=',
+      Csp::calculateHash('alert("Hello World");', 'sha256')
+    );
+
+    $this->assertEquals(
+      'sha384-iZxROpttQr5JcGhwPlHbUPBm+IHbO2CwTxLGhVoZXCIIpjSZo+Ourcmqw1QHOpGM',
+      Csp::calculateHash('alert("Hello World");', 'sha384')
+    );
+
+    $this->assertEquals(
+      'sha512-6/WbXCJEH9R1/effxooQuXLAsm6xIsfGMK6nFa7TG76VuHZJVRZHIirKrXi/Pib8QbQmkzpo5K/3Ye+cD46ADQ==',
+      Csp::calculateHash('alert("Hello World");', 'sha512')
+    );
+  }
+
+  /**
+   * Test specifying an invalid hash algorithm.
+   *
+   * @covers ::calculateHash
+   * @expectedException \InvalidArgumentException
+   */
+  public function testInvalidHashAlgo() {
+    Csp::calculateHash('alert("Hello World");', 'md5');
+  }
+
+  /**
    * Test that changing the policy's report-only flag updates the header name.
    *
    * @covers ::reportOnly
