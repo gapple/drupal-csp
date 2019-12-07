@@ -35,7 +35,7 @@ class Csp {
    *
    * @var array
    */
-  private static $directiveSchemaMap = [
+  const DIRECTIVES = [
     // Fetch Directives.
     // @see https://www.w3.org/TR/CSP3/#directives-fetch
     'default-src' => self::DIRECTIVE_SCHEMA_SOURCE_LIST,
@@ -87,7 +87,7 @@ class Csp {
    *
    * @see https://www.w3.org/TR/CSP/#directive-fallback-list
    */
-  private static $directiveFallbackList = [
+  const DIRECTIVES_FALLBACK = [
     'script-src-elem' => ['script-src', 'default-src'],
     'script-src-attr' => ['script-src', 'default-src'],
     'script-src' => ['default-src'],
@@ -150,7 +150,7 @@ class Csp {
    *   True if the directive name is valid.
    */
   public static function isValidDirectiveName($name) {
-    return array_key_exists($name, static::$directiveSchemaMap);
+    return array_key_exists($name, static::DIRECTIVES);
   }
 
   /**
@@ -174,7 +174,7 @@ class Csp {
    *   An array of directive names.
    */
   public static function getDirectiveNames() {
-    return array_keys(self::$directiveSchemaMap);
+    return array_keys(self::DIRECTIVES);
   }
 
   /**
@@ -189,7 +189,7 @@ class Csp {
   public static function getDirectiveSchema($name) {
     self::validateDirectiveName($name);
 
-    return self::$directiveSchemaMap[$name];
+    return self::DIRECTIVES[$name];
   }
 
   /**
@@ -204,8 +204,8 @@ class Csp {
   public static function getDirectiveFallbackList($name) {
     self::validateDirectiveName($name);
 
-    if (array_key_exists($name, self::$directiveFallbackList)) {
-      return self::$directiveFallbackList[$name];
+    if (array_key_exists($name, self::DIRECTIVES_FALLBACK)) {
+      return self::DIRECTIVES_FALLBACK[$name];
     }
 
     return [];
@@ -270,7 +270,7 @@ class Csp {
   public function setDirective($name, $value) {
     self::validateDirectiveName($name);
 
-    if (self::$directiveSchemaMap[$name] === self::DIRECTIVE_SCHEMA_BOOLEAN) {
+    if (self::DIRECTIVES[$name] === self::DIRECTIVE_SCHEMA_BOOLEAN) {
       $this->directives[$name] = (bool) $value;
       return;
     }
@@ -344,20 +344,20 @@ class Csp {
     $optimizedDirectives = [];
 
     foreach ($this->directives as $name => $value) {
-      if (empty($value) && self::$directiveSchemaMap[$name] !== self::DIRECTIVE_SCHEMA_OPTIONAL_TOKEN_LIST) {
+      if (empty($value) && self::DIRECTIVES[$name] !== self::DIRECTIVE_SCHEMA_OPTIONAL_TOKEN_LIST) {
         continue;
       }
 
       if (
-        self::$directiveSchemaMap[$name] === self::DIRECTIVE_SCHEMA_BOOLEAN
+        self::DIRECTIVES[$name] === self::DIRECTIVE_SCHEMA_BOOLEAN
         ||
-        self::$directiveSchemaMap[$name] === self::DIRECTIVE_SCHEMA_OPTIONAL_TOKEN_LIST && empty($value)
+        self::DIRECTIVES[$name] === self::DIRECTIVE_SCHEMA_OPTIONAL_TOKEN_LIST && empty($value)
       ) {
         $output[] = $name;
         continue;
       }
 
-      if (in_array(self::$directiveSchemaMap[$name], [
+      if (in_array(self::DIRECTIVES[$name], [
         self::DIRECTIVE_SCHEMA_SOURCE_LIST,
         self::DIRECTIVE_SCHEMA_ANCESTOR_SOURCE_LIST,
       ])) {
