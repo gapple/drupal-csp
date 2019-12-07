@@ -54,23 +54,27 @@ class CspTest extends UnitTestCase {
    * Test that changing the policy's report-only flag updates the header name.
    *
    * @covers ::reportOnly
+   * @covers ::isReportOnly
    * @covers ::getHeaderName
    */
   public function testReportOnly() {
     $policy = new Csp();
 
+    $this->assertFalse($policy->isReportOnly());
     $this->assertEquals(
       "Content-Security-Policy",
       $policy->getHeaderName()
     );
 
     $policy->reportOnly();
+    $this->assertTrue($policy->isReportOnly());
     $this->assertEquals(
       "Content-Security-Policy-Report-Only",
       $policy->getHeaderName()
     );
 
     $policy->reportOnly(FALSE);
+    $this->assertFalse($policy->isReportOnly());
     $this->assertEquals(
       "Content-Security-Policy",
       $policy->getHeaderName()
