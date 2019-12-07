@@ -115,6 +115,8 @@ class CspTest extends UnitTestCase {
    * Test setting a single value to a directive.
    *
    * @covers ::setDirective
+   * @covers ::hasDirective
+   * @covers ::getDirective
    * @covers ::isValidDirectiveName
    * @covers ::validateDirectiveName
    * @covers ::getHeaderValue
@@ -124,6 +126,11 @@ class CspTest extends UnitTestCase {
 
     $policy->setDirective('default-src', Csp::POLICY_SELF);
 
+    $this->assertTrue($policy->hasDirective('default-src'));
+    $this->assertEquals(
+      $policy->getDirective('default-src'),
+      ["'self'"]
+    );
     $this->assertEquals(
       "default-src 'self'",
       $policy->getHeaderValue()
@@ -134,6 +141,8 @@ class CspTest extends UnitTestCase {
    * Test appending a single value to an uninitialized directive.
    *
    * @covers ::appendDirective
+   * @covers ::hasDirective
+   * @covers ::getDirective
    * @covers ::isValidDirectiveName
    * @covers ::validateDirectiveName
    * @covers ::getHeaderValue
@@ -143,6 +152,11 @@ class CspTest extends UnitTestCase {
 
     $policy->appendDirective('default-src', Csp::POLICY_SELF);
 
+    $this->assertTrue($policy->hasDirective('default-src'));
+    $this->assertEquals(
+      $policy->getDirective('default-src'),
+      ["'self'"]
+    );
     $this->assertEquals(
       "default-src 'self'",
       $policy->getHeaderValue()
