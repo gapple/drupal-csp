@@ -176,10 +176,11 @@ class CspTest extends UnitTestCase {
     $policy->setDirective('default-src', Csp::POLICY_ANY);
     $policy->setDirective('default-src', [Csp::POLICY_SELF, 'one.example.com']);
     $policy->setDirective('script-src', Csp::POLICY_SELF . ' two.example.com');
+    $policy->setDirective('upgrade-insecure-requests', TRUE);
     $policy->setDirective('report-uri', 'example.com/report-uri');
 
     $this->assertEquals(
-      "default-src 'self' one.example.com; script-src 'self' two.example.com; report-uri example.com/report-uri",
+      "upgrade-insecure-requests; default-src 'self' one.example.com; script-src 'self' two.example.com; report-uri example.com/report-uri",
       $policy->getHeaderValue()
     );
   }
