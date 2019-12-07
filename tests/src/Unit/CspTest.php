@@ -86,6 +86,7 @@ class CspTest extends UnitTestCase {
    *
    * @covers ::setDirective
    * @covers ::isValidDirectiveName
+   * @covers ::validateDirectiveName
    *
    * @expectedException \InvalidArgumentException
    */
@@ -100,6 +101,7 @@ class CspTest extends UnitTestCase {
    *
    * @covers ::appendDirective
    * @covers ::isValidDirectiveName
+   * @covers ::validateDirectiveName
    *
    * @expectedException \InvalidArgumentException
    */
@@ -114,6 +116,7 @@ class CspTest extends UnitTestCase {
    *
    * @covers ::setDirective
    * @covers ::isValidDirectiveName
+   * @covers ::validateDirectiveName
    * @covers ::getHeaderValue
    */
   public function testSetSingle() {
@@ -132,6 +135,7 @@ class CspTest extends UnitTestCase {
    *
    * @covers ::appendDirective
    * @covers ::isValidDirectiveName
+   * @covers ::validateDirectiveName
    * @covers ::getHeaderValue
    */
   public function testAppendSingle() {
@@ -292,6 +296,7 @@ class CspTest extends UnitTestCase {
    *
    * @covers ::removeDirective
    * @covers ::isValidDirectiveName
+   * @covers ::validateDirectiveName
    *
    * @expectedException \InvalidArgumentException
    */
