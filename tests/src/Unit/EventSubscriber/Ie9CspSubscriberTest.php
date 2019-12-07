@@ -12,7 +12,7 @@ use Drupal\csp\EventSubscriber\Ie9CspSubscriber;
 use Drupal\Tests\UnitTestCase;
 
 /**
- * @coversDefaultClass \Drupal\csp\EventSubscriber\CoreCspSubscriber
+ * @coversDefaultClass \Drupal\csp\EventSubscriber\Ie9CspSubscriber
  * @group csp
  */
 class Ie9CspSubscriberTest extends UnitTestCase {
