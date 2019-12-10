@@ -55,6 +55,45 @@ class CoreCspSubscriber implements EventSubscriberInterface {
         $this->libraryDependencyResolver->getLibrariesWithDependencies($attachments['library']) :
         [];
 
+      // Ajax needs 'unsafe-inline' to add assets required by responses.
+      if (in_array('core/drupal.ajax', $libraries)) {
+        if ($policy->hasDirective('script-src')) {
+          $policy->appendDirective('script-src', [Csp::POLICY_UNSAFE_INLINE]);
+        }
+        elseif ($policy->hasDirective('default-src')) {
+          $scriptDirective = array_merge($policy->getDirective('default-src'), [Csp::POLICY_UNSAFE_INLINE]);
+          $policy->setDirective('script-src', $scriptDirective);
+        }
+
+        if ($policy->hasDirective('script-src-elem')) {
+          $policy->appendDirective('script-src-elem', [Csp::POLICY_UNSAFE_INLINE]);
+        }
+        elseif ($policy->hasDirective('script-src')) {
+          $scriptDirective = array_merge($policy->getDirective('script-src'), [Csp::POLICY_UNSAFE_INLINE]);
+          $policy->setDirective('script-src-elem', $scriptDirective);
+        }
+        // If default-src is set, script-src was already created above if
+        // necessary, so no need to fallback further for script-src-elem.
+
+        if ($policy->hasDirective('style-src')) {
+          $policy->appendDirective('style-src', [Csp::POLICY_UNSAFE_INLINE]);
+        }
+        elseif ($policy->hasDirective('default-src')) {
+          $scriptDirective = array_merge($policy->getDirective('default-src'), [Csp::POLICY_UNSAFE_INLINE]);
+          $policy->setDirective('style-src', $scriptDirective);
+        }
+
+        if ($policy->hasDirective('style-src-elem')) {
+          $policy->appendDirective('style-src-elem', [Csp::POLICY_UNSAFE_INLINE]);
+        }
+        elseif ($policy->hasDirective('style-src')) {
+          $scriptDirective = array_merge($policy->getDirective('style-src'), [Csp::POLICY_UNSAFE_INLINE]);
+          $policy->setDirective('script-src-elem', $scriptDirective);
+        }
+        // If default-src is set, style-src was already created above if
+        // necessary, so no need to fallback further for style-src-elem.
+      }
+
       // CKEditor requires script attribute on interface buttons.
       if (in_array('core/ckeditor', $libraries)) {
         if ($policy->hasDirective('script-src')) {
