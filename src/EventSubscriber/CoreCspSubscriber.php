@@ -56,84 +56,25 @@ class CoreCspSubscriber implements EventSubscriberInterface {
         [];
 
       // Ajax needs 'unsafe-inline' to add assets required by responses.
+      // @see https://www.drupal.org/project/csp/issues/3100084
       if (in_array('core/drupal.ajax', $libraries)) {
-        if ($policy->hasDirective('script-src')) {
-          $policy->appendDirective('script-src', [Csp::POLICY_UNSAFE_INLINE]);
-        }
-        elseif ($policy->hasDirective('default-src')) {
-          $scriptDirective = array_merge($policy->getDirective('default-src'), [Csp::POLICY_UNSAFE_INLINE]);
-          $policy->setDirective('script-src', $scriptDirective);
-        }
+        self::fallbackAwareAppendIfEnabled($policy, 'script-src', [Csp::POLICY_UNSAFE_INLINE]);
+        self::fallbackAwareAppendIfEnabled($policy, 'script-src-elem', [Csp::POLICY_UNSAFE_INLINE]);
 
-        if ($policy->hasDirective('script-src-elem')) {
-          $policy->appendDirective('script-src-elem', [Csp::POLICY_UNSAFE_INLINE]);
-        }
-        elseif ($policy->hasDirective('script-src')) {
-          $scriptDirective = array_merge($policy->getDirective('script-src'), [Csp::POLICY_UNSAFE_INLINE]);
-          $policy->setDirective('script-src-elem', $scriptDirective);
-        }
-        // If default-src is set, script-src was already created above if
-        // necessary, so no need to fallback further for script-src-elem.
-
-        if ($policy->hasDirective('style-src')) {
-          $policy->appendDirective('style-src', [Csp::POLICY_UNSAFE_INLINE]);
-        }
-        elseif ($policy->hasDirective('default-src')) {
-          $scriptDirective = array_merge($policy->getDirective('default-src'), [Csp::POLICY_UNSAFE_INLINE]);
-          $policy->setDirective('style-src', $scriptDirective);
-        }
-
-        if ($policy->hasDirective('style-src-elem')) {
-          $policy->appendDirective('style-src-elem', [Csp::POLICY_UNSAFE_INLINE]);
-        }
-        elseif ($policy->hasDirective('style-src')) {
-          $scriptDirective = array_merge($policy->getDirective('style-src'), [Csp::POLICY_UNSAFE_INLINE]);
-          $policy->setDirective('style-src-elem', $scriptDirective);
-        }
-        // If default-src is set, style-src was already created above if
-        // necessary, so no need to fallback further for style-src-elem.
+        self::fallbackAwareAppendIfEnabled($policy, 'style-src', [Csp::POLICY_UNSAFE_INLINE]);
+        self::fallbackAwareAppendIfEnabled($policy, 'style-src-elem', [Csp::POLICY_UNSAFE_INLINE]);
       }
 
       // CKEditor requires script attribute on interface buttons.
       if (in_array('core/ckeditor', $libraries)) {
-        if ($policy->hasDirective('script-src')) {
-          $policy->appendDirective('script-src', [Csp::POLICY_UNSAFE_INLINE]);
-        }
-        elseif ($policy->hasDirective('default-src')) {
-          $scriptDirective = array_merge($policy->getDirective('default-src'), [Csp::POLICY_UNSAFE_INLINE]);
-          $policy->setDirective('script-src', $scriptDirective);
-        }
-
-        if ($policy->hasDirective('script-src-attr')) {
-          $policy->appendDirective('script-src-attr', [Csp::POLICY_UNSAFE_INLINE]);
-        }
-        elseif ($policy->hasDirective('script-src')) {
-          $scriptDirective = array_merge($policy->getDirective('script-src'), [Csp::POLICY_UNSAFE_INLINE]);
-          $policy->setDirective('script-src-attr', $scriptDirective);
-        }
-        // If default-src is set, script-src was already created above if
-        // necessary, so no need to fallback further for script-src-attr.
+        self::fallbackAwareAppendIfEnabled($policy, 'script-src', [Csp::POLICY_UNSAFE_INLINE]);
+        self::fallbackAwareAppendIfEnabled($policy, 'script-src-attr', [Csp::POLICY_UNSAFE_INLINE]);
       }
       // Inline style element is added by ckeditor.off-canvas-css-reset.js.
       // @see https://www.drupal.org/project/drupal/issues/2952390
       if (in_array('ckeditor/drupal.ckeditor', $libraries)) {
-        if ($policy->hasDirective('style-src')) {
-          $policy->appendDirective('style-src', [Csp::POLICY_UNSAFE_INLINE]);
-        }
-        elseif ($policy->hasDirective('default-src')) {
-          $scriptDirective = array_merge($policy->getDirective('default-src'), [Csp::POLICY_UNSAFE_INLINE]);
-          $policy->setDirective('style-src', $scriptDirective);
-        }
-
-        if ($policy->hasDirective('style-src-elem')) {
-          $policy->appendDirective('style-src-elem', [Csp::POLICY_UNSAFE_INLINE]);
-        }
-        elseif ($policy->hasDirective('style-src')) {
-          $scriptDirective = array_merge($policy->getDirective('style-src'), [Csp::POLICY_UNSAFE_INLINE]);
-          $policy->setDirective('style-src-elem', $scriptDirective);
-        }
-        // If default-src is set, style-src was already created above if
-        // necessary, so no need to fallback further for style-src-elem.
+        self::fallbackAwareAppendIfEnabled($policy, 'style-src', [Csp::POLICY_UNSAFE_INLINE]);
+        self::fallbackAwareAppendIfEnabled($policy, 'style-src-elem', [Csp::POLICY_UNSAFE_INLINE]);
       }
 
       $umamiFontLibraries = [
@@ -144,13 +85,40 @@ class CoreCspSubscriber implements EventSubscriberInterface {
         'umami/webfonts-scope-one',
       ];
       if (!empty(array_intersect($libraries, $umamiFontLibraries))) {
-        if ($policy->hasDirective('font-src')) {
-          $policy->appendDirective('font-src', ['https://fonts.gstatic.com']);
-        }
-        elseif ($policy->hasDirective('default-src')) {
-          $fontDirective = array_merge($policy->getDirective('default-src'), ['https://fonts.gstatic.com']);
-          $policy->appendDirective('font-src', $fontDirective);
-        }
+        self::fallbackAwareAppendIfEnabled($policy, 'font-src', ['https://fonts.gstatic.com']);
+      }
+    }
+  }
+
+  /**
+   * Append to a directive if it or a fallback directive is enabled.
+   *
+   * If the specified directive is not enabled but one of its fallback
+   * directives is, it will be initialized with the same value as the fallback
+   * before appending the new value.
+   *
+   * If none of the specified directive's fallbacks are enabled, the directive
+   * will not be enabled.
+   *
+   * @param \Drupal\csp\Csp $policy
+   *   The CSP directive to alter.
+   * @param string $directive
+   *   The directive name.
+   * @param array|string $value
+   *   The directive value.
+   */
+  private static function fallbackAwareAppendIfEnabled(Csp $policy, $directive, $value) {
+    if ($policy->hasDirective($directive)) {
+      $policy->appendDirective($directive, $value);
+      return;
+    }
+
+    // Duplicate the closest fallback directive with a value.
+    foreach (Csp::getDirectiveFallbackList($directive) as $fallback) {
+      if ($policy->hasDirective($fallback)) {
+        $policy->setDirective($directive, $policy->getDirective($fallback));
+        $policy->appendDirective($directive, $value);
+        return;
       }
     }
   }
