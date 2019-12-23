@@ -88,7 +88,7 @@ class CoreCspSubscriber implements EventSubscriberInterface {
         }
         elseif ($policy->hasDirective('style-src')) {
           $scriptDirective = array_merge($policy->getDirective('style-src'), [Csp::POLICY_UNSAFE_INLINE]);
-          $policy->setDirective('script-src-elem', $scriptDirective);
+          $policy->setDirective('style-src-elem', $scriptDirective);
         }
         // If default-src is set, style-src was already created above if
         // necessary, so no need to fallback further for style-src-elem.
