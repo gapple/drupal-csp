@@ -62,8 +62,9 @@ class ReportUri extends ReportingHandlerBase {
    * {@inheritdoc}
    */
   public function validateForm(array &$form, FormStateInterface $form_state) {
-    $subdomain = $form_state->getValue($form['subdomain']['#parents']);;
-    if (!preg_match('/^[a-z\d]{4,30}$/i', $subdomain)) {
+    $subdomain = $form_state->getValue($form['subdomain']['#parents']);
+    // Custom domains must be 4-30 characters, but generated domains are 32.
+    if (!preg_match('/^[a-z\d]{4,32}$/i', $subdomain)) {
       $form_state->setError($form['subdomain'], 'Must be 4-30 alphanumeric characters.');
     }
   }
