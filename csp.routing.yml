@@ -4,7 +4,7 @@ csp.settings:
     _form: '\Drupal\csp\Form\CspSettingsForm'
     _title: 'Content Security Policy'
   requirements:
-    _permission: 'administer site configuration'
+    _permission: 'administer csp configuration'
 
 csp.reporturi:
   path: '/report-uri/{type}'
