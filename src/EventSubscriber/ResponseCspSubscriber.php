@@ -110,7 +110,7 @@ class ResponseCspSubscriber implements EventSubscriberInterface {
       $policy = new Csp();
       $policy->reportOnly($policyType == 'report-only');
 
-      foreach ($cspConfig->get($policyType . '.directives') as $directiveName => $directiveOptions) {
+      foreach (($cspConfig->get($policyType . '.directives') ?: []) as $directiveName => $directiveOptions) {
 
         if (is_bool($directiveOptions)) {
           $policy->setDirective($directiveName, TRUE);
@@ -178,7 +178,9 @@ class ResponseCspSubscriber implements EventSubscriberInterface {
         new PolicyAlterEvent($policy, $response)
       );
 
-      $response->headers->set($policy->getHeaderName(), $policy->getHeaderValue());
+      if (($headerValue = $policy->getHeaderValue())) {
+        $response->headers->set($policy->getHeaderName(), $headerValue);
+      }
     }
   }
 

@@ -3,7 +3,6 @@
 namespace Drupal\Tests\csp\Unit\EventSubscriber;
 
 use Drupal\Core\Cache\CacheableMetadata;
-use Drupal\Core\Extension\ModuleHandler;
 use Drupal\Core\Render\HtmlResponse;
 use Drupal\csp\Csp;
 use Drupal\csp\CspEvents;
@@ -167,6 +166,40 @@ class ResponseCspSubscriberTest extends UnitTestCase {
       );
 
     $subscriber = new ResponseCspSubscriber($configFactory, $this->libraryPolicy, $this->reportingHandlerPluginManager, $this->eventDispatcher);
+
+    $subscriber->onKernelResponse($this->event);
+  }
+
+  /**
+   * An empty or missing directive list should not output a header.
+   *
+   * @covers ::onKernelResponse
+   */
+  public function testEmptyDirective() {
+    /** @var \Drupal\Core\Config\ConfigFactoryInterface|\PHPUnit_Framework_MockObject_MockObject $configFactory */
+    $configFactory = $this->getConfigFactoryStub([
+      'system.performance' => [
+        'css.preprocess' => FALSE,
+      ],
+      'csp.settings' => [
+        'report-only' => [
+          'enable' => TRUE,
+          'directives' => [],
+        ],
+        'enforce' => [
+          'enable' => TRUE,
+        ],
+      ],
+    ]);
+
+    $subscriber = new ResponseCspSubscriber($configFactory, $this->libraryPolicy, $this->reportingHandlerPluginManager, $this->eventDispatcher);
+
+    $this->response->headers->expects($this->never())
+      ->method('set');
+    $this->response->getCacheableMetadata()
+      ->expects($this->once())
+      ->method('addCacheTags')
+      ->with(['config:csp.settings']);
 
     $subscriber->onKernelResponse($this->event);
   }
