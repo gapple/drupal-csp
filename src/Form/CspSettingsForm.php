@@ -110,12 +110,19 @@ class CspSettingsForm extends ConfigFormBase {
    */
   private function getConfigurableDirectives() {
     // Exclude some directives
-    // - Reporting directives have dedicated fields elsewhere in the form.
-    // - 'referrer' is deprecated in favour of the Referrer-Policy header, and
-    //   not supported in most browsers.
+    // - Reporting directives are handled by plugins.
+    // - 'referrer' was deprecated prior to CSP Level 1 and not supported in
+    //   most browsers.
+    // - 'require-sri-for' was never publicly implemented, and dropped from the
+    //   SRI spec.
     $directives = array_diff(
       Csp::getDirectiveNames(),
-      ['report-uri', 'report-to', 'referrer']
+      [
+        'report-uri',
+        'report-to',
+        'referrer',
+        'require-sri-for',
+      ]
     );
 
     return $directives;
@@ -371,17 +378,6 @@ class CspSettingsForm extends ConfigFormBase {
         ],
         '#default_value' => $config->get($policyTypeKey . '.directives.sandbox') ?: [],
       ];
-
-      $form[$policyTypeKey]['directives']['require-sri-for']['options']['keys'] = [
-        '#type' => 'checkboxes',
-        '#parents' => [$policyTypeKey, 'directives', 'require-sri-for', 'keys'],
-        '#options' => [
-          'script' => '<code>script</code>',
-          'style' => '<code>style</code>',
-        ],
-        '#default_value' => $config->get($policyTypeKey . '.directives.require-sri-for') ?: [],
-      ];
-
 
       $form[$policyTypeKey]['reporting'] = [
         '#type' => 'fieldset',

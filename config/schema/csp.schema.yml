@@ -104,10 +104,6 @@ csp_directive.navigate-to:
   type: csp_directive_source_list
 csp_directive.block-all-mixed-content:
   type: boolean
-csp_directive.require-sri-for:
-  type: sequence
-  sequence:
-    type: string
 csp_directive.upgrade-insecure-requests:
   type: boolean
 
