@@ -25,10 +25,10 @@
           };
 
           $details.drupalSetSummary(function () {
+            var directiveCount = $details
+              .find(createPolicyElementSelector('directives') + ' [name$="[enable]"]:checked')
+              .length;
             if ($details.find(createPolicyElementSelector('enable')).prop('checked')) {
-              var directiveCount = $details
-                .find(createPolicyElementSelector('directives') + ' [name$="[enable]"]:checked')
-                .length;
               return Drupal.formatPlural(
                 directiveCount,
                 'Enabled, @directiveCount directive',
@@ -36,8 +36,12 @@
                 { '@directiveCount': directiveCount }
               );
             }
-
-            return Drupal.t('Disabled');
+            return Drupal.formatPlural(
+              directiveCount,
+              'Disabled, @directiveCount directive',
+              'Disabled, @directiveCount directives',
+              { '@directiveCount': directiveCount }
+            );
           });
         });
     }
