@@ -3,6 +3,7 @@
 namespace Drupal\Tests\csp\Unit\EventSubscriber;
 
 use Drupal\Core\Asset\LibraryDependencyResolverInterface;
+use Drupal\Core\Extension\ModuleHandlerInterface;
 use Drupal\Core\Render\HtmlResponse;
 use Drupal\csp\Csp;
 use Drupal\csp\CspEvents;
@@ -22,6 +23,12 @@ class CoreCspSubscriberTest extends UnitTestCase {
    * @var \Drupal\Core\Asset\LibraryDependencyResolverInterface|\PHPUnit\Framework\MockObject\MockObject
    */
   private $libraryDependencyResolver;
+
+  /**
+   * The Module Handler service.
+   * @var \Drupal\Core\Extension\ModuleHandlerInterface|\PHPUnit\Framework\MockObject\MockObject
+   */
+  private $moduleHandler;
 
   /**
    * The event subscriber for core modules.
@@ -49,11 +56,15 @@ class CoreCspSubscriberTest extends UnitTestCase {
     $this->libraryDependencyResolver->method('getLibrariesWithDependencies')
       ->willReturnArgument(0);
 
+    $this->moduleHandler = $this->getMockBuilder(ModuleHandlerInterface::class)
+      ->disableOriginalConstructor()
+      ->getMock();
+
     $this->response = $this->getMockBuilder(HtmlResponse::class)
       ->disableOriginalConstructor()
       ->getMock();
 
-    $this->coreCspSubscriber = new CoreCspSubscriber($this->libraryDependencyResolver);
+    $this->coreCspSubscriber = new CoreCspSubscriber($this->libraryDependencyResolver, $this->moduleHandler);
   }
 
   /**
