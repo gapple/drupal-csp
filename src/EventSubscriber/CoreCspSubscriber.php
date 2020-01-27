@@ -3,6 +3,7 @@
 namespace Drupal\csp\EventSubscriber;
 
 use Drupal\Core\Asset\LibraryDependencyResolverInterface;
+use Drupal\Core\Extension\ModuleHandlerInterface;
 use Drupal\Core\Render\AttachmentsInterface;
 use Drupal\csp\Csp;
 use Drupal\csp\CspEvents;
@@ -22,6 +23,13 @@ class CoreCspSubscriber implements EventSubscriberInterface {
   private $libraryDependencyResolver;
 
   /**
+   * The Module Handler service.
+   *
+   * @var \Drupal\Core\Extension\ModuleHandlerInterface
+   */
+  private $moduleHandler;
+
+  /**
    * {@inheritdoc}
    */
   public static function getSubscribedEvents() {
@@ -35,8 +43,9 @@ class CoreCspSubscriber implements EventSubscriberInterface {
    * @param \Drupal\Core\Asset\LibraryDependencyResolverInterface $libraryDependencyResolver
    *   The Library Dependency Resolver Service.
    */
-  public function __construct(LibraryDependencyResolverInterface $libraryDependencyResolver) {
+  public function __construct(LibraryDependencyResolverInterface $libraryDependencyResolver, ModuleHandlerInterface $moduleHandler) {
     $this->libraryDependencyResolver = $libraryDependencyResolver;
+    $this->moduleHandler = $moduleHandler;
   }
 
   /**
@@ -70,6 +79,13 @@ class CoreCspSubscriber implements EventSubscriberInterface {
         self::fallbackAwareAppendIfEnabled($policy, 'script-src', [Csp::POLICY_UNSAFE_INLINE]);
         self::fallbackAwareAppendIfEnabled($policy, 'script-src-attr', [Csp::POLICY_UNSAFE_INLINE]);
       }
+      // Quickedit loads ckeditor after an AJAX request, so alter needs to be
+      // applied to calling page.
+      if (in_array('quickedit/quickedit', $libraries) && $this->moduleHandler->moduleExists('ckeditor')) {
+        self::fallbackAwareAppendIfEnabled($policy, 'script-src', [Csp::POLICY_UNSAFE_INLINE]);
+        self::fallbackAwareAppendIfEnabled($policy, 'script-src-attr', [Csp::POLICY_UNSAFE_INLINE]);
+      }
+
       // Inline style element is added by ckeditor.off-canvas-css-reset.js.
       // @see https://www.drupal.org/project/drupal/issues/2952390
       if (in_array('ckeditor/drupal.ckeditor', $libraries)) {

@@ -24,6 +24,7 @@ services:
     class: Drupal\csp\EventSubscriber\CoreCspSubscriber
     arguments:
       - '@library.dependency_resolver'
+      - '@module_handler'
     tags:
       - { name: event_subscriber }
   csp.ie9_csp_subscriber:
