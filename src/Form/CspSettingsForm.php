@@ -622,7 +622,7 @@ class CspSettingsForm extends ConfigFormBase {
             if (!empty($directiveFormData['sources'])) {
               $directiveOptions['sources'] = array_filter(preg_split('/,?\s+/', $directiveFormData['sources']));
             }
-            if ($directiveName != 'frame-ancestors') {
+            if ($directiveSchema == Csp::DIRECTIVE_SCHEMA_SOURCE_LIST) {
               $directiveFormData['flags'] = array_filter($directiveFormData['flags']);
               if (!empty($directiveFormData['flags'])) {
                 $directiveOptions['flags'] = array_keys($directiveFormData['flags']);
