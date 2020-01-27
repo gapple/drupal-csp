@@ -224,12 +224,12 @@ class CspSettingsForm extends ConfigFormBase {
           $form[$policyTypeKey]['directives'][$directiveName]['enable']['#default_value'] = !is_null($config->get($policyTypeKey . '.directives.' . $directiveName));
         }
         else {
-          // Enable the directive by default if it has any automatically
-          // detected values.
-          $form[$policyTypeKey]['directives'][$directiveName]['enable']['#default_value'] = isset($autoDirectives[$directiveName]);
-
-          // Enable frame-ancestors by default - 'self' is default base value.
-          if ($directiveName == 'frame-ancestors') {
+          // Directives to enable by default (with 'self').
+          if (
+            in_array($directiveName, ['script-src', 'script-src-attr', 'script-src-elem', 'style-src', 'style-src-attr', 'style-src-elem', 'frame-ancestors'])
+            ||
+            isset($autoDirectives[$directiveName])
+          ) {
             $form[$policyTypeKey]['directives'][$directiveName]['enable']['#default_value'] = TRUE;
           }
         }

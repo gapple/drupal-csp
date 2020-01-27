@@ -9,6 +9,10 @@ report-only:
       base: 'self'
     style-src:
       base: 'self'
+    style-src-attr:
+      base: 'self'
+    style-src-elem:
+      base: 'self'
     frame-ancestors:
       base: 'self'
   reporting:
