@@ -414,7 +414,7 @@ class Csp {
         // Keep any values that are a quoted string, or non-network scheme.
         // e.g. '* https: data: example.com' -> '* data:'
         // https://www.w3.org/TR/CSP/#match-url-to-source-expression
-        return strpos($source, "'") === 0 || preg_match('<^(?!ftp|https?:)([a-z]+:)>', $source);
+        return strpos($source, "'") === 0 || preg_match('<^(?!(?:https?|wss?|ftp):)([a-z]+:)>', $source);
       });
 
       array_unshift($sources, Csp::POLICY_ANY);
@@ -423,11 +423,14 @@ class Csp {
     // Remove protocol-prefixed hosts if protocol is allowed.
     // e.g. 'http: data: example.com https://example.com' -> 'http: data: example.com'
     $protocols = array_filter($sources, function ($source) {
-      return preg_match('<^(https?|ftp):$>', $source);
+      return preg_match('<^(https?|wss?|ftp):$>', $source);
     });
     if (!empty($protocols)) {
       if (in_array('http:', $protocols)) {
         $protocols[] = 'https:';
+      }
+      if (in_array('ws:', $protocols)) {
+        $protocols[] = 'wss:';
       }
       $sources = array_filter($sources, function ($source) use ($protocols) {
         return !preg_match('<^(' . implode('|', $protocols) . ')//>', $source);

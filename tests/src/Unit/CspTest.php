@@ -520,6 +520,8 @@ class CspTest extends UnitTestCase {
       'http:',
       'https:',
       'ftp:',
+      'ws:',
+      'wss:',
       // Non-network protocols should be kept.
       'data:',
       // Additional keywords should be kept.
@@ -592,6 +594,71 @@ class CspTest extends UnitTestCase {
 
     $this->assertEquals(
       "default-src https: example.com http://example.org ftp: data: 'unsafe-inline' 'hash-123abc' 'nonce-abc123'",
+      $policy->getHeaderValue()
+    );
+  }
+
+  /**
+   * Test reducing the source list when 'ws:' is included.
+   *
+   * @covers ::reduceSourceList
+   */
+  public function testReduceSourceListWithWs() {
+    $policy = new Csp();
+
+    $policy->setDirective('default-src', [
+      'https:',
+      'ws:',
+      // Hosts without protocol should be kept.
+      // (e.g. this would allow ftp://example.com)
+      'example.com',
+      // HTTP hosts should be removed.
+      'ws://connect.example.org',
+      'wss://connect.example.net',
+      // Other network protocols should be kept.
+      'ftp:',
+      // Non-network protocols should be kept.
+      'data:',
+      // Additional keywords should be kept.
+      Csp::POLICY_UNSAFE_INLINE,
+      "'hash-123abc'",
+      "'nonce-abc123'",
+    ]);
+
+    $this->assertEquals(
+      "default-src https: ws: example.com ftp: data: 'unsafe-inline' 'hash-123abc' 'nonce-abc123'",
+      $policy->getHeaderValue()
+    );
+  }
+
+  /**
+   * Test reducing the source list when 'wss:' is included.
+   *
+   * @covers ::reduceSourceList
+   */
+  public function testReduceSourceListWithWss() {
+    $policy = new Csp();
+
+    $policy->setDirective('default-src', [
+      'https:',
+      'wss:',
+      // Non-secure hosts should be kept.
+      'example.com',
+      'ws://connect.example.org',
+      // Secure Hosts should be removed.
+      'wss://connect.example.net',
+      // Other network protocols should be kept.
+      'ftp:',
+      // Non-network protocols should be kept.
+      'data:',
+      // Additional keywords should be kept.
+      Csp::POLICY_UNSAFE_INLINE,
+      "'hash-123abc'",
+      "'nonce-abc123'",
+    ]);
+
+    $this->assertEquals(
+      "default-src https: wss: example.com ws://connect.example.org ftp: data: 'unsafe-inline' 'hash-123abc' 'nonce-abc123'",
       $policy->getHeaderValue()
     );
   }

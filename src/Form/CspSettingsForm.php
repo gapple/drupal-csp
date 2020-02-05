@@ -532,7 +532,7 @@ class CspSettingsForm extends ConfigFormBase {
   private static function isValidHost($url) {
     return (bool) preg_match("
         /^                                                      # Start at the beginning of the text
-        (?:https?:\/\/)?                                        # Look for http or https schemes (optional)
+        (?:(?:https?|wss?):\/\/)?                               # Look for http or ws schemes (optional)
         (?:
           (?:                                                   # A domain name or a IPv4 address
             (?:\*\.)?                                           # Wildcard prefix (optional)
