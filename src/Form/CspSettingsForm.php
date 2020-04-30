@@ -455,12 +455,6 @@ class CspSettingsForm extends ConfigFormBase {
   public function validateForm(array &$form, FormStateInterface $form_state) {
 
     foreach (['report-only', 'enforce'] as $policyTypeKey) {
-
-      // No options are saved for disabled policies, so skip validation.
-      if (!$form_state->getValue([$policyTypeKey, 'enable'])) {
-        continue;
-      }
-
       $directiveNames = $this->getConfigurableDirectives();
       foreach ($directiveNames as $directiveName) {
         if (($directiveSources = $form_state->getValue([$policyTypeKey, 'directives', $directiveName, 'sources']))) {
