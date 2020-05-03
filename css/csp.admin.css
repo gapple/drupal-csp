@@ -1,3 +1,11 @@
+form.csp-settings .csp-directive-auto {
+  font-size: 75%;
+  font-style: italic;
+  opacity: 0.8;
+}
+form.csp-settings .csp-directive-auto::before {
+  content: "*";
+}
 form.csp-settings [data-drupal-selector$="reporting-handler"] .form-radios,
 form.csp-settings [data-drupal-selector$="directives"] .form-radios,
 form.csp-settings [data-drupal-selector$="directives"] .form-checkboxes {
