@@ -80,24 +80,8 @@ class Ie9CspSubscriber implements EventSubscriberInterface {
       )
     ) {
       $policy = $alterEvent->getPolicy();
-
-      if ($policy->hasDirective('style-src')) {
-        $policy->appendDirective('style-src', [Csp::POLICY_UNSAFE_INLINE]);
-      }
-      elseif ($policy->hasDirective('default-src')) {
-        $scriptDirective = array_merge($policy->getDirective('default-src'), [Csp::POLICY_UNSAFE_INLINE]);
-        $policy->setDirective('style-src', $scriptDirective);
-      }
-
-      if ($policy->hasDirective('style-src-elem')) {
-        $policy->appendDirective('style-src-elem', [Csp::POLICY_UNSAFE_INLINE]);
-      }
-      elseif ($policy->hasDirective('style-src')) {
-        $scriptDirective = array_merge($policy->getDirective('style-src'), [Csp::POLICY_UNSAFE_INLINE]);
-        $policy->setDirective('style-src-elem', $scriptDirective);
-      }
-      // If default-src is set, style-src was already created above if
-      // necessary, so no need to fallback further for style-src-elem.
+      $policy->fallbackAwareAppendIfEnabled('style-src', [Csp::POLICY_UNSAFE_INLINE]);
+      $policy->fallbackAwareAppendIfEnabled('style-src-elem', [Csp::POLICY_UNSAFE_INLINE]);
     }
   }
 
