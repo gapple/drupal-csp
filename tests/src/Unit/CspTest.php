@@ -260,6 +260,101 @@ class CspTest extends UnitTestCase {
   }
 
   /**
+   * Appending to a directive if it or a fallback is enabled.
+   *
+   * @covers ::fallbackAwareAppendIfEnabled
+   */
+  public function testFallbackAwareAppendIfEnabled() {
+    // If no relevant directives are enabled, they should not change.
+    $policy = new Csp();
+    $policy->setDirective('style-src', Csp::POLICY_SELF);
+    $policy->fallbackAwareAppendIfEnabled('script-src-attr', Csp::POLICY_UNSAFE_INLINE);
+    $this->assertFalse($policy->hasDirective('default-src'));
+    $this->assertFalse($policy->hasDirective('script-src'));
+    $this->assertFalse($policy->hasDirective('script-src-attr'));
+
+    // Script-src-attr should copy value from default-src.  Script-src should
+    // not be changed.
+    $policy = new Csp();
+    $policy->setDirective('default-src', Csp::POLICY_SELF);
+    $policy->fallbackAwareAppendIfEnabled('script-src-attr', Csp::POLICY_UNSAFE_INLINE);
+    $this->assertEquals(
+      [Csp::POLICY_SELF],
+      $policy->getDirective('default-src')
+    );
+    $this->assertFalse($policy->hasDirective('script-src'));
+    $this->assertEquals(
+      [Csp::POLICY_SELF, Csp::POLICY_UNSAFE_INLINE],
+      $policy->getDirective('script-src-attr')
+    );
+
+    // Script-src-attr should copy value from script-src.
+    $policy = new Csp();
+    $policy->setDirective('script-src', Csp::POLICY_SELF);
+    $policy->fallbackAwareAppendIfEnabled('script-src-attr', Csp::POLICY_UNSAFE_INLINE);
+    $this->assertFalse($policy->hasDirective('default-src'));
+    $this->assertEquals(
+      [Csp::POLICY_SELF],
+      $policy->getDirective('script-src')
+    );
+    $this->assertEquals(
+      [Csp::POLICY_SELF, Csp::POLICY_UNSAFE_INLINE],
+      $policy->getDirective('script-src-attr')
+    );
+
+    // Script-src-attr should only append to existing value if enabled.
+    $policy = new Csp();
+    $policy->setDirective('script-src', Csp::POLICY_SELF);
+    $policy->setDirective('script-src-attr', []);
+    $policy->fallbackAwareAppendIfEnabled('script-src-attr', Csp::POLICY_UNSAFE_INLINE);
+    $this->assertFalse($policy->hasDirective('default-src'));
+    $this->assertEquals(
+      [Csp::POLICY_SELF],
+      $policy->getDirective('script-src')
+    );
+    $this->assertEquals(
+      [Csp::POLICY_UNSAFE_INLINE],
+      $policy->getDirective('script-src-attr')
+    );
+  }
+
+  /**
+   * Appending to a directive if its fallback includes 'none'.
+   *
+   * @covers ::fallbackAwareAppendIfEnabled
+   */
+  public function testFallbackAwareAppendIfEnabledNone() {
+    // New directive should be enabled with only provided value.
+    $policy = new Csp();
+    $policy->setDirective('default-src', Csp::POLICY_NONE);
+    $policy->fallbackAwareAppendIfEnabled(
+      'script-src-attr',
+      Csp::POLICY_UNSAFE_INLINE
+    );
+    $this->assertEquals(
+      [Csp::POLICY_NONE],
+      $policy->getDirective('default-src')
+    );
+    $this->assertFalse($policy->hasDirective('script-src'));
+    $this->assertEquals(
+      [Csp::POLICY_UNSAFE_INLINE],
+      $policy->getDirective('script-src-attr')
+    );
+
+    // Additional values in fallback should be ignored if 'none' is present.
+    $policy = new Csp();
+    $policy->setDirective('script-src', [Csp::POLICY_NONE, 'https://example.org']);
+    $policy->fallbackAwareAppendIfEnabled(
+      'script-src-attr',
+      Csp::POLICY_UNSAFE_INLINE
+    );
+    $this->assertEquals(
+      [Csp::POLICY_UNSAFE_INLINE],
+      $policy->getDirective('script-src-attr')
+    );
+  }
+
+  /**
    * Test that source values are not repeated in the header.
    *
    * @covers ::setDirective

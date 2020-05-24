@@ -314,6 +314,43 @@ class Csp {
   }
 
   /**
+   * Append to a directive if it or a fallback directive is enabled.
+   *
+   * If the specified directive is not enabled but one of its fallback
+   * directives is, it will be initialized with the same value as the fallback
+   * before appending the new value.
+   *
+   * If none of the specified directive's fallbacks are enabled, the directive
+   * will not be enabled.
+   *
+   * @param string $name
+   *   The directive name.
+   * @param array|string $value
+   *   The directive value.
+   */
+  public function fallbackAwareAppendIfEnabled($name, $value) {
+    self::validateDirectiveName($name);
+
+    if (!$this->hasDirective($name)) {
+      // Duplicate the closest fallback directive with a value.
+      foreach (self::getDirectiveFallbackList($name) as $fallback) {
+        if ($this->hasDirective($fallback)) {
+          $fallbackSourceList = $this->getDirective($fallback);
+          if (in_array(static::POLICY_NONE, $fallbackSourceList)) {
+            $fallbackSourceList = [];
+          }
+          $this->setDirective($name, $fallbackSourceList);
+          break;
+        }
+      }
+    }
+
+    if ($this->hasDirective($name)) {
+      $this->appendDirective($name, $value);
+    }
+  }
+
+  /**
    * Remove a directive from the policy.
    *
    * @param string $name
