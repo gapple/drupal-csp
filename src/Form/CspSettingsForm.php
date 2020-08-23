@@ -604,7 +604,7 @@ class CspSettingsForm extends ConfigFormBase {
           ) {
             continue;
           }
-          $directiveOptions = preg_split('/,?\s+/', $directiveFormData['mime-types']);
+          $directiveOptions = array_filter(preg_split('/,?\s+/', $directiveFormData['mime-types']));
         }
         elseif (in_array($directiveSchema, [
           Csp::DIRECTIVE_SCHEMA_TOKEN_LIST,
