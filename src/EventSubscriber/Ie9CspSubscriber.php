@@ -80,6 +80,9 @@ class Ie9CspSubscriber implements EventSubscriberInterface {
       )
     ) {
       $policy = $alterEvent->getPolicy();
+      // Prevent style-src-attr from falling back to style-src and having
+      // 'unsafe-inline' enabled.
+      $policy->fallbackAwareAppendIfEnabled('style-src-attr', []);
       $policy->fallbackAwareAppendIfEnabled('style-src', [Csp::POLICY_UNSAFE_INLINE]);
       $policy->fallbackAwareAppendIfEnabled('style-src-elem', [Csp::POLICY_UNSAFE_INLINE]);
     }
