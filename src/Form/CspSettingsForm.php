@@ -312,7 +312,7 @@ class CspSettingsForm extends ConfigFormBase {
           '#type' => 'textarea',
           '#parents' => [$policyTypeKey, 'directives', $directiveName, 'sources'],
           '#title' => $this->t('Additional Sources'),
-          '#description' => $this->t('Additional domains or protocols to allow for this directive.'),
+          '#description' => $this->t('Additional domains or protocols to allow for this directive, separated by a space.'),
           '#default_value' => implode(' ', $config->get($policyTypeKey . '.directives.' . $directiveName . '.sources') ?: []),
           '#states' => [
             'visible' => [
