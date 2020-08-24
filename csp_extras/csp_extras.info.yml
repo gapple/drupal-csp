@@ -1,0 +1,7 @@
+name: Content Security Policy Extras
+type: module
+description: Optional extra features for Content Security Policy
+core_version_requirement: ^8.9 || ^9
+
+dependencies:
+- csp:csp

@@ -1,0 +1,10 @@
+services:
+  # Replace the core attachments_processor service.
+  ajax_response.attachments_processor:
+    class: Drupal\csp_extras\Ajax\AjaxResponseAttachmentsProcessor
+    arguments:
+     - '@asset.resolver'
+     - '@config.factory'
+     - '@request_stack'
+     - '@module_handler'
+

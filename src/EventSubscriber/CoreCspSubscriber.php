@@ -66,7 +66,8 @@ class CoreCspSubscriber implements EventSubscriberInterface {
 
       // Ajax needs 'unsafe-inline' to add assets required by responses.
       // @see https://www.drupal.org/project/csp/issues/3100084
-      if (in_array('core/drupal.ajax', $libraries)) {
+      // The CSP Extras module alters core to not require 'unsafe-inline'.
+      if (in_array('core/drupal.ajax', $libraries) && !$this->moduleHandler->moduleExists('csp_extras')) {
         // Prevent script-src-attr from falling back to script-src and having
         // 'unsafe-inline' enabled.
         $policy->fallbackAwareAppendIfEnabled('script-src-attr', []);
