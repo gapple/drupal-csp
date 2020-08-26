@@ -448,6 +448,30 @@ class CspSettingsForm extends ConfigFormBase {
         $this->messenger()
           ->addWarning($this->t('No policies are currently enabled.'));
       }
+
+      foreach ($policyTypes as $policyTypeKey => $policyTypeName) {
+        if (!$config->get($policyTypeKey . '.enable')) {
+          continue;
+        }
+        foreach (['script-src', 'style-src'] as $directive) {
+          foreach (['-attr', '-elem'] as $subdirective) {
+            if ($config->get($policyTypeKey.'.directives.'. $directive . $subdirective)) {
+              foreach (Csp::getDirectiveFallbackList($directive . $subdirective) as $fallbackDirective) {
+                if ($config->get($policyTypeKey . '.directives.' . $fallbackDirective)) {
+                  continue 2;
+                }
+              }
+              $this->messenger()->addWarning($this->t(
+                '%policy %directive is enabled without a fallback directive for non-supporting browsers.',
+                [
+                  '%policy' => $policyTypeName,
+                  '%directive' => $directive . $subdirective,
+                ]
+              ));
+            }
+          }
+        }
+      }
     }
 
     return parent::buildForm($form, $form_state);
