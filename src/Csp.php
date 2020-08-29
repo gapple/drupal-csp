@@ -422,6 +422,11 @@ class Csp {
         }
       }
 
+      // Optimize attribute directives if they don't match a fallback.
+      if (strstr($name, '-attr')) {
+        $value = self::reduceAttrSourceList($value);
+      }
+
       $output[] = $name . ' ' . implode(' ', $value);
     }
 
@@ -472,6 +477,42 @@ class Csp {
       $sources = array_filter($sources, function ($source) use ($protocols) {
         return !preg_match('<^(' . implode('|', $protocols) . ')//>', $source);
       });
+    }
+
+    return $sources;
+  }
+
+  /**
+   * Reduce the list of sources for an *-attr directive.
+   *
+   * @param  array  $sources
+   *   An array of sources.
+   *
+   * @return array
+   *   The reduced array of sources.
+   */
+  private static function reduceAttrSourceList(array $sources) {
+
+    $sources = array_filter($sources, function ($source) {
+      return (
+        // Network sources are meaningless.
+        $source[0] === "'" && $source !== "*"
+        &&
+        // Nonces cannot be applied.
+        strpos($source, "'nonce-") !== 0
+      );
+    });
+
+    // Hashes only work in CSP Level 3 with 'unsafe-hashes'.
+    if (!in_array(self::POLICY_UNSAFE_HASHES, $sources)) {
+      $sources = array_filter($sources, function ($source) {
+        return !preg_match("<'(" . implode('|', self::HASH_ALGORITHMS) . ")-[a-z0-9+/=]+=*'>i", $source);
+      });
+    }
+
+    // If all set source have been removed, block all.
+    if (empty($sources)) {
+      $sources = [self::POLICY_NONE];
     }
 
     return $sources;

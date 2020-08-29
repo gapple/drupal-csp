@@ -759,6 +759,175 @@ class CspTest extends UnitTestCase {
   }
 
   /**
+   * Network sources should be removed for attribute directives.
+   *
+   * @covers ::reduceAttrSourceList
+   */
+  public function testReduceAttrSourceListNetworkSource() {
+    $policy = new Csp();
+
+    $policy->setDirective('script-src-attr', [
+      Csp::POLICY_UNSAFE_INLINE,
+      'https:',
+      'wss:',
+      'example.com',
+      'https://example.com',
+      'ws://connect.example.org',
+      'ftp:',
+      'data:',
+    ]);
+
+    $this->assertEquals(
+      "script-src-attr 'unsafe-inline'",
+      $policy->getHeaderValue()
+    );
+  }
+
+  /**
+   * Wildcard source should be removed for attribute directives.
+   *
+   * @covers ::reduceAttrSourceList
+   */
+  public function testReduceAttrSourceListWildcard() {
+    $policy = new Csp();
+
+    $policy->setDirective('script-src-attr', [
+      Csp::POLICY_UNSAFE_INLINE,
+      Csp::POLICY_ANY,
+    ]);
+
+    $this->assertEquals(
+      "script-src-attr 'unsafe-inline'",
+      $policy->getHeaderValue()
+    );
+  }
+
+  /**
+   * Without 'unsafe-hashes', attr directives should not have hash sources.
+   *
+   * @covers ::reduceAttrSourceList
+   */
+  public function testReduceAttrSourceListNoUnsafeHash() {
+    $policy = new Csp();
+
+    $policy->setDirective('script-src-attr', [
+      Csp::POLICY_UNSAFE_INLINE,
+      "'sha256-BnZSlC9IkS7BVcseRf0CAOmLntfifZIosT2C1OMQ088='",
+    ]);
+
+    $this->assertEquals(
+      "script-src-attr 'unsafe-inline'",
+      $policy->getHeaderValue()
+    );
+  }
+
+  /**
+   * Hash sources shoudl be allowed with 'unsafe-hashes'
+   *
+   * @covers ::reduceAttrSourceList
+   */
+  public function testReduceAttrSourceListUnsafeHash() {
+    $policy = new Csp();
+
+    $policy->setDirective('script-src-attr', [
+      Csp::POLICY_UNSAFE_INLINE,
+      Csp::POLICY_UNSAFE_HASHES,
+      "'sha256-BnZSlC9IkS7BVcseRf0CAOmLntfifZIosT2C1OMQ088='",
+    ]);
+
+    $this->assertEquals(
+      "script-src-attr 'unsafe-inline' 'unsafe-hashes' 'sha256-BnZSlC9IkS7BVcseRf0CAOmLntfifZIosT2C1OMQ088='",
+      $policy->getHeaderValue()
+    );
+  }
+
+  /**
+   * Nonces cannot be applied to attributes.
+   *
+   * @covers ::reduceAttrSourceList
+   */
+  public function testReduceAttrSourceListNonce() {
+    $policy = new Csp();
+
+    $policy->setDirective('script-src-attr', [
+      Csp::POLICY_SELF,
+      "'nonce-qskCbxYHEcwf3tBVzkngCA'",
+    ]);
+
+    $this->assertEquals(
+      "script-src-attr 'self'",
+      $policy->getHeaderValue()
+    );
+  }
+
+  /**
+   * If attr directive is enabled but empty, it should be removed.
+   *
+   * @covers ::reduceAttrSourceList
+   */
+  public function testReduceAttrSourceListOriginallyEmpty() {
+    $policy = new Csp();
+
+    $policy->setDirective('script-src', [
+      Csp::POLICY_SELF,
+      'https://example.com',
+    ]);
+    $policy->setDirective('script-src-attr', []);
+
+    $this->assertEquals(
+      "script-src 'self' https://example.com",
+      $policy->getHeaderValue()
+    );
+  }
+
+  /**
+   * If all values are removed from an attr source list it should be 'none'.
+   *
+   * @covers ::reduceAttrSourceList
+   */
+  public function testReduceAttrSourceListEmpty() {
+    $policy = new Csp();
+
+
+    $policy->setDirective('script-src', [
+      Csp::POLICY_SELF,
+      'https://example.com',
+    ]);
+    $policy->setDirective('script-src-attr', [
+      'https://example.com',
+    ]);
+
+    $this->assertEquals(
+      "script-src 'self' https://example.com; script-src-attr 'none'",
+      $policy->getHeaderValue()
+    );
+  }
+
+  /**
+   * Attribute directive shouldn't be included if it matches fallback.
+   *
+   * @covers ::reduceAttrSourceList
+   */
+  public function testReduceAttrSourceListFallback() {
+    $policy = new Csp();
+
+    $directiveValue = [
+      Csp::POLICY_SELF,
+      'https://example.com',
+      Csp::POLICY_UNSAFE_HASHES,
+      "'sha256-BnZSlC9IkS7BVcseRf0CAOmLntfifZIosT2C1OMQ088='",
+    ];
+
+    $policy->setDirective('script-src', $directiveValue);
+    $policy->setDirective('script-src-attr', $directiveValue);
+
+    $this->assertEquals(
+      "script-src 'self' https://example.com 'unsafe-hashes' 'sha256-BnZSlC9IkS7BVcseRf0CAOmLntfifZIosT2C1OMQ088='",
+      $policy->getHeaderValue()
+    );
+  }
+
+  /**
    * @covers ::__toString
    */
   public function testToString() {
