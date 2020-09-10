@@ -2,6 +2,7 @@
 
 namespace Drupal\csp_extras\Ajax;
 
+use Drupal\Component\Datetime\TimeInterface;
 use Drupal\Core\Ajax\AjaxResponse;
 use Drupal\Core\Ajax\SettingsCommand;
 use Drupal\Core\Asset\AssetResolverInterface;
@@ -50,6 +51,13 @@ class AjaxResponseAttachmentsProcessor implements AttachmentsResponseProcessorIn
   protected $moduleHandler;
 
   /**
+   * The time service.
+   *
+   * @var \Drupal\Component\Datetime\TimeInterface
+   */
+  protected $time;
+
+  /**
    * Constructs a AjaxResponseAttachmentsProcessor object.
    *
    * @param \Drupal\Core\Asset\AssetResolverInterface $asset_resolver
@@ -60,16 +68,21 @@ class AjaxResponseAttachmentsProcessor implements AttachmentsResponseProcessorIn
    *   The request stack.
    * @param \Drupal\Core\Extension\ModuleHandlerInterface $module_handler
    *   The module handler.
+   * @param \Drupal\Component\Datetime\TimeInterface $time
+   *   The time service.
    */
   public function __construct(
     AssetResolverInterface $asset_resolver,
     ConfigFactoryInterface $config_factory,
     RequestStack $request_stack,
-    ModuleHandlerInterface $module_handler) {
+    ModuleHandlerInterface $module_handler,
+    TimeInterface $time
+  ) {
     $this->assetResolver = $asset_resolver;
     $this->config = $config_factory->get('system.performance');
     $this->requestStack = $request_stack;
     $this->moduleHandler = $module_handler;
+    $this->time = $time;
   }
 
   /**
@@ -190,7 +203,7 @@ class AjaxResponseAttachmentsProcessor implements AttachmentsResponseProcessorIn
           if ($js_asset['type'] == 'file' && !isset($js_asset['preprocessed'])) {
             $query_string = $js_asset['version'] == -1 ? $default_query_string : 'v=' . $js_asset['version'];
             $query_string_separator = (strpos($js_asset['data'], '?') !== FALSE) ? '&' : '?';
-            $asset['attributes']['src'] .= $query_string_separator . ($js_asset['cache'] ? $query_string : REQUEST_TIME);
+            $asset['attributes']['src'] .= $query_string_separator . ($js_asset['cache'] ? $query_string : $this->time->getRequestTime());
           }
           return $asset;
         },

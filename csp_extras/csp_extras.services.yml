@@ -7,4 +7,5 @@ services:
      - '@config.factory'
      - '@request_stack'
      - '@module_handler'
+     - '@datetime.time'
 
