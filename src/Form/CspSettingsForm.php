@@ -486,14 +486,32 @@ class CspSettingsForm extends ConfigFormBase {
       $directiveNames = $this->getConfigurableDirectives();
       foreach ($directiveNames as $directiveName) {
         if (($directiveSources = $form_state->getValue([$policyTypeKey, 'directives', $directiveName, 'sources']))) {
-          $invalidSources = array_reduce(
-            preg_split('/,?\s+/', $directiveSources),
+          $sourcesArray = preg_split('/,?\s+/', $directiveSources);
+
+          $hasNonceSource = array_reduce(
+            $sourcesArray,
+            function ($return, $value) {
+              return $return || preg_match('<^nonce->', $value);
+            },
+            FALSE
+          );
+          if ($hasNonceSource) {
+            $form_state->setError(
+              $form[$policyTypeKey]['directives'][$directiveName]['options']['sources'],
+              $this->t('<a href=":docUrl">Nonces must be a unique value for each request</a>, so cannot be set in configuration.', [
+                ':docUrl' => 'https://www.w3.org/TR/CSP3/#security-considerations'
+              ])
+            );
+          }
+
+          $hasInvalidSource = array_reduce(
+            $sourcesArray,
             function ($return, $value) {
               return $return || !(preg_match('<^([a-z]+:)?$>', $value) || static::isValidHost($value));
             },
             FALSE
           );
-          if ($invalidSources) {
+          if ($hasInvalidSource) {
             $form_state->setError(
               $form[$policyTypeKey]['directives'][$directiveName]['options']['sources'],
               $this->t('Invalid domain or protocol provided.')
