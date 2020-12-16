@@ -453,6 +453,28 @@ class CspSettingsForm extends ConfigFormBase {
         if (!$config->get($policyTypeKey . '.enable')) {
           continue;
         }
+
+        foreach ($directiveNames as $directive) {
+          if (($directiveSources = $config->get($policyTypeKey . '.directives.' . $directive . '.sources'))) {
+            $hasHashSource = array_reduce(
+              $directiveSources,
+              function ($return, $value) {
+                return $return || preg_match('<^hash->', $value);
+              },
+              false
+            );
+            if ($hasHashSource) {
+              $this->messenger()->addWarning($this->t(
+                '%policy %directive has a hash source configured, which may block functionality that relies on inline code.',
+                [
+                  '%policy' => $policyTypeName,
+                  '%directive' => $directive,
+                ]
+              ));
+            }
+          }
+        }
+
         foreach (['script-src', 'style-src'] as $directive) {
           foreach (['-attr', '-elem'] as $subdirective) {
             if ($config->get($policyTypeKey.'.directives.'. $directive . $subdirective)) {
@@ -507,7 +529,13 @@ class CspSettingsForm extends ConfigFormBase {
           $hasInvalidSource = array_reduce(
             $sourcesArray,
             function ($return, $value) {
-              return $return || !(preg_match('<^([a-z]+:)?$>', $value) || static::isValidHost($value));
+              return $return || !(
+                preg_match('<^([a-z]+:)?$>', $value)
+                ||
+                static::isValidHost($value)
+                ||
+                preg_match('<^hash->', $value)
+              );
             },
             FALSE
           );
