@@ -187,7 +187,10 @@ class CoreCspSubscriberTest extends UnitTestCase {
       [Csp::POLICY_SELF, Csp::POLICY_UNSAFE_INLINE],
       array_unique($alterEvent->getPolicy()->getDirective('script-src-attr'))
     );
-    $this->assertFalse($alterEvent->getPolicy()->hasDirective('script-src-elem'));
+    $this->assertEquals(
+      [Csp::POLICY_SELF],
+      $alterEvent->getPolicy()->getDirective('script-src-elem')
+    );
   }
 
   /**
@@ -218,7 +221,10 @@ class CoreCspSubscriberTest extends UnitTestCase {
       [Csp::POLICY_SELF, Csp::POLICY_UNSAFE_INLINE],
       array_unique($alterEvent->getPolicy()->getDirective('script-src-attr'))
     );
-    $this->assertFalse($alterEvent->getPolicy()->hasDirective('script-src-elem'));
+    $this->assertEquals(
+      [Csp::POLICY_SELF],
+      $alterEvent->getPolicy()->getDirective('script-src-elem')
+    );
   }
 
   /**
@@ -283,7 +289,10 @@ class CoreCspSubscriberTest extends UnitTestCase {
       [Csp::POLICY_SELF, Csp::POLICY_UNSAFE_INLINE],
       $alterEvent->getPolicy()->getDirective('style-src')
     );
-    $this->assertFalse($alterEvent->getPolicy()->hasDirective('style-src-attr'));
+    $this->assertEquals(
+      [Csp::POLICY_SELF],
+      $alterEvent->getPolicy()->getDirective('style-src-attr')
+    );
     $this->assertEquals(
       [Csp::POLICY_SELF, Csp::POLICY_UNSAFE_INLINE],
       array_unique($alterEvent->getPolicy()->getDirective('style-src-elem'))
@@ -314,7 +323,10 @@ class CoreCspSubscriberTest extends UnitTestCase {
       [Csp::POLICY_SELF, Csp::POLICY_UNSAFE_INLINE],
       $alterEvent->getPolicy()->getDirective('style-src')
     );
-    $this->assertFalse($alterEvent->getPolicy()->hasDirective('style-src-attr'));
+    $this->assertEquals(
+      [Csp::POLICY_SELF],
+      $alterEvent->getPolicy()->getDirective('style-src-attr')
+    );
     $this->assertEquals(
       [Csp::POLICY_SELF, Csp::POLICY_UNSAFE_INLINE],
       array_unique($alterEvent->getPolicy()->getDirective('style-src-elem'))
