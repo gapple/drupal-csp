@@ -34,7 +34,7 @@ class Ie9CspSubscriberTest extends UnitTestCase {
   /**
    * {@inheritdoc}
    */
-  public function setUp() {
+  public function setUp(): void {
     parent::setUp();
 
     $this->moduleHandler = $this->getMockBuilder(ModuleHandlerInterface::class)
