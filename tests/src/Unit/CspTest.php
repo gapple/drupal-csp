@@ -44,9 +44,10 @@ class CspTest extends UnitTestCase {
    * Test specifying an invalid hash algorithm.
    *
    * @covers ::calculateHash
-   * @expectedException \InvalidArgumentException
    */
   public function testInvalidHashAlgo() {
+    $this->expectException(\InvalidArgumentException::class);
+
     Csp::calculateHash('alert("Hello World");', 'md5');
   }
 
@@ -87,10 +88,10 @@ class CspTest extends UnitTestCase {
    * @covers ::setDirective
    * @covers ::isValidDirectiveName
    * @covers ::validateDirectiveName
-   *
-   * @expectedException \InvalidArgumentException
    */
   public function testSetInvalidPolicy() {
+    $this->expectException(\InvalidArgumentException::class);
+
     $policy = new Csp();
 
     $policy->setDirective('foo', Csp::POLICY_SELF);
@@ -102,10 +103,10 @@ class CspTest extends UnitTestCase {
    * @covers ::appendDirective
    * @covers ::isValidDirectiveName
    * @covers ::validateDirectiveName
-   *
-   * @expectedException \InvalidArgumentException
    */
   public function testAppendInvalidPolicy() {
+    $this->expectException(\InvalidArgumentException::class);
+
     $policy = new Csp();
 
     $policy->appendDirective('foo', Csp::POLICY_SELF);
@@ -407,10 +408,10 @@ class CspTest extends UnitTestCase {
    * @covers ::removeDirective
    * @covers ::isValidDirectiveName
    * @covers ::validateDirectiveName
-   *
-   * @expectedException \InvalidArgumentException
    */
   public function testRemoveInvalid() {
+    $this->expectException(\InvalidArgumentException::class);
+
     $policy = new Csp();
 
     $policy->removeDirective('foo');
@@ -420,10 +421,10 @@ class CspTest extends UnitTestCase {
    * Test that invalid directive values cause an exception.
    *
    * @covers ::appendDirective
-   *
-   * @expectedException \InvalidArgumentException
    */
   public function testInvalidValue() {
+    $this->expectException(\InvalidArgumentException::class);
+
     $policy = new Csp();
 
     $policy->appendDirective('default-src', 12);
