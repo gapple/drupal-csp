@@ -514,7 +514,7 @@ class CspTest extends UnitTestCase {
     // script-src does not appear since it matches default-src.
     $policy->setDirective('child-src', [Csp::POLICY_SELF, 'example.com']);
     $this->assertEquals(
-      "worker-src 'self'; default-src 'self'; child-src 'self' example.com",
+      "default-src 'self'; child-src 'self' example.com; worker-src 'self'",
       $policy->getHeaderValue()
     );
 
@@ -543,7 +543,7 @@ class CspTest extends UnitTestCase {
     $policy->setDirective('script-src-elem', Csp::POLICY_SELF);
     $policy->setDirective('script-src-attr', Csp::POLICY_UNSAFE_INLINE);
     $this->assertEquals(
-      "default-src 'self'; script-src 'self' 'unsafe-inline'; script-src-elem 'self'; script-src-attr 'unsafe-inline'",
+      "default-src 'self'; script-src 'self' 'unsafe-inline'; script-src-attr 'unsafe-inline'; script-src-elem 'self'",
       $policy->getHeaderValue()
     );
 
@@ -570,7 +570,7 @@ class CspTest extends UnitTestCase {
     $policy->setDirective('style-src-elem', Csp::POLICY_SELF);
     $policy->setDirective('style-src-attr', Csp::POLICY_UNSAFE_INLINE);
     $this->assertEquals(
-      "default-src 'self'; style-src 'self' 'unsafe-inline'; style-src-elem 'self'; style-src-attr 'unsafe-inline'",
+      "default-src 'self'; style-src 'self' 'unsafe-inline'; style-src-attr 'unsafe-inline'; style-src-elem 'self'",
       $policy->getHeaderValue()
     );
 

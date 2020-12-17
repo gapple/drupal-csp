@@ -157,11 +157,11 @@ class ResponseCspSubscriberTest extends UnitTestCase {
       ->withConsecutive(
         [
           $this->equalTo('Content-Security-Policy-Report-Only'),
-          $this->equalTo("style-src *; font-src 'self'"),
+          $this->equalTo("font-src 'self'; style-src *"),
         ],
         [
           $this->equalTo('Content-Security-Policy'),
-          $this->equalTo("script-src 'self'; font-src 'self'"),
+          $this->equalTo("font-src 'self'; script-src 'self'"),
         ]
       );
 

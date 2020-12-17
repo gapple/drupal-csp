@@ -412,6 +412,7 @@ class Csp {
           if ($optimizedDirectives[$fallbackDirective] === $value) {
             // Omit directive if it matches nearest defined directive in its
             // fallback list.
+            unset($optimizedDirectives[$name]);
             continue 2;
           }
           else {
@@ -424,9 +425,13 @@ class Csp {
 
       // Optimize attribute directives if they don't match a fallback.
       if (strstr($name, '-attr')) {
-        $value = self::reduceAttrSourceList($value);
+        $optimizedDirectives[$name] = self::reduceAttrSourceList($value);
       }
+    }
 
+    $optimizedDirectives = self::sortDirectives($optimizedDirectives);
+
+    foreach ($optimizedDirectives as $name => $value) {
       $output[] = $name . ' ' . implode(' ', $value);
     }
 
@@ -516,6 +521,24 @@ class Csp {
     }
 
     return $sources;
+  }
+
+  /**
+   * Sort an array of directives.
+   *
+   * @param array $directives
+   *   An array of directives.
+   * @return array
+   *   The sorted directives.
+   */
+  public static function sortDirectives(array $directives) {
+    $order = array_flip(array_keys(self::DIRECTIVES));
+
+    uksort($directives, function ($a, $b) use ($order) {
+      return $order[$a] <=> $order[$b];
+    });
+
+    return $directives;
   }
 
   /**
