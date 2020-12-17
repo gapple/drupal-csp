@@ -608,7 +608,7 @@ class CspTest extends UnitTestCase {
   public function testReduceSourceListAny() {
     $policy = new Csp();
 
-    $policy->setDirective('default-src', [
+    $policy->setDirective('script-src', [
       Csp::POLICY_ANY,
       // Hosts and network protocols should be removed.
       'example.com',
@@ -626,7 +626,7 @@ class CspTest extends UnitTestCase {
       "'nonce-abc123'",
     ]);
     $this->assertEquals(
-      "default-src * data: 'unsafe-inline' 'hash-123abc' 'nonce-abc123'",
+      "script-src * data: 'unsafe-inline' 'hash-123abc' 'nonce-abc123'",
       $policy->getHeaderValue()
     );
   }
@@ -639,7 +639,7 @@ class CspTest extends UnitTestCase {
   public function testReduceSourceListWithHttp() {
     $policy = new Csp();
 
-    $policy->setDirective('default-src', [
+    $policy->setDirective('script-src', [
       'http:',
       // Hosts without protocol should be kept.
       // (e.g. this would allow ftp://example.com)
@@ -658,7 +658,7 @@ class CspTest extends UnitTestCase {
     ]);
 
     $this->assertEquals(
-      "default-src http: example.com ftp: data: 'unsafe-inline' 'hash-123abc' 'nonce-abc123'",
+      "script-src http: example.com ftp: data: 'unsafe-inline' 'hash-123abc' 'nonce-abc123'",
       $policy->getHeaderValue()
     );
   }
@@ -671,7 +671,7 @@ class CspTest extends UnitTestCase {
   public function testReduceSourceListWithHttps() {
     $policy = new Csp();
 
-    $policy->setDirective('default-src', [
+    $policy->setDirective('script-src', [
       'https:',
       // Non-secure hosts should be kept.
       'example.com',
@@ -689,7 +689,7 @@ class CspTest extends UnitTestCase {
     ]);
 
     $this->assertEquals(
-      "default-src https: example.com http://example.org ftp: data: 'unsafe-inline' 'hash-123abc' 'nonce-abc123'",
+      "script-src https: example.com http://example.org ftp: data: 'unsafe-inline' 'hash-123abc' 'nonce-abc123'",
       $policy->getHeaderValue()
     );
   }
@@ -702,7 +702,7 @@ class CspTest extends UnitTestCase {
   public function testReduceSourceListWithWs() {
     $policy = new Csp();
 
-    $policy->setDirective('default-src', [
+    $policy->setDirective('script-src', [
       'https:',
       'ws:',
       // Hosts without protocol should be kept.
@@ -722,7 +722,7 @@ class CspTest extends UnitTestCase {
     ]);
 
     $this->assertEquals(
-      "default-src https: ws: example.com ftp: data: 'unsafe-inline' 'hash-123abc' 'nonce-abc123'",
+      "script-src https: ws: example.com ftp: data: 'unsafe-inline' 'hash-123abc' 'nonce-abc123'",
       $policy->getHeaderValue()
     );
   }
@@ -735,7 +735,7 @@ class CspTest extends UnitTestCase {
   public function testReduceSourceListWithWss() {
     $policy = new Csp();
 
-    $policy->setDirective('default-src', [
+    $policy->setDirective('script-src', [
       'https:',
       'wss:',
       // Non-secure hosts should be kept.
@@ -754,7 +754,7 @@ class CspTest extends UnitTestCase {
     ]);
 
     $this->assertEquals(
-      "default-src https: wss: example.com ws://connect.example.org ftp: data: 'unsafe-inline' 'hash-123abc' 'nonce-abc123'",
+      "script-src https: wss: example.com ws://connect.example.org ftp: data: 'unsafe-inline' 'hash-123abc' 'nonce-abc123'",
       $policy->getHeaderValue()
     );
   }

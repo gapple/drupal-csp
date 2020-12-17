@@ -429,6 +429,9 @@ class Csp {
       }
     }
 
+    // Workaround Firefox bug in handling default-src.
+    $optimizedDirectives = self::ff1313937($optimizedDirectives);
+
     $optimizedDirectives = self::sortDirectives($optimizedDirectives);
 
     foreach ($optimizedDirectives as $name => $value) {
@@ -537,6 +540,53 @@ class Csp {
     uksort($directives, function ($a, $b) use ($order) {
       return $order[$a] <=> $order[$b];
     });
+
+    return $directives;
+  }
+
+  /**
+   * Firefox doesn't respect certain sources set on default-src.
+   *
+   * If script-src or style-src are not set and fall back to default-src,
+   * Firefox doesn't apply 'strict-dynamic', nonces, or hashes if they are set.
+   *
+   * @see https://bugzilla.mozilla.org/show_bug.cgi?id=1313937
+   *
+   * @param array $directives
+   *   An array of directives.
+   *
+   * @return array
+   *   The modified array of directives.
+   */
+  private static function ff1313937(array $directives) {
+    if (empty($directives['default-src'])) {
+      return $directives;
+    }
+
+    $hasBugSource = array_reduce(
+      $directives['default-src'],
+      function ($return, $value) {
+        return $return || (
+          $value == Csp::POLICY_STRICT_DYNAMIC
+          ||
+          preg_match("<^'(hash|nonce)->", $value)
+        );
+      },
+      FALSE
+    );
+
+    if ($hasBugSource) {
+      if (empty($directives['script-src'])) {
+        $directives['script-src'] = $directives['default-src'];
+      }
+      if (empty($directives['style-src'])) {
+        $directives['style-src'] = array_diff(
+          $directives['default-src'],
+          // Remove 'strict-dynamic' since it's not relevant to styles.
+          [Csp::POLICY_STRICT_DYNAMIC]
+        );
+      }
+    }
 
     return $directives;
   }
