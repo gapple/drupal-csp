@@ -459,7 +459,7 @@ class CspSettingsForm extends ConfigFormBase {
             $hasHashSource = array_reduce(
               $directiveSources,
               function ($return, $value) {
-                return $return || preg_match('<^hash->', $value);
+                return $return || preg_match("<^'hash->", $value);
               },
               false
             );
@@ -513,7 +513,7 @@ class CspSettingsForm extends ConfigFormBase {
           $hasNonceSource = array_reduce(
             $sourcesArray,
             function ($return, $value) {
-              return $return || preg_match('<^nonce->', $value);
+              return $return || preg_match("<^'nonce->", $value);
             },
             FALSE
           );
@@ -534,7 +534,7 @@ class CspSettingsForm extends ConfigFormBase {
                 ||
                 static::isValidHost($value)
                 ||
-                preg_match('<^hash->', $value)
+                preg_match("<^'hash-.+'>", $value)
               );
             },
             FALSE
