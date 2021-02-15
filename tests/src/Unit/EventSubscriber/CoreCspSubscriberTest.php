@@ -255,7 +255,7 @@ class CoreCspSubscriberTest extends UnitTestCase {
       $alterEvent->getPolicy()->getDirective('style-src')
     );
     $this->assertEquals(
-      [Csp::POLICY_SELF],
+      [Csp::POLICY_SELF, Csp::POLICY_UNSAFE_INLINE],
       $alterEvent->getPolicy()->getDirective('style-src-attr')
     );
     $this->assertEquals(
@@ -290,7 +290,7 @@ class CoreCspSubscriberTest extends UnitTestCase {
       $alterEvent->getPolicy()->getDirective('style-src')
     );
     $this->assertEquals(
-      [Csp::POLICY_SELF],
+      [Csp::POLICY_SELF, Csp::POLICY_UNSAFE_INLINE],
       $alterEvent->getPolicy()->getDirective('style-src-attr')
     );
     $this->assertEquals(
@@ -324,7 +324,7 @@ class CoreCspSubscriberTest extends UnitTestCase {
       $alterEvent->getPolicy()->getDirective('style-src')
     );
     $this->assertEquals(
-      [Csp::POLICY_SELF],
+      [Csp::POLICY_SELF, Csp::POLICY_UNSAFE_INLINE],
       $alterEvent->getPolicy()->getDirective('style-src-attr')
     );
     $this->assertEquals(
