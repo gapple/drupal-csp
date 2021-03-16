@@ -456,12 +456,15 @@ class CspSettingsForm extends ConfigFormBase {
 
         foreach ($directiveNames as $directive) {
           if (($directiveSources = $config->get($policyTypeKey . '.directives.' . $directive . '.sources'))) {
+
+            // '{hashAlgorithm}-{base64-value}'
+            $hashAlgoMatch = '(' . implode('|', Csp::HASH_ALGORITHMS) . ')-[\w+/_-]+=*';
             $hasHashSource = array_reduce(
               $directiveSources,
-              function ($return, $value) {
-                return $return || preg_match("<^'hash->", $value);
+              function ($return, $value) use ($hashAlgoMatch) {
+                return $return || preg_match("<^'" . $hashAlgoMatch . "'$>", $value);
               },
-              false
+              FALSE
             );
             if ($hasHashSource) {
               $this->messenger()->addWarning($this->t(
@@ -526,15 +529,17 @@ class CspSettingsForm extends ConfigFormBase {
             );
           }
 
+          // '{hashAlgorithm}-{base64-value}'
+          $hashAlgoMatch = '(' . implode('|', Csp::HASH_ALGORITHMS) . ')-[\w+/_-]+=*';
           $hasInvalidSource = array_reduce(
             $sourcesArray,
-            function ($return, $value) {
+            function ($return, $value) use ($hashAlgoMatch) {
               return $return || !(
                 preg_match('<^([a-z]+:)?$>', $value)
                 ||
                 static::isValidHost($value)
                 ||
-                preg_match("<^'hash-.+'>", $value)
+                preg_match("<^'(" . $hashAlgoMatch . ")'$>", $value)
               );
             },
             FALSE
