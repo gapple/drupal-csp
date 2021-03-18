@@ -358,6 +358,7 @@ class CspSettingsForm extends ConfigFormBase {
         '#parents' => [$policyTypeKey, 'directives', 'plugin-types', 'mime-types'],
         '#title' => $this->t('MIME Types'),
         '#default_value' => implode(' ', $config->get($policyTypeKey . '.directives.plugin-types') ?: []),
+        '#description' => $this->t('The <code>plugin-types</code> directive has been deprecated. <code>object-src</code> should be used to restrict embedded objects.'),
       ];
 
       // 'sandbox' token values are defined by HTML specification for the iframe
@@ -478,9 +479,19 @@ class CspSettingsForm extends ConfigFormBase {
           }
         }
 
+        if (
+          !is_null($config->get($policyTypeKey . '.directives.plugin-types'))
+          &&
+          !$config->get($policyTypeKey . '.directives.object-src')
+        ) {
+          $this->messenger()->addWarning($this->t(
+            'The <code>plugin-types</code> directive has been deprecated. <code>object-src</code> should be used to restrict embedded objects.'
+          ));
+        }
+
         foreach (['script-src', 'style-src'] as $directive) {
           foreach (['-attr', '-elem'] as $subdirective) {
-            if ($config->get($policyTypeKey.'.directives.'. $directive . $subdirective)) {
+            if ($config->get($policyTypeKey . '.directives.' . $directive . $subdirective)) {
               foreach (Csp::getDirectiveFallbackList($directive . $subdirective) as $fallbackDirective) {
                 if ($config->get($policyTypeKey . '.directives.' . $fallbackDirective)) {
                   continue 2;
