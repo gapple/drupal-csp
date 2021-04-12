@@ -53,6 +53,12 @@ class CspSettingsFormTest extends UnitTestCase {
       'https_ipv6_port' => ['https://[fd42:92f4:7eb8:c821:f685:9190:bf44:b2f5]:1234', TRUE],
       'https_ipv6_short_port' => ['https://[fd42:92f4:7eb8:c821::b2f5]:1234', TRUE],
       'https_ipv6_port_path' => ['https://[fd42:92f4:7eb8:c821:f685:9190:bf44:b2f5]:1234/baz', TRUE],
+
+      'localhost' => ['localhost', TRUE],
+      'https_localhost' => ['https://localhost', TRUE],
+      'https_localhost_path' => ['https://localhost/baz', TRUE],
+      'https_localhost_port' => ['https://localhost:1234', TRUE],
+      'https_localhost_port_path' => ['https://localhost:1234/baz', TRUE],
     ];
   }
 

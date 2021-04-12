@@ -624,6 +624,7 @@ class CspSettingsForm extends ConfigFormBase {
             (?:[a-z0-9\-\.]|%[0-9a-f]{2})+
           )
           |(?:\[(?:[0-9a-f]{0,4}:)*(?:[0-9a-f]{0,4})\])         # or a well formed IPv6 address
+          |localhost
         )
         (?::[0-9]+)?                                            # Server port number (optional)
         (?:[\/|\?]
