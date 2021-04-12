@@ -1,6 +1,6 @@
 <?php
 
-namespace Drupal\Tests\csp\Form;
+namespace Drupal\Tests\csp\Unit\Form;
 
 use Drupal\csp\Form\CspSettingsForm;
 use Drupal\Tests\UnitTestCase;
@@ -8,7 +8,7 @@ use Drupal\Tests\UnitTestCase;
 /**
  * Test CSP Settings Form.
  *
- * @coversDefaultClass \Drupal\csp\Csp
+ * @coversDefaultClass \Drupal\csp\Form\CspSettingsForm
  * @group csp
  */
 class CspSettingsFormTest extends UnitTestCase {
