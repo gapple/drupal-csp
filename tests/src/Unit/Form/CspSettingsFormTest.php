@@ -26,8 +26,11 @@ class CspSettingsFormTest extends UnitTestCase {
       'bare' => ['example.com', TRUE],
       'bare_port' => ['example.com:1234', TRUE],
       'bare_path' => ['example.com/baz', TRUE],
+      'empty_path' => ['example.com/', TRUE],
       'bare_path_query' => ['example.com/baz?foo=false', FALSE],
       'bare_wild_subdomain' => ['*.example.com', TRUE],
+      'inner_wild_subdomain' => ['foo.*.example.com', FALSE],
+      'wild_tld' => ['example.*', FALSE],
 
       'subdomain' => ['foo.example.com', TRUE],
       'subdomains' => ['foo.bar.example.com', TRUE],
@@ -59,6 +62,11 @@ class CspSettingsFormTest extends UnitTestCase {
       'https_localhost_path' => ['https://localhost/baz', TRUE],
       'https_localhost_port' => ['https://localhost:1234', TRUE],
       'https_localhost_port_path' => ['https://localhost:1234/baz', TRUE],
+
+      'wild_port' => ['example.com:*', TRUE],
+      'wild_subdomain_wild_port' => ['*.example.com:*', TRUE],
+      'empty_port' => ['example.com:', FALSE],
+      'letter_port' => ['example.com:b33f', FALSE],
     ];
   }
 

@@ -605,6 +605,8 @@ class CspSettingsForm extends ConfigFormBase {
    * Similar to UrlHelper::isValid(), except:
    * - protocol is optional; can only be http/https, or ws/wss.
    * - domains must have at least a top-level and secondary domain.
+   * - an initial subdomain wildcard is allowed
+   * - wildcard is allowed as port value
    * - query is not allowed.
    *
    * @param string $url
@@ -626,7 +628,7 @@ class CspSettingsForm extends ConfigFormBase {
           |(?:\[(?:[0-9a-f]{0,4}:)*(?:[0-9a-f]{0,4})\])         # or a well formed IPv6 address
           |localhost
         )
-        (?::[0-9]+)?                                            # Server port number (optional)
+        (?::(?:[0-9]+|\*))?                                     # Server port number or wildcard (optional)
         (?:[\/|\?]
           (?:[\w#!:\.\+=&@$'~*,;\/\(\)\[\]\-]|%[0-9a-f]{2})     # The path (optional)
         *)?
