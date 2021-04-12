@@ -603,7 +603,7 @@ class CspSettingsForm extends ConfigFormBase {
    * Verifies the syntax of the given URL.
    *
    * Similar to UrlHelper::isValid(), except:
-   * - protocol is optional; can only be http or https.
+   * - protocol is optional; can only be http/https, or ws/wss.
    * - domains must have at least a top-level and secondary domain.
    * - query is not allowed.
    *
@@ -613,10 +613,10 @@ class CspSettingsForm extends ConfigFormBase {
    * @return bool
    *   TRUE if the URL is in a valid format, FALSE otherwise.
    */
-  private static function isValidHost($url) {
+  protected static function isValidHost($url) {
     return (bool) preg_match("
         /^                                                      # Start at the beginning of the text
-        (?:(?:https?|wss?):\/\/)?                               # Look for http or ws schemes (optional)
+        (?:(?:http|ws)s?:\/\/)?                                 # Look for http or ws schemes (optional)
         (?:
           (?:                                                   # A domain name or a IPv4 address
             (?:\*\.)?                                           # Wildcard prefix (optional)
