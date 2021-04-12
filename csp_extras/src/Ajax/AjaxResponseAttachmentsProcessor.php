@@ -234,13 +234,13 @@ class AjaxResponseAttachmentsProcessor implements AttachmentsResponseProcessorIn
   /**
    * Filter function for assets that are browser-restricted.
    *
-   * @param $asset
+   * @param array $asset
    *   An asset definition.
    *
    * @return bool
    *   FALSE if the asset is restricted to certain browsers.
    */
-  private static function filterBrowserAssets($asset) {
+  private static function filterBrowserAssets(array $asset) {
     // @see Drupal\Core\Render\Element\HtmlTag::preRenderConditionalComments
     if (
       (isset($asset['browsers']['IE']) && $asset['browsers']['IE'] !== TRUE)

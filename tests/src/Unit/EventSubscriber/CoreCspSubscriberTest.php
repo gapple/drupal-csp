@@ -26,6 +26,7 @@ class CoreCspSubscriberTest extends UnitTestCase {
 
   /**
    * The Module Handler service.
+   *
    * @var \Drupal\Core\Extension\ModuleHandlerInterface|\PHPUnit\Framework\MockObject\MockObject
    */
   private $moduleHandler;

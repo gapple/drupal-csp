@@ -6,7 +6,7 @@ use Drupal\csp\Csp;
 use Drupal\Tests\UnitTestCase;
 
 /**
- * Test Csp handling of Firefox bug #1313937
+ * Test Csp handling of Firefox bug #1313937.
  *
  * @see https://bugzilla.mozilla.org/show_bug.cgi?id=1313937
  *

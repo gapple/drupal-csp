@@ -493,7 +493,7 @@ class Csp {
   /**
    * Reduce the list of sources for an *-attr directive.
    *
-   * @param  array  $sources
+   * @param array $sources
    *   An array of sources.
    *
    * @return array
@@ -531,6 +531,7 @@ class Csp {
    *
    * @param array $directives
    *   An array of directives.
+   *
    * @return array
    *   The sorted directives.
    */

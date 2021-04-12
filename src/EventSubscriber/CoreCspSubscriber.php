@@ -42,6 +42,8 @@ class CoreCspSubscriber implements EventSubscriberInterface {
    *
    * @param \Drupal\Core\Asset\LibraryDependencyResolverInterface $libraryDependencyResolver
    *   The Library Dependency Resolver Service.
+   * @param \Drupal\Core\Extension\ModuleHandlerInterface $moduleHandler
+   *   The Module Handler service.
    */
   public function __construct(LibraryDependencyResolverInterface $libraryDependencyResolver, ModuleHandlerInterface $moduleHandler) {
     $this->libraryDependencyResolver = $libraryDependencyResolver;

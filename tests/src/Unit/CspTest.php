@@ -224,7 +224,6 @@ class CspTest extends UnitTestCase {
       $policy->getHeaderValue()
     );
 
-
     $policy = new Csp();
     $policy->setDirective('default-src', Csp::POLICY_SELF);
     $policy->setDirective('script-src', [Csp::POLICY_SELF]);

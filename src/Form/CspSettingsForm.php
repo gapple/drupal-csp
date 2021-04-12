@@ -435,7 +435,7 @@ class CspSettingsForm extends ConfigFormBase {
         '#cspPolicyType' => $policyTypeKey,
         '#button_type' => 'danger',
         '#submit' => [
-          '::submitClearPolicy'
+          '::submitClearPolicy',
         ],
       ];
     }
@@ -535,7 +535,7 @@ class CspSettingsForm extends ConfigFormBase {
             $form_state->setError(
               $form[$policyTypeKey]['directives'][$directiveName]['options']['sources'],
               $this->t('<a href=":docUrl">Nonces must be a unique value for each request</a>, so cannot be set in configuration.', [
-                ':docUrl' => 'https://www.w3.org/TR/CSP3/#security-considerations'
+                ':docUrl' => 'https://www.w3.org/TR/CSP3/#security-considerations',
               ])
             );
           }
@@ -639,7 +639,9 @@ class CspSettingsForm extends ConfigFormBase {
    * Submit handler for clear policy buttons.
    *
    * @param array $form
+   *   The form structure.
    * @param \Drupal\Core\Form\FormStateInterface $form_state
+   *   The form state.
    */
   public function submitClearPolicy(array &$form, FormStateInterface $form_state) {
     $submitElement = $form_state->getTriggeringElement();

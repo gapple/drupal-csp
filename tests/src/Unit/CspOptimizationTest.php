@@ -429,7 +429,7 @@ class CspOptimizationTest extends UnitTestCase {
   }
 
   /**
-   * Hash sources shoudl be allowed with 'unsafe-hashes'
+   * Hash sources should be allowed with 'unsafe-hashes'.
    *
    * @covers ::reduceAttrSourceList
    */
@@ -494,7 +494,6 @@ class CspOptimizationTest extends UnitTestCase {
    */
   public function testReduceAttrSourceListEmpty() {
     $policy = new Csp();
-
 
     $policy->setDirective('script-src', [
       Csp::POLICY_SELF,

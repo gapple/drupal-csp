@@ -1,6 +1,11 @@
 <?php
 
 /**
+ * @file
+ * CSP Extras module hooks.
+ */
+
+/**
  * Implements hook_library_info_alter().
  */
 function csp_extras_library_info_alter(&$libraries, $extension) {

@@ -187,11 +187,9 @@ class Ie9CspSubscriberTest extends UnitTestCase {
       ],
     ]);
 
-
     $policy = new Csp();
     $policy->setDirective('default-src', [Csp::POLICY_ANY]);
     $policy->setDirective('style-src', [Csp::POLICY_SELF]);
-
 
     $alterEvent = new PolicyAlterEvent($policy, $this->response);
 
@@ -229,7 +227,6 @@ class Ie9CspSubscriberTest extends UnitTestCase {
         'css.preprocess' => FALSE,
       ],
     ]);
-
 
     $policy = new Csp();
     $policy->setDirective('default-src', [Csp::POLICY_SELF]);
