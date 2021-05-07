@@ -67,6 +67,13 @@ class CspSettingsFormTest extends UnitTestCase {
       'wild_subdomain_wild_port' => ['*.example.com:*', TRUE],
       'empty_port' => ['example.com:', FALSE],
       'letter_port' => ['example.com:b33f', FALSE],
+
+      // @see https://www.w3.org/TR/CSP3/#grammardef-scheme-part
+      // @see https://tools.ietf.org/html/rfc3986#section-3.1
+      'other_protocol' => ['example://localhost', TRUE],
+      'edge_case_protocol' => ['example-foo.123+bar://localhost', TRUE],
+      'protocol_numeric_first_char' => ['1example://localhost', FALSE],
+      'protocol_invalid_symbol' => ['ex@mple://localhost', FALSE],
     ];
   }
 
