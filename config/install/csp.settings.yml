@@ -1,6 +1,8 @@
 report-only:
   enable: true
   directives:
+    object-src:
+      base: 'none'
     script-src:
       base: 'self'
     script-src-attr:
@@ -22,5 +24,7 @@ enforce:
   directives:
     frame-ancestors:
       base: 'self'
+    object-src:
+      base: 'none'
   reporting:
     plugin: sitelog
