@@ -174,4 +174,64 @@ class LibraryPolicyBuilderTest extends UnitTestCase {
     );
   }
 
+  /**
+   * Handle if a library has an empty URL.
+   *
+   * @covers ::getSources
+   * @covers ::getExtensionSources
+   * @covers ::getLibrarySources
+   */
+  public function testLibraryWithEmptyStringSource() {
+
+    $this->moduleHandler->expects($this->any())
+      ->method('getModuleList')
+      ->willReturn([]);
+    $this->themeHandler->expects($this->any())
+      ->method('listInfo')
+      ->willReturn([
+        'stark' => (object) ['name' => 'stark'],
+      ]);
+
+    $extensionMap = [
+      ['core', []],
+      ['stark', ['test' => []]],
+    ];
+    $this->libraryDiscovery->expects($this->any())
+      ->method('getLibrariesByExtension')
+      ->willReturnMap($extensionMap);
+
+    $libraryInfo = [
+      'js' => [
+        [
+          'type' => 'external',
+          'data' => '',
+        ],
+        [
+          'type' => 'external',
+          'data' => 'http://js.example.com/js/script.js',
+        ],
+      ],
+      'css' => [
+        [
+          'type' => 'external',
+          'data' => '',
+        ],
+      ],
+    ];
+    $this->libraryDiscovery->expects($this->atLeastOnce())
+      ->method('getLibraryByName')
+      ->with('stark', 'test')
+      ->willReturn($libraryInfo);
+
+    $libraryPolicy = new LibraryPolicyBuilder($this->cache, $this->moduleHandler, $this->themeHandler, $this->libraryDiscovery);
+
+    $this->assertEquals(
+      [
+        'script-src' => ['js.example.com'],
+        'script-src-elem' => ['js.example.com'],
+      ],
+      $libraryPolicy->getSources()
+    );
+  }
+
 }

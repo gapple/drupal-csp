@@ -182,14 +182,14 @@ class LibraryPolicyBuilder {
     $sources = [];
 
     foreach ($libraryInfo['js'] as $jsInfo) {
-      if ($jsInfo['type'] == 'external') {
+      if ($jsInfo['type'] == 'external' && !empty($jsInfo['data'])) {
         $host = self::getHostFromUri($jsInfo['data']);
         $sources['script-src'][] = $host;
         $sources['script-src-elem'][] = $host;
       }
     }
     foreach ($libraryInfo['css'] as $cssInfo) {
-      if ($cssInfo['type'] == 'external') {
+      if ($cssInfo['type'] == 'external' && !empty($cssInfo['data'])) {
         $host = self::getHostFromUri($cssInfo['data']);
         $sources['style-src'][] = $host;
         $sources['style-src-elem'][] = $host;
