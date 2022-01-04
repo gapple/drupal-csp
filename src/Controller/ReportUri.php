@@ -2,6 +2,7 @@
 
 namespace Drupal\csp\Controller;
 
+use Drupal\Core\Config\ConfigFactoryInterface;
 use Drupal\Core\DependencyInjection\ContainerInjectionInterface;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
@@ -30,16 +31,26 @@ class ReportUri implements ContainerInjectionInterface {
   private $logger;
 
   /**
+   * The Config Factory Service.
+   *
+   * @var \Drupal\Core\Config\ConfigFactoryInterface
+   */
+  private $configFactory;
+
+  /**
    * Create a new Report URI Controller.
    *
    * @param \Symfony\Component\HttpFoundation\RequestStack $requestStack
    *   The Request Stack service.
    * @param \Psr\Log\LoggerInterface $logger
    *   The Logger channel.
+   * @param \Drupal\Core\Config\ConfigFactoryInterface $configFactory
+   *   The Config Factory Service.
    */
-  public function __construct(RequestStack $requestStack, LoggerInterface $logger) {
+  public function __construct(RequestStack $requestStack, LoggerInterface $logger, ConfigFactoryInterface $configFactory) {
     $this->requestStack = $requestStack;
     $this->logger = $logger;
+    $this->configFactory = $configFactory;
   }
 
   /**
@@ -48,7 +59,8 @@ class ReportUri implements ContainerInjectionInterface {
   public static function create(ContainerInterface $container) {
     return new static(
       $container->get('request_stack'),
-      $container->get('logger.channel.csp')
+      $container->get('logger.channel.csp'),
+      $container->get('config.factory')
     );
   }
 
@@ -62,9 +74,7 @@ class ReportUri implements ContainerInjectionInterface {
    *   An empty response.
    */
   public function log($type) {
-    $validTypes = ['enforce', 'reportOnly'];
-
-    if (!in_array($type, $validTypes)) {
+    if (!in_array($type, $this->getValidTypes())) {
       return new Response('', 404);
     }
 
@@ -84,6 +94,27 @@ class ReportUri implements ContainerInjectionInterface {
 
     // 202: Accepted.
     return new Response('', 202);
+  }
+
+  /**
+   * Retrieve the valid reporting types.
+   *
+   * @return array
+   *   The valid reporting types, based on the currently active configuration.
+   */
+  protected function getValidTypes() {
+    $config = $this->configFactory->get('csp.settings');
+
+    $validTypes = [];
+    if ($config->get('enforce.reporting.plugin') === 'sitelog') {
+      $validTypes[] = 'enforce';
+    }
+
+    if ($config->get('report-only.reporting.plugin') === 'sitelog') {
+      $validTypes[] = 'reportOnly';
+    }
+
+    return $validTypes;
   }
 
 }
