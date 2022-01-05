@@ -253,6 +253,8 @@ class CspOptimizationTest extends UnitTestCase {
       // HTTP hosts should be removed.
       'http://example.org',
       'https://example.net',
+      // Hosts with port should not be removed.
+      'http://example.com:80',
       // Other network protocols should be kept.
       'ftp:',
       // Non-network protocols should be kept.
@@ -264,7 +266,7 @@ class CspOptimizationTest extends UnitTestCase {
     ]);
 
     $this->assertEquals(
-      "script-src http: example.com ftp: data: 'unsafe-inline' 'hash-123abc' 'nonce-abc123'",
+      "script-src http: example.com http://example.com:80 ftp: data: 'unsafe-inline' 'hash-123abc' 'nonce-abc123'",
       $policy->getHeaderValue()
     );
   }
@@ -284,6 +286,8 @@ class CspOptimizationTest extends UnitTestCase {
       'http://example.org',
       // Secure Hosts should be removed.
       'https://example.net',
+      // Hosts with port should not be removed.
+      'https://example.com:443',
       // Other network protocols should be kept.
       'ftp:',
       // Non-network protocols should be kept.
@@ -295,7 +299,7 @@ class CspOptimizationTest extends UnitTestCase {
     ]);
 
     $this->assertEquals(
-      "script-src https: example.com http://example.org ftp: data: 'unsafe-inline' 'hash-123abc' 'nonce-abc123'",
+      "script-src https: example.com http://example.org https://example.com:443 ftp: data: 'unsafe-inline' 'hash-123abc' 'nonce-abc123'",
       $policy->getHeaderValue()
     );
   }

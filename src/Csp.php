@@ -483,7 +483,13 @@ class Csp {
         $protocols[] = 'wss:';
       }
       $sources = array_filter($sources, function ($source) use ($protocols) {
-        return !preg_match('<^(' . implode('|', $protocols) . ')//>', $source);
+        return (
+          // Source doesn't use specified protocols.
+          !preg_match('<^(' . implode('|', $protocols) . ')//>', $source)
+          ||
+          // Source is a URL with a port.
+          preg_match('<^\w+://[^/]+(:\d+)>', $source)
+        );
       });
     }
 
