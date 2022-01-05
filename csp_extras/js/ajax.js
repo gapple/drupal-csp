@@ -18,6 +18,17 @@
    *   The XMLHttpRequest status.
    */
   Drupal.AjaxCommands.prototype.add_assets = function (ajax, response, status) {
+    var assetsLoaded = 0;
+
+    function onAssetLoad() {
+      assetsLoaded += 1;
+
+      // When new scripts are loaded, attach newly added behaviors.
+      if (assetsLoaded >= response.assets.length) {
+        Drupal.attachBehaviors(document.body, ajax.settings);
+      }
+    }
+
     response.assets.forEach(function (item) {
       var elem;
       var target = document.body;
@@ -36,6 +47,15 @@
       Object.keys(item.attributes).forEach(function (key) {
         elem[key] = item.attributes[key];
       });
+
+      if (item.type === "script") {
+        elem.onload = onAssetLoad;
+      }
+      else {
+        // Directly mark this element as loaded. We don't have to wait before
+        // behaviours can be attached.
+        onAssetLoad();
+      }
 
       target.appendChild(elem);
     });
