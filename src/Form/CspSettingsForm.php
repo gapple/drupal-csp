@@ -111,6 +111,7 @@ class CspSettingsForm extends ConfigFormBase {
   private function getConfigurableDirectives() {
     // Exclude some directives
     // - Reporting directives are handled by plugins.
+    // - 'plugin-types' was removed from the CSP spec.
     // - 'referrer' was deprecated prior to CSP Level 1 and not supported in
     //   most browsers.
     // - 'require-sri-for' was never publicly implemented, and dropped from the
@@ -120,6 +121,7 @@ class CspSettingsForm extends ConfigFormBase {
       [
         'report-uri',
         'report-to',
+        'plugin-types',
         'referrer',
         'require-sri-for',
       ]
@@ -339,28 +341,6 @@ class CspSettingsForm extends ConfigFormBase {
         ];
       }
 
-      $form[$policyTypeKey]['directives']['plugin-types']['#states'] = [
-        'visible' => [
-          [
-            ':input[name="' . $policyTypeKey . '[directives][object-src][base]"]' => ['!value' => 'none'],
-            // states.js has a bug which requires that the first OR group
-            // include all selectors used.  'enable' isn't really required for
-            // this condition, but is need for the later FALSE to work.
-            ':input[name="' . $policyTypeKey . '[directives][object-src][enable]"]' => ['checked' => TRUE],
-          ],
-          'or',
-          [':input[name="' . $policyTypeKey . '[directives][object-src][enable]"]' => ['checked' => FALSE]],
-        ],
-      ];
-
-      $form[$policyTypeKey]['directives']['plugin-types']['options']['mime-types'] = [
-        '#type' => 'textfield',
-        '#parents' => [$policyTypeKey, 'directives', 'plugin-types', 'mime-types'],
-        '#title' => $this->t('MIME Types'),
-        '#default_value' => implode(' ', $config->get($policyTypeKey . '.directives.plugin-types') ?: []),
-        '#description' => $this->t('The <code>plugin-types</code> directive has been deprecated. <code>object-src</code> should be used to restrict embedded objects.'),
-      ];
-
       // 'sandbox' token values are defined by HTML specification for the iframe
       // sandbox attribute.
       // @see https://www.w3.org/TR/CSP/#directive-sandbox
@@ -479,16 +459,6 @@ class CspSettingsForm extends ConfigFormBase {
           }
         }
 
-        if (
-          !is_null($config->get($policyTypeKey . '.directives.plugin-types'))
-          &&
-          !$config->get($policyTypeKey . '.directives.object-src')
-        ) {
-          $this->messenger()->addWarning($this->t(
-            'The <code>plugin-types</code> directive has been deprecated. <code>object-src</code> should be used to restrict embedded objects.'
-          ));
-        }
-
         foreach (['script-src', 'style-src'] as $directive) {
           foreach (['-attr', '-elem'] as $subdirective) {
             if ($config->get($policyTypeKey . '.directives.' . $directive . $subdirective)) {
@@ -561,26 +531,6 @@ class CspSettingsForm extends ConfigFormBase {
               $this->t('Invalid domain or protocol provided.')
             );
           }
-        }
-      }
-
-      // Don't validate if not enabled; value will be skipped on save.
-      if ($form_state->getValue([$policyTypeKey, 'directives', 'plugin-types', 'enable'])) {
-        $invalidTypes = array_reduce(
-          preg_split(
-            '/,?\s+/',
-            $form_state->getValue([$policyTypeKey, 'directives', 'plugin-types', 'mime-types'], '')
-          ),
-          function ($return, $value) {
-            return $return || !preg_match('<^([\w-]+/[\w-]+)?$>', $value);
-          },
-          FALSE
-        );
-        if ($invalidTypes) {
-          $form_state->setError(
-            $form[$policyTypeKey]['directives']['plugin-types']['options']['mime-types'],
-            $this->t('Invalid MIME-Type provided.')
-          );
         }
       }
 
@@ -682,21 +632,6 @@ class CspSettingsForm extends ConfigFormBase {
         if ($directiveSchema === Csp::DIRECTIVE_SCHEMA_BOOLEAN) {
           $directiveOptions = TRUE;
         }
-        elseif ($directiveSchema === Csp::DIRECTIVE_SCHEMA_MEDIA_TYPE_LIST) {
-          // If "object-src: none" all plugins will be blocked even if type is
-          // allowed.  The form field is hidden and skips validation, so make
-          // sure value is not saved.
-          if (
-            $directiveName == 'plugin-types'
-            &&
-            $policyFormData['directives']['object-src']['enable']
-            &&
-            $policyFormData['directives']['object-src']['base'] == 'none'
-          ) {
-            continue;
-          }
-          $directiveOptions = array_filter(preg_split('/,?\s+/', $directiveFormData['mime-types']));
-        }
         elseif (in_array($directiveSchema, [
           Csp::DIRECTIVE_SCHEMA_TOKEN_LIST,
           Csp::DIRECTIVE_SCHEMA_OPTIONAL_TOKEN_LIST,
@@ -725,10 +660,7 @@ class CspSettingsForm extends ConfigFormBase {
         if (
           !empty($directiveOptions)
           ||
-          in_array($directiveSchema, [
-            Csp::DIRECTIVE_SCHEMA_OPTIONAL_TOKEN_LIST,
-            Csp::DIRECTIVE_SCHEMA_MEDIA_TYPE_LIST,
-          ])
+          $directiveSchema == Csp::DIRECTIVE_SCHEMA_OPTIONAL_TOKEN_LIST
         ) {
           $config->set($policyTypeKey . '.directives.' . $directiveName, $directiveOptions);
         }
