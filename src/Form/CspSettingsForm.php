@@ -349,6 +349,7 @@ class CspSettingsForm extends ConfigFormBase {
         '#type' => 'checkboxes',
         '#parents' => [$policyTypeKey, 'directives', 'sandbox', 'keys'],
         '#options' => [
+          'allow-downloads' => '<code>allow-downloads</code>',
           'allow-forms' => '<code>allow-forms</code>',
           'allow-modals' => '<code>allow-modals</code>',
           'allow-orientation-lock' => '<code>allow-orientation-lock</code>',
@@ -360,6 +361,7 @@ class CspSettingsForm extends ConfigFormBase {
           'allow-scripts' => '<code>allow-scripts</code>',
           'allow-top-navigation' => '<code>allow-top-navigation</code>',
           'allow-top-navigation-by-user-activation' => '<code>allow-top-navigation-by-user-activation</code>',
+          'allow-top-navigation-to-custom-protocols' => '<code>allow-top-navigation-to-custom-protocols</code>',
         ],
         '#default_value' => $config->get($policyTypeKey . '.directives.sandbox') ?: [],
       ];
