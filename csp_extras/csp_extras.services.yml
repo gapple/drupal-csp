@@ -9,4 +9,3 @@ services:
      - '@module_handler'
      - '@datetime.time'
      - '@file_url_generator'
-

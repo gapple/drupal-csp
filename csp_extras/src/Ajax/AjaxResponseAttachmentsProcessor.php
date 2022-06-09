@@ -182,7 +182,7 @@ class AjaxResponseAttachmentsProcessor implements AttachmentsResponseProcessorIn
             'type' => 'stylesheet',
             'attributes' => [
               'media' => $css_asset['media'],
-              'href' =>  $this->fileUrlGenerator->generateString($css_asset['data']),
+              'href' => $this->fileUrlGenerator->generateString($css_asset['data']),
             ],
           ];
 
