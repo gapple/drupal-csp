@@ -9,6 +9,7 @@ use Drupal\Core\Asset\AssetResolverInterface;
 use Drupal\Core\Asset\AttachedAssets;
 use Drupal\Core\Config\ConfigFactoryInterface;
 use Drupal\Core\Extension\ModuleHandlerInterface;
+use Drupal\Core\File\FileUrlGeneratorInterface;
 use Drupal\Core\Render\AttachmentsInterface;
 use Drupal\Core\Render\AttachmentsResponseProcessorInterface;
 use Symfony\Component\HttpFoundation\Request;
@@ -58,6 +59,13 @@ class AjaxResponseAttachmentsProcessor implements AttachmentsResponseProcessorIn
   protected $time;
 
   /**
+   * The file URL generator.
+   *
+   * @var \Drupal\Core\File\FileUrlGeneratorInterface
+   */
+  protected $fileUrlGenerator;
+
+  /**
    * Constructs a AjaxResponseAttachmentsProcessor object.
    *
    * @param \Drupal\Core\Asset\AssetResolverInterface $asset_resolver
@@ -70,19 +78,27 @@ class AjaxResponseAttachmentsProcessor implements AttachmentsResponseProcessorIn
    *   The module handler.
    * @param \Drupal\Component\Datetime\TimeInterface $time
    *   The time service.
+   * @param \Drupal\Core\File\FileUrlGeneratorInterface|null $file_url_generator
+   *   The file URL generator.
    */
   public function __construct(
     AssetResolverInterface $asset_resolver,
     ConfigFactoryInterface $config_factory,
     RequestStack $request_stack,
     ModuleHandlerInterface $module_handler,
-    TimeInterface $time
+    TimeInterface $time,
+    FileUrlGeneratorInterface $file_url_generator = NULL
   ) {
     $this->assetResolver = $asset_resolver;
     $this->config = $config_factory->get('system.performance');
     $this->requestStack = $request_stack;
     $this->moduleHandler = $module_handler;
     $this->time = $time;
+    if (!$file_url_generator) {
+      @trigger_error('Calling AjaxResponseAttachmentsProcessor::__construct() without the $file_url_generator argument is deprecated in drupal:9.3.0 and will be required before drupal:10.0.0. See https://www.drupal.org/node/2940031', E_USER_DEPRECATED);
+      $file_url_generator = \Drupal::service('file_url_generator');
+    }
+    $this->fileUrlGenerator = $file_url_generator;
   }
 
   /**
@@ -166,7 +182,7 @@ class AjaxResponseAttachmentsProcessor implements AttachmentsResponseProcessorIn
             'type' => 'stylesheet',
             'attributes' => [
               'media' => $css_asset['media'],
-              'href' => file_url_transform_relative(file_create_url($css_asset['data'])),
+              'href' =>  $this->fileUrlGenerator->generateString($css_asset['data']),
             ],
           ];
 
@@ -190,7 +206,7 @@ class AjaxResponseAttachmentsProcessor implements AttachmentsResponseProcessorIn
           $asset = [
             'type' => 'script',
             'attributes' => [
-              'src' => file_url_transform_relative(file_create_url($js_asset['data'])),
+              'src' => $this->fileUrlGenerator->generateString($js_asset['data']),
             ],
           ];
 
