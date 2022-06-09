@@ -95,7 +95,9 @@ class AjaxResponseAttachmentsProcessor implements AttachmentsResponseProcessorIn
     $this->moduleHandler = $module_handler;
     $this->time = $time;
     if (!$file_url_generator) {
-      @trigger_error('Calling AjaxResponseAttachmentsProcessor::__construct() without the $file_url_generator argument is deprecated in drupal:9.3.0 and will be required before drupal:10.0.0. See https://www.drupal.org/node/2940031', E_USER_DEPRECATED);
+      // phpcs:disable
+      @trigger_error('Calling ' . __CLASS__ . '::__construct() without the $file_url_generator argument is deprecated', E_USER_DEPRECATED);
+      // phpcs:enable
       $file_url_generator = \Drupal::service('file_url_generator');
     }
     $this->fileUrlGenerator = $file_url_generator;
