@@ -27,13 +27,6 @@ services:
       - '@module_handler'
     tags:
       - { name: event_subscriber }
-  csp.ie9_csp_subscriber:
-    class: Drupal\csp\EventSubscriber\Ie9CspSubscriber
-    arguments:
-      - '@config.factory'
-      - '@module_handler'
-    tags:
-      - { name: event_subscriber }
 
   logger.channel.csp:
     parent: logger.channel_base
