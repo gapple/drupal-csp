@@ -174,8 +174,8 @@ class ResponseCspSubscriber implements EventSubscriberInterface {
       }
 
       $this->eventDispatcher->dispatch(
-        CspEvents::POLICY_ALTER,
-        new PolicyAlterEvent($policy, $response)
+        new PolicyAlterEvent($policy, $response),
+        CspEvents::POLICY_ALTER
       );
 
       if (($headerValue = $policy->getHeaderValue())) {

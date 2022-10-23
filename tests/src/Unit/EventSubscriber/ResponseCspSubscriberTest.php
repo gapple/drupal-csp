@@ -141,13 +141,13 @@ class ResponseCspSubscriberTest extends UnitTestCase {
     $this->eventDispatcher->expects($this->exactly(2))
       ->method('dispatch')
       ->with(
-        $this->equalTo(CspEvents::POLICY_ALTER),
         $this->callback(function ($event) {
           $policy = $event->getPolicy();
           return $policy->hasDirective(($policy->isReportOnly() ? 'style-src' : 'script-src'));
-        })
+        }),
+        $this->equalTo(CspEvents::POLICY_ALTER)
       )
-      ->willReturnCallback(function ($eventName, $event) {
+      ->willReturnCallback(function ($event, $eventName) {
         $policy = $event->getPolicy();
         $policy->setDirective('font-src', [Csp::POLICY_SELF]);
       });
