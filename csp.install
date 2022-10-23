@@ -172,3 +172,18 @@ function csp_update_8102() {
 
   $config->save();
 }
+
+/**
+ * Remove navigate-to directive.
+ */
+function csp_update_8103() {
+  // navigate-to was not implemented in browsers and has been removed.
+  // @see https://github.com/w3c/webappsec-csp/pull/564
+  $config = \Drupal::configFactory()->getEditable('csp.settings');
+
+  foreach (['enforce', 'report-only'] as $policyType) {
+    $config->clear($policyType . '.directives.navigate-to');
+  }
+
+  $config->save();
+}

@@ -111,16 +111,13 @@ class CspSettingsForm extends ConfigFormBase {
   private function getConfigurableDirectives() {
     // Exclude some directives
     // - Reporting directives are handled by plugins.
-    // - 'plugin-types' was removed from the CSP spec.
-    // - 'referrer' was deprecated prior to CSP Level 1 and not supported in
-    //   most browsers.
-    // - 'require-sri-for' was never publicly implemented, and dropped from the
-    //   SRI spec.
+    // - Other directives were removed from spec (see Csp class for details).
     $directives = array_diff(
       Csp::getDirectiveNames(),
       [
         'report-uri',
         'report-to',
+        'navigate-to',
         'plugin-types',
         'referrer',
         'require-sri-for',

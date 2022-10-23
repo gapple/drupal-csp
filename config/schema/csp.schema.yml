@@ -86,10 +86,6 @@ csp_directive.worker-src:
   type: csp_directive_source_list
 csp_directive.base-uri:
   type: csp_directive_source_list
-csp_directive.plugin-types:
-  type: sequence
-  sequence:
-    type: string
 csp_directive.sandbox:
   type: sequence
   sequence:
@@ -99,8 +95,6 @@ csp_directive.form-action:
 # frame-ancestors does not support unsafe flags
 # @see https://www.w3.org/TR/CSP/#grammardef-ancestor-source-list
 csp_directive.frame-ancestors:
-  type: csp_directive_source_list
-csp_directive.navigate-to:
   type: csp_directive_source_list
 csp_directive.block-all-mixed-content:
   type: boolean

@@ -63,7 +63,6 @@ class Csp {
     // @see https://www.w3.org/TR/CSP3/#directives-navigation
     'form-action' => self::DIRECTIVE_SCHEMA_SOURCE_LIST,
     'frame-ancestors' => self::DIRECTIVE_SCHEMA_ANCESTOR_SOURCE_LIST,
-    'navigate-to' => self::DIRECTIVE_SCHEMA_SOURCE_LIST,
     // Reporting Directives.
     // @see https://www.w3.org/TR/CSP3/#directives-reporting
     'report-uri' => self::DIRECTIVE_SCHEMA_URI_REFERENCE_LIST,
@@ -74,6 +73,8 @@ class Csp {
     'upgrade-insecure-requests' => self::DIRECTIVE_SCHEMA_BOOLEAN,
 
     // Deprecated directives.
+    // @see https://github.com/w3c/webappsec-csp/pull/564
+    'navigate-to' => self::DIRECTIVE_SCHEMA_SOURCE_LIST,
     // @see https://www.drupal.org/project/csp/issues/3193081
     'plugin-types' => self::DIRECTIVE_SCHEMA_MEDIA_TYPE_LIST,
     // Referrer isn't in the Level 1 spec, but was accepted until Chrome 56 and
