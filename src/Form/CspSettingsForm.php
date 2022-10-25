@@ -38,7 +38,7 @@ class CspSettingsForm extends ConfigFormBase {
    */
   private static $keywordDirectiveMap = [
     // A violation’s sample will be populated with the first 40 characters of an
-    // inline script, event handler, or style that caused an violation.
+    // inline script, event handler, or style that caused a violation.
     // Violations which stem from an external file will not include a sample in
     // the violation report.
     // @see https://www.w3.org/TR/CSP3/#framework-violation
@@ -50,6 +50,7 @@ class CspSettingsForm extends ConfigFormBase {
     // script-src (or it’s fallback directive) is always used.
     // @see https://www.w3.org/TR/CSP3/#directive-script-src
     'unsafe-eval' => ['default-src', 'script-src', 'style-src'],
+    'wasm-unsafe-eval' => ['default-src', 'script-src'],
     // Unsafe-hashes only applies to inline attributes.
     'unsafe-hashes' => ['default-src', 'script-src', 'script-src-attr', 'style-src', 'style-src-attr'],
     'unsafe-inline' => ['default-src', 'script-src', 'script-src-attr', 'script-src-elem', 'style-src', 'style-src-attr', 'style-src-elem'],
@@ -140,6 +141,7 @@ class CspSettingsForm extends ConfigFormBase {
     $allKeywords = [
       'unsafe-inline',
       'unsafe-eval',
+      'wasm-unsafe-eval',
       'unsafe-hashes',
       'unsafe-allow-redirects',
       'strict-dynamic',
