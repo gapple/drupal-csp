@@ -29,6 +29,8 @@ class Csp {
   const DIRECTIVE_SCHEMA_TOKEN = 'token';
   const DIRECTIVE_SCHEMA_URI_REFERENCE_LIST = 'uri-reference-list';
   const DIRECTIVE_SCHEMA_BOOLEAN = 'boolean';
+  // https://www.w3.org/TR/CSP/#directive-webrtc
+  const DIRECTIVE_SCHEMA_ALLOW_BLOCK = 'allow-block';
 
   /**
    * The schema type for each directive.
@@ -54,6 +56,9 @@ class Csp {
     'style-src' => self::DIRECTIVE_SCHEMA_SOURCE_LIST,
     'style-src-attr' => self::DIRECTIVE_SCHEMA_SOURCE_LIST,
     'style-src-elem' => self::DIRECTIVE_SCHEMA_SOURCE_LIST,
+    // Other directives.
+    // @see https://www.w3.org/TR/CSP/#directives-other
+    'webrtc' => self::DIRECTIVE_SCHEMA_ALLOW_BLOCK,
     'worker-src' => self::DIRECTIVE_SCHEMA_SOURCE_LIST,
     // Document Directives.
     // @see https://www.w3.org/TR/CSP3/#directives-document
@@ -67,7 +72,7 @@ class Csp {
     // @see https://www.w3.org/TR/CSP3/#directives-reporting
     'report-uri' => self::DIRECTIVE_SCHEMA_URI_REFERENCE_LIST,
     'report-to' => self::DIRECTIVE_SCHEMA_TOKEN,
-    // Other directives.
+    // Directives Defined in Other Documents.
     // @see https://www.w3.org/TR/CSP/#directives-elsewhere
     'block-all-mixed-content' => self::DIRECTIVE_SCHEMA_BOOLEAN,
     'upgrade-insecure-requests' => self::DIRECTIVE_SCHEMA_BOOLEAN,
@@ -121,7 +126,7 @@ class Csp {
   /**
    * The policy directives.
    *
-   * @var array
+   * @var string[]|bool|string
    */
   protected $directives = [];
 
@@ -269,7 +274,7 @@ class Csp {
    *
    * @param string $name
    *   The directive name.
-   * @param array|bool|string $value
+   * @param string[]|bool|string $value
    *   The directive value.
    */
   public function setDirective($name, $value) {
@@ -292,7 +297,7 @@ class Csp {
    *
    * @param string $name
    *   The directive name.
-   * @param array|string $value
+   * @param string[]|string $value
    *   The directive value.
    */
   public function appendDirective($name, $value) {
@@ -382,40 +387,37 @@ class Csp {
    *   The header value.
    */
   public function getHeaderValue() {
-    $output = [];
-    $optimizedDirectives = [];
+    $processedDirectives = [];
 
     foreach ($this->directives as $name => $value) {
-      if (empty($value) && self::DIRECTIVES[$name] !== self::DIRECTIVE_SCHEMA_OPTIONAL_TOKEN_LIST) {
+      if (self::DIRECTIVES[$name] === self::DIRECTIVE_SCHEMA_OPTIONAL_TOKEN_LIST) {
+        $value = $value ?: '';
+      }
+      elseif (empty($value)) {
         continue;
       }
-
-      if (
+      elseif (
         self::DIRECTIVES[$name] === self::DIRECTIVE_SCHEMA_BOOLEAN
-        ||
-        self::DIRECTIVES[$name] === self::DIRECTIVE_SCHEMA_OPTIONAL_TOKEN_LIST && empty($value)
       ) {
-        $output[] = $name;
-        continue;
+        $value = '';
       }
-
-      if (in_array(self::DIRECTIVES[$name], [
+      elseif (in_array(self::DIRECTIVES[$name], [
         self::DIRECTIVE_SCHEMA_SOURCE_LIST,
         self::DIRECTIVE_SCHEMA_ANCESTOR_SOURCE_LIST,
       ])) {
         $value = self::reduceSourceList($value);
       }
 
-      $optimizedDirectives[$name] = $value;
+      $processedDirectives[$name] = $value;
     }
 
-    foreach ($optimizedDirectives as $name => $value) {
+    foreach ($processedDirectives as $name => $value) {
       foreach (self::getDirectiveFallbackList($name) as $fallbackDirective) {
-        if (isset($optimizedDirectives[$fallbackDirective])) {
-          if ($optimizedDirectives[$fallbackDirective] === $value) {
+        if (isset($processedDirectives[$fallbackDirective])) {
+          if ($processedDirectives[$fallbackDirective] === $value) {
             // Omit directive if it matches nearest defined directive in its
             // fallback list.
-            unset($optimizedDirectives[$name]);
+            unset($processedDirectives[$name]);
             continue 2;
           }
           else {
@@ -428,17 +430,24 @@ class Csp {
 
       // Optimize attribute directives if they don't match a fallback.
       if (strstr($name, '-attr')) {
-        $optimizedDirectives[$name] = self::reduceAttrSourceList($value);
+        $processedDirectives[$name] = self::reduceAttrSourceList($value);
       }
     }
 
     // Workaround Firefox bug in handling default-src.
-    $optimizedDirectives = self::ff1313937($optimizedDirectives);
+    $processedDirectives = self::ff1313937($processedDirectives);
 
-    $optimizedDirectives = self::sortDirectives($optimizedDirectives);
+    $processedDirectives = self::sortDirectives($processedDirectives);
 
-    foreach ($optimizedDirectives as $name => $value) {
-      $output[] = $name . ' ' . implode(' ', $value);
+    $output = [];
+    foreach ($processedDirectives as $name => $value) {
+      if (is_array($value)) {
+        $value = implode(' ', $value);
+      }
+      if (!empty($value)) {
+        $value = ' ' . $value;
+      }
+      $output[] = $name . $value;
     }
 
     return implode('; ', $output);

@@ -50,6 +50,7 @@ csp_directive_source_list:
       label: 'Sources'
       sequence:
         type: string
+
 csp_directive.default-src:
   type: csp_directive_source_list
 csp_directive.child-src:
@@ -82,6 +83,8 @@ csp_directive.style-src-attr:
   type: csp_directive_source_list
 csp_directive.style-src-elem:
   type: csp_directive_source_list
+csp_directive.webrtc:
+  type: string
 csp_directive.worker-src:
   type: csp_directive_source_list
 csp_directive.base-uri:

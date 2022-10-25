@@ -117,6 +117,13 @@ class ResponseCspSubscriber implements EventSubscriberInterface {
           continue;
         }
 
+        if (Csp::DIRECTIVES[$directiveName] === Csp::DIRECTIVE_SCHEMA_ALLOW_BLOCK) {
+          if (!empty($directiveOptions)) {
+            $policy->setDirective($directiveName, "'" . $directiveOptions . "'");
+          }
+          continue;
+        }
+
         // This is a directive with a simple array of values.
         if (!isset($directiveOptions['base'])) {
           $policy->setDirective($directiveName, $directiveOptions);

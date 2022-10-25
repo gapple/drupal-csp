@@ -363,6 +363,16 @@ class CspSettingsForm extends ConfigFormBase {
         '#default_value' => $config->get($policyTypeKey . '.directives.sandbox') ?: [],
       ];
 
+      $form[$policyTypeKey]['directives']['webrtc']['options']['value'] = [
+        '#type' => 'radios',
+        '#parents' => [$policyTypeKey, 'directives', 'webrtc', 'value'],
+        '#options' => [
+          'allow' => "<code>'allow'</code>",
+          'block' => "<code>'block'</code>",
+        ],
+        '#default_value' => $config->get($policyTypeKey . '.directives.webrtc') ?? 'block',
+      ];
+
       $form[$policyTypeKey]['reporting'] = [
         '#type' => 'fieldset',
         '#title' => $this->t('Reporting'),
@@ -637,6 +647,9 @@ class CspSettingsForm extends ConfigFormBase {
         ])) {
           $directiveOptions = array_keys(array_filter($directiveFormData['keys']));
         }
+        elseif ($directiveSchema === Csp::DIRECTIVE_SCHEMA_ALLOW_BLOCK) {
+          $directiveOptions = $directiveFormData['value'];
+        }
         elseif (in_array($directiveSchema, [
           Csp::DIRECTIVE_SCHEMA_SOURCE_LIST,
           Csp::DIRECTIVE_SCHEMA_ANCESTOR_SOURCE_LIST,
@@ -659,7 +672,7 @@ class CspSettingsForm extends ConfigFormBase {
         if (
           !empty($directiveOptions)
           ||
-          $directiveSchema == Csp::DIRECTIVE_SCHEMA_OPTIONAL_TOKEN_LIST
+          $directiveSchema === Csp::DIRECTIVE_SCHEMA_OPTIONAL_TOKEN_LIST
         ) {
           $config->set($policyTypeKey . '.directives.' . $directiveName, $directiveOptions);
         }

@@ -181,7 +181,7 @@ class CspTest extends UnitTestCase {
     $policy->setDirective('report-uri', 'example.com/report-uri');
 
     $this->assertEquals(
-      "upgrade-insecure-requests; default-src 'self' one.example.com; script-src 'self' two.example.com; report-uri example.com/report-uri",
+      "default-src 'self' one.example.com; script-src 'self' two.example.com; report-uri example.com/report-uri; upgrade-insecure-requests",
       $policy->getHeaderValue()
     );
   }
@@ -352,6 +352,51 @@ class CspTest extends UnitTestCase {
       [Csp::POLICY_UNSAFE_INLINE],
       $policy->getDirective('script-src-attr')
     );
+  }
+
+  /**
+   * Test that a boolean directive is set and output correctly.
+   *
+   * @covers ::setDirective
+   * @covers ::getHeaderValue
+   */
+  public function testBooleanDirectiveTrue() {
+    $policy = new Csp();
+
+    $policy->setDirective('default-src', Csp::POLICY_SELF);
+    $policy->setDirective('upgrade-insecure-requests', TRUE);
+
+    $this->assertEquals("default-src 'self'; upgrade-insecure-requests", $policy->getHeaderValue());
+  }
+
+  /**
+   * Test that a boolean directive is set and output correctly.
+   *
+   * @covers ::setDirective
+   * @covers ::getHeaderValue
+   */
+  public function testBooleanDirectiveFalse() {
+    $policy = new Csp();
+
+    $policy->setDirective('default-src', Csp::POLICY_SELF);
+    $policy->setDirective('upgrade-insecure-requests', FALSE);
+
+    $this->assertEquals("default-src 'self'", $policy->getHeaderValue());
+  }
+
+  /**
+   * Test that a string directive is set and output correctly.
+   *
+   * @covers ::setDirective
+   * @covers ::getHeaderValue
+   */
+  public function testStringDirective() {
+    $policy = new Csp();
+
+    $policy->setDirective('default-src', Csp::POLICY_SELF);
+    $policy->setDirective('webrtc', "'allow'");
+
+    $this->assertEquals("default-src 'self'; webrtc 'allow'", $policy->getHeaderValue());
   }
 
   /**
