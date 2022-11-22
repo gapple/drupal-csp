@@ -12,7 +12,7 @@ function csp_extras_library_info_alter(&$libraries, $extension) {
 
   // Add module ajax.js to core library.
   if ($extension == 'core' && isset($libraries['drupal.ajax'])) {
-    $path = '/' . drupal_get_path('module', 'csp_extras') . '/js/ajax.js';
+    $path = '/' . \Drupal::service('extension.list.module')->getPath('csp_extras') . '/js/ajax.js';
     $libraries['drupal.ajax']['js'][$path] = [
       'version' => '1.13',
     ];

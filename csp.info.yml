@@ -1,5 +1,5 @@
 name: Content Security Policy
 type: module
 description: Provide Content-Security-Policy headers
-core_version_requirement: ^9
+core_version_requirement: ^9.2 || ^10
 configure: csp.settings

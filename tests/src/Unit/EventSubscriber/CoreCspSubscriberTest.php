@@ -51,19 +51,13 @@ class CoreCspSubscriberTest extends UnitTestCase {
   public function setUp(): void {
     parent::setUp();
 
-    $this->libraryDependencyResolver = $this->getMockBuilder(LibraryDependencyResolverInterface::class)
-      ->disableOriginalConstructor()
-      ->getMock();
+    $this->libraryDependencyResolver = $this->createMock(LibraryDependencyResolverInterface::class);
     $this->libraryDependencyResolver->method('getLibrariesWithDependencies')
       ->willReturnArgument(0);
 
-    $this->moduleHandler = $this->getMockBuilder(ModuleHandlerInterface::class)
-      ->disableOriginalConstructor()
-      ->getMock();
+    $this->moduleHandler = $this->createMock(ModuleHandlerInterface::class);
 
-    $this->response = $this->getMockBuilder(HtmlResponse::class)
-      ->disableOriginalConstructor()
-      ->getMock();
+    $this->response = $this->createMock(HtmlResponse::class);
 
     $this->coreCspSubscriber = new CoreCspSubscriber($this->libraryDependencyResolver, $this->moduleHandler);
   }

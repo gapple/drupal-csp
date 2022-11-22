@@ -12,7 +12,7 @@ use Drupal\csp\LibraryPolicyBuilder;
 use Drupal\csp\ReportingHandlerPluginManager;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
-use Symfony\Component\HttpKernel\Event\FilterResponseEvent;
+use Symfony\Component\HttpKernel\Event\ResponseEvent;
 use Symfony\Component\HttpKernel\KernelEvents;
 
 /**
@@ -83,11 +83,11 @@ class ResponseCspSubscriber implements EventSubscriberInterface {
   /**
    * Add Content-Security-Policy header to response.
    *
-   * @param \Symfony\Component\HttpKernel\Event\FilterResponseEvent $event
+   * @param \Symfony\Component\HttpKernel\Event\ResponseEvent $event
    *   The Response event.
    */
-  public function onKernelResponse(FilterResponseEvent $event) {
-    if (!$event->isMasterRequest()) {
+  public function onKernelResponse(ResponseEvent $event) {
+    if (!$event->isMainRequest()) {
       return;
     }
 

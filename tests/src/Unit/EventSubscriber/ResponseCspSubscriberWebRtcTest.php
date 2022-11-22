@@ -73,27 +73,19 @@ class ResponseCspSubscriberWebRtcTest extends UnitTestCase {
       ->willReturn($responseCacheableMetadata);
 
     /** @var \Symfony\Component\HttpKernel\Event\ResponseEvent|\PHPUnit\Framework\MockObject\MockObject $event */
-    $this->event = $this->getMockBuilder(ResponseEvent::class)
-      ->disableOriginalConstructor()
-      ->getMock();
+    $this->event = $this->createMock(ResponseEvent::class);
     $this->event->expects($this->any())
-      ->method('isMasterRequest')
+      ->method('isMainRequest')
       ->willReturn(TRUE);
     $this->event->expects($this->any())
       ->method('getResponse')
       ->willReturn($this->response);
 
-    $this->libraryPolicy = $this->getMockBuilder(LibraryPolicyBuilder::class)
-      ->disableOriginalConstructor()
-      ->getMock();
+    $this->libraryPolicy = $this->createMock(LibraryPolicyBuilder::class);
 
-    $this->reportingHandlerPluginManager = $this->getMockBuilder(ReportingHandlerPluginManager::class)
-      ->disableOriginalConstructor()
-      ->getMock();
+    $this->reportingHandlerPluginManager = $this->createMock(ReportingHandlerPluginManager::class);
 
-    $this->eventDispatcher = $this->getMockBuilder(EventDispatcher::class)
-      ->disableOriginalConstructor()
-      ->getMock();
+    $this->eventDispatcher = $this->createMock(EventDispatcher::class);
   }
 
   /**

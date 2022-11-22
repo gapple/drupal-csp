@@ -25,28 +25,28 @@ class LibraryPolicyBuilderTest extends UnitTestCase {
   /**
    * Mock Module Handler.
    *
-   * @var \Drupal\Core\Extension\ModuleHandlerInterface|\PHPUnit_Framework_MockObject_MockObject
+   * @var \Drupal\Core\Extension\ModuleHandlerInterface|\PHPUnit\Framework\MockObject\MockObject
    */
   protected $moduleHandler;
 
   /**
    * Mock Active Theme.
    *
-   * @var \Drupal\Core\Theme\ActiveTheme|\PHPUnit_Framework_MockObject_MockObject
+   * @var \Drupal\Core\Theme\ActiveTheme|\PHPUnit\Framework\MockObject\MockObject
    */
   protected $activeTheme;
 
   /**
    * Mock Theme Handler.
    *
-   * @var \Drupal\Core\Extension\ThemeHandlerInterface|\PHPUnit_Framework_MockObject_MockObject
+   * @var \Drupal\Core\Extension\ThemeHandlerInterface|\PHPUnit\Framework\MockObject\MockObject
    */
   protected $themeHandler;
 
   /**
    * Mock Library Discovery.
    *
-   * @var \Drupal\Core\Asset\LibraryDiscoveryInterface|\PHPUnit_Framework_MockObject_MockObject
+   * @var \Drupal\Core\Asset\LibraryDiscoveryInterface|\PHPUnit\Framework\MockObject\MockObject
    */
   protected $libraryDiscovery;
 
@@ -57,18 +57,9 @@ class LibraryPolicyBuilderTest extends UnitTestCase {
     parent::setUp();
 
     $this->cache = new MemoryBackend();
-
-    $this->moduleHandler = $this->getMockBuilder(ModuleHandler::class)
-      ->disableOriginalConstructor()
-      ->getMock();
-
-    $this->themeHandler = $this->getMockBuilder(ThemeHandler::class)
-      ->disableOriginalConstructor()
-      ->getMock();
-
-    $this->libraryDiscovery = $this->getMockBuilder(LibraryDiscovery::class)
-      ->disableOriginalConstructor()
-      ->getMock();
+    $this->moduleHandler = $this->createMock(ModuleHandler::class);
+    $this->themeHandler = $this->createMock(ThemeHandler::class);
+    $this->libraryDiscovery = $this->createMock(LibraryDiscovery::class);
   }
 
   /**

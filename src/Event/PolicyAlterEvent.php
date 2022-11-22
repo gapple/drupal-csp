@@ -3,8 +3,8 @@
 namespace Drupal\csp\Event;
 
 use Drupal\csp\Csp;
-use Symfony\Component\EventDispatcher\Event;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Contracts\EventDispatcher\Event;
 
 /**
  * Event for altering a response CSP Policy.
