@@ -135,7 +135,7 @@ class CoreCspSubscriberTest extends UnitTestCase {
       );
       $this->assertEquals(
         [Csp::POLICY_SELF, Csp::POLICY_UNSAFE_INLINE],
-        $alterEvent->getPolicy()->getDirective('script-src-elem')
+        array_unique($alterEvent->getPolicy()->getDirective('script-src-elem'))
       );
     }
 
