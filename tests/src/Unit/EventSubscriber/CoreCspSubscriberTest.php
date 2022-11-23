@@ -341,7 +341,7 @@ class CoreCspSubscriberTest extends UnitTestCase {
     $this->response->method('getAttachments')
       ->willReturn([
         'library' => [
-          'umami/webfonts',
+          'umami/webfonts-open-sans',
         ],
       ]);
 
@@ -367,7 +367,7 @@ class CoreCspSubscriberTest extends UnitTestCase {
     $this->response->method('getAttachments')
       ->willReturn([
         'library' => [
-          'umami/webfonts',
+          'umami/webfonts-open-sans',
         ],
       ]);
 
