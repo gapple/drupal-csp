@@ -101,9 +101,6 @@ class CoreCspSubscriber implements EventSubscriberInterface {
       }
 
       $umamiFontLibraries = [
-        // <= 8.7
-        'umami/webfonts',
-        // >= 8.8
         'umami/webfonts-open-sans',
         'umami/webfonts-scope-one',
       ];
