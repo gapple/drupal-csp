@@ -61,21 +61,28 @@ class CoreCspSubscriber implements EventSubscriberInterface {
     $response = $alterEvent->getResponse();
 
     if ($response instanceof AttachmentsInterface) {
-      $attachments = $response->getAttachments();
-      $libraries = isset($attachments['library']) ?
-        $this->libraryDependencyResolver->getLibrariesWithDependencies($attachments['library']) :
-        [];
+      $libraries = $this->libraryDependencyResolver
+        ->getLibrariesWithDependencies(
+          $response->getAttachments()['library'] ?? []
+        );
 
-      // Ajax needs 'unsafe-inline' to add assets required by responses.
+      // Ajax may need 'unsafe-inline' to add assets required by responses
+      // depending on the version of Drupal core.
       // @see https://www.drupal.org/project/csp/issues/3100084
-      // The CSP Extras module alters core to not require 'unsafe-inline'.
-      if (in_array('core/drupal.ajax', $libraries) && !$this->moduleHandler->moduleExists('csp_extras')) {
-        // Prevent script-src-attr from falling back to script-src and having
-        // 'unsafe-inline' enabled.
-        $policy->fallbackAwareAppendIfEnabled('script-src-attr', []);
-        $policy->fallbackAwareAppendIfEnabled('script-src', [Csp::POLICY_UNSAFE_INLINE]);
-        $policy->fallbackAwareAppendIfEnabled('script-src-elem', [Csp::POLICY_UNSAFE_INLINE]);
-
+      if (
+        in_array('core/drupal.ajax', $libraries)
+        &&
+        // The CSP Extras module alters core to not require 'unsafe-inline'.
+        !$this->moduleHandler->moduleExists('csp_extras')
+      ) {
+        // Drupal 9.5 and 10.0 add JavaScript assets in a CSP-compatible way.
+        if (!class_exists('Drupal\Core\Ajax\AddJsCommand')) {
+          // Prevent *-src-attr from falling back to *-src and having
+          // 'unsafe-inline' enabled.
+          $policy->fallbackAwareAppendIfEnabled('script-src-attr', []);
+          $policy->fallbackAwareAppendIfEnabled('script-src', [Csp::POLICY_UNSAFE_INLINE]);
+          $policy->fallbackAwareAppendIfEnabled('script-src-elem', [Csp::POLICY_UNSAFE_INLINE]);
+        }
         $policy->fallbackAwareAppendIfEnabled('style-src-attr', []);
         $policy->fallbackAwareAppendIfEnabled('style-src', [Csp::POLICY_UNSAFE_INLINE]);
         $policy->fallbackAwareAppendIfEnabled('style-src-elem', [Csp::POLICY_UNSAFE_INLINE]);

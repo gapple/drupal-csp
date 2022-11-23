@@ -93,6 +93,68 @@ class CoreCspSubscriberTest extends UnitTestCase {
   }
 
   /**
+   * Policies are altered for the Drupal AJAX library.
+   *
+   * @covers ::onCspPolicyAlter
+   */
+  public function testAjaxLibrary() {
+    $policy = new Csp();
+    $policy->setDirective('default-src', [Csp::POLICY_ANY]);
+    $policy->setDirective('script-src', [Csp::POLICY_SELF]);
+    $policy->setDirective('style-src', [Csp::POLICY_SELF]);
+
+    $this->response->method('getAttachments')
+      ->willReturn([
+        'library' => [
+          'core/drupal.ajax',
+        ],
+      ]);
+
+    $alterEvent = new PolicyAlterEvent($policy, $this->response);
+
+    $this->coreCspSubscriber->onCspPolicyAlter($alterEvent);
+
+    if (class_exists('Drupal\Core\Ajax\AddJsCommand')) {
+      // Drupal >= 9.5 should not make changes to script-src.
+      $this->assertEquals(
+        [Csp::POLICY_SELF],
+        $alterEvent->getPolicy()->getDirective('script-src')
+      );
+      $this->assertFalse($alterEvent->getPolicy()->hasDirective('script-src-attr'));
+      $this->assertFalse($alterEvent->getPolicy()->hasDirective('script-src-elem'));
+    }
+    else {
+      // Drupal <=9.4 requires script-src-elem 'unsafe-inline'.
+      $this->assertEquals(
+        [Csp::POLICY_SELF, Csp::POLICY_UNSAFE_INLINE],
+        $alterEvent->getPolicy()->getDirective('script-src')
+      );
+      $this->assertEquals(
+        [Csp::POLICY_SELF],
+        $alterEvent->getPolicy()->getDirective('script-src-attr')
+      );
+      $this->assertEquals(
+        [Csp::POLICY_SELF, Csp::POLICY_UNSAFE_INLINE],
+        $alterEvent->getPolicy()->getDirective('script-src-elem')
+      );
+    }
+
+    $this->assertEquals(
+      [Csp::POLICY_SELF, Csp::POLICY_UNSAFE_INLINE],
+      $alterEvent->getPolicy()->getDirective('style-src')
+    );
+    $this->assertEquals(
+      [Csp::POLICY_SELF],
+      $alterEvent->getPolicy()->getDirective('style-src-attr')
+    );
+    $this->assertEquals(
+      [Csp::POLICY_SELF, Csp::POLICY_UNSAFE_INLINE],
+      array_unique($alterEvent->getPolicy()->getDirective('style-src-elem'))
+    );
+
+  }
+
+  /**
    * CKEditor shouldn't alter the policy if no directives are enabled.
    *
    * @covers ::onCspPolicyAlter
