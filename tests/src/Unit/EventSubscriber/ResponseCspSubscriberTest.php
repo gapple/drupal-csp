@@ -6,13 +6,16 @@ use Drupal\Core\Cache\CacheableMetadata;
 use Drupal\Core\Render\HtmlResponse;
 use Drupal\csp\Csp;
 use Drupal\csp\CspEvents;
+use Drupal\csp\Event\PolicyAlterEvent;
 use Drupal\csp\EventSubscriber\ResponseCspSubscriber;
 use Drupal\csp\LibraryPolicyBuilder;
 use Drupal\csp\ReportingHandlerPluginManager;
 use Drupal\Tests\UnitTestCase;
 use Symfony\Component\EventDispatcher\EventDispatcher;
+use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\ResponseHeaderBag;
 use Symfony\Component\HttpKernel\Event\ResponseEvent;
+use Symfony\Component\HttpKernel\HttpKernelInterface;
 use Symfony\Component\HttpKernel\KernelEvents;
 
 /**
@@ -68,14 +71,12 @@ class ResponseCspSubscriberTest extends UnitTestCase {
     $this->response->method('getCacheableMetadata')
       ->willReturn($responseCacheableMetadata);
 
-    /** @var \Symfony\Component\HttpKernel\Event\ResponseEvent|\PHPUnit\Framework\MockObject\MockObject $event */
-    $this->event = $this->createMock(ResponseEvent::class);
-    $this->event->expects($this->any())
-      ->method('isMainRequest')
-      ->willReturn(TRUE);
-    $this->event->expects($this->any())
-      ->method('getResponse')
-      ->willReturn($this->response);
+    $this->event = new ResponseEvent(
+      $this->createMock(HttpKernelInterface::class),
+      $this->createMock(Request::class),
+      HttpKernelInterface::MASTER_REQUEST,
+      $this->response
+    );
 
     $this->libraryPolicy = $this->createMock(LibraryPolicyBuilder::class);
 
@@ -125,7 +126,7 @@ class ResponseCspSubscriberTest extends UnitTestCase {
     $this->eventDispatcher->expects($this->exactly(2))
       ->method('dispatch')
       ->with(
-        $this->callback(function ($event) {
+        $this->callback(function (PolicyAlterEvent $event) {
           $policy = $event->getPolicy();
           return $policy->hasDirective(($policy->isReportOnly() ? 'style-src' : 'script-src'));
         }),
@@ -134,6 +135,7 @@ class ResponseCspSubscriberTest extends UnitTestCase {
       ->willReturnCallback(function ($event, $eventName) {
         $policy = $event->getPolicy();
         $policy->setDirective('font-src', [Csp::POLICY_SELF]);
+        return $event;
       });
 
     $this->response->headers->expects($this->exactly(2))

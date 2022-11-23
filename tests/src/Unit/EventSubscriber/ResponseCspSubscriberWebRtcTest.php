@@ -9,8 +9,10 @@ use Drupal\csp\LibraryPolicyBuilder;
 use Drupal\csp\ReportingHandlerPluginManager;
 use Drupal\Tests\UnitTestCase;
 use Symfony\Component\EventDispatcher\EventDispatcher;
+use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\ResponseHeaderBag;
 use Symfony\Component\HttpKernel\Event\ResponseEvent;
+use Symfony\Component\HttpKernel\HttpKernelInterface;
 
 /**
  * Test formatting of WebRTC directive output.
@@ -72,14 +74,12 @@ class ResponseCspSubscriberWebRtcTest extends UnitTestCase {
     $this->response->method('getCacheableMetadata')
       ->willReturn($responseCacheableMetadata);
 
-    /** @var \Symfony\Component\HttpKernel\Event\ResponseEvent|\PHPUnit\Framework\MockObject\MockObject $event */
-    $this->event = $this->createMock(ResponseEvent::class);
-    $this->event->expects($this->any())
-      ->method('isMainRequest')
-      ->willReturn(TRUE);
-    $this->event->expects($this->any())
-      ->method('getResponse')
-      ->willReturn($this->response);
+    $this->event = new ResponseEvent(
+      $this->createMock(HttpKernelInterface::class),
+      $this->createMock(Request::class),
+      HttpKernelInterface::MASTER_REQUEST,
+      $this->response
+    );
 
     $this->libraryPolicy = $this->createMock(LibraryPolicyBuilder::class);
 
