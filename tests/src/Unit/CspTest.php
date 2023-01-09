@@ -343,7 +343,10 @@ class CspTest extends UnitTestCase {
 
     // Additional values in fallback should be ignored if 'none' is present.
     $policy = new Csp();
-    $policy->setDirective('script-src', [Csp::POLICY_NONE, 'https://example.org']);
+    $policy->setDirective(
+      'script-src',
+      [Csp::POLICY_NONE, 'https://example.org']
+    );
     $policy->fallbackAwareAppendIfEnabled(
       'script-src-attr',
       Csp::POLICY_UNSAFE_INLINE

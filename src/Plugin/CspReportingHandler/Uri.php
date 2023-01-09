@@ -30,7 +30,7 @@ class Uri extends ReportingHandlerBase {
       '#type' => 'textfield',
       '#title' => $this->t('URI'),
       '#description' => $this->t('The URI to send reports to.'),
-      '#default_value' => isset($this->configuration['uri']) ? $this->configuration['uri'] : '',
+      '#default_value' => $this->configuration['uri'] ?? '',
       '#states' => [
         'required' => [
           ':input[name="' . $this->configuration['type'] . '[enable]"]' => ['checked' => TRUE],

@@ -16,6 +16,8 @@ class CspSettingsFormTest extends UnitTestCase {
   /**
    * Data provider of URLs for host source validity.
    *
+   * phpcs:disable Drupal.Arrays.Array.LongLineDeclaration
+   *
    * @return array[]
    *   An array of [URL, isValid] tuples.
    */
@@ -93,10 +95,13 @@ class CspSettingsFormTest extends UnitTestCase {
 
 }
 
-// @codingStandardsIgnoreStart
+/**
+ * Expose protected CspSettingsForm::isValidHost() for testing.
+ *
+ * phpcs:disable
+ */
 class HostValidator extends CspSettingsForm {
   public static function isValidHost($url): bool {
     return parent::isValidHost($url);
   }
 }
-// @codingStandardsIgnoreEnd

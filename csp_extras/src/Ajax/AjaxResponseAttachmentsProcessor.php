@@ -143,9 +143,9 @@ class AjaxResponseAttachmentsProcessor implements AttachmentsResponseProcessorIn
 
     // Resolve the attached libraries into asset collections.
     $assets = new AttachedAssets();
-    $assets->setLibraries(isset($attachments['library']) ? $attachments['library'] : [])
+    $assets->setLibraries($attachments['library'] ?? [])
       ->setAlreadyLoadedLibraries(isset($ajax_page_state['libraries']) ? explode(',', $ajax_page_state['libraries']) : [])
-      ->setSettings(isset($attachments['drupalSettings']) ? $attachments['drupalSettings'] : []);
+      ->setSettings($attachments['drupalSettings'] ?? []);
     $css_assets = $this->assetResolver->getCssAssets($assets, $optimize_css);
     [$js_assets_header, $js_assets_footer] = $this->assetResolver->getJsAssets($assets, $optimize_js);
 
@@ -172,8 +172,14 @@ class AjaxResponseAttachmentsProcessor implements AttachmentsResponseProcessorIn
     }
 
     // Remove assets that are not available to all browsers.
-    $css_assets = array_filter($css_assets, [$this, 'filterBrowserAssets']);
-    $js_assets = array_filter(array_merge($js_assets_header, $js_assets_footer), [$this, 'filterBrowserAssets']);
+    $css_assets = array_filter(
+      $css_assets,
+      [$this, 'filterBrowserAssets']
+    );
+    $js_assets = array_filter(
+      array_merge($js_assets_header, $js_assets_footer),
+      [$this, 'filterBrowserAssets']
+    );
 
     if (!empty($css_assets) || !empty($js_assets)) {
       $default_query_string = \Drupal::state()->get('system.css_js_query_string') ?: '0';

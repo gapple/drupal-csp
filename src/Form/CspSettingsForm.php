@@ -14,6 +14,8 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
  * Form for editing Content Security Policy module settings.
+ *
+ * phpcs:disable Drupal.Arrays.Array.LongLineDeclaration
  */
 class CspSettingsForm extends ConfigFormBase {
 
@@ -265,7 +267,7 @@ class CspSettingsForm extends ConfigFormBase {
             'any' => "Any",
             '' => '<em>n/a</em>',
           ],
-          '#default_value' => $sourceListBase !== NULL ? $sourceListBase : 'self',
+          '#default_value' => $sourceListBase ?? 'self',
         ];
         // Auto sources make a directive required, so remove the 'none' option.
         if (isset($autoDirectives[$directiveName])) {

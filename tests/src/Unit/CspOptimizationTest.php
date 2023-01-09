@@ -144,7 +144,10 @@ class CspOptimizationTest extends UnitTestCase {
     $policy = new Csp();
 
     $policy->setDirective('default-src', Csp::POLICY_SELF);
-    $policy->setDirective('script-src', [Csp::POLICY_SELF, Csp::POLICY_UNSAFE_INLINE]);
+    $policy->setDirective(
+      'script-src',
+      [Csp::POLICY_SELF, Csp::POLICY_UNSAFE_INLINE]
+    );
     // script-src-elem should not fall back to default-src.
     $policy->setDirective('script-src-elem', Csp::POLICY_SELF);
     $policy->setDirective('script-src-attr', Csp::POLICY_UNSAFE_INLINE);
@@ -153,7 +156,10 @@ class CspOptimizationTest extends UnitTestCase {
       $policy->getHeaderValue()
     );
 
-    $policy->setDirective('script-src-attr', [Csp::POLICY_SELF, Csp::POLICY_UNSAFE_INLINE]);
+    $policy->setDirective(
+      'script-src-attr',
+      [Csp::POLICY_SELF, Csp::POLICY_UNSAFE_INLINE]
+    );
     $this->assertEquals(
       "default-src 'self'; script-src 'self' 'unsafe-inline'; script-src-elem 'self'",
       $policy->getHeaderValue()
@@ -171,7 +177,10 @@ class CspOptimizationTest extends UnitTestCase {
     $policy = new Csp();
 
     $policy->setDirective('default-src', Csp::POLICY_SELF);
-    $policy->setDirective('style-src', [Csp::POLICY_SELF, Csp::POLICY_UNSAFE_INLINE]);
+    $policy->setDirective(
+      'style-src',
+      [Csp::POLICY_SELF, Csp::POLICY_UNSAFE_INLINE]
+    );
     // style-src-elem should not fall back to default-src.
     $policy->setDirective('style-src-elem', Csp::POLICY_SELF);
     $policy->setDirective('style-src-attr', Csp::POLICY_UNSAFE_INLINE);
@@ -180,7 +189,10 @@ class CspOptimizationTest extends UnitTestCase {
       $policy->getHeaderValue()
     );
 
-    $policy->setDirective('style-src-attr', [Csp::POLICY_SELF, Csp::POLICY_UNSAFE_INLINE]);
+    $policy->setDirective(
+      'style-src-attr',
+      [Csp::POLICY_SELF, Csp::POLICY_UNSAFE_INLINE]
+    );
     $this->assertEquals(
       "default-src 'self'; style-src 'self' 'unsafe-inline'; style-src-elem 'self'",
       $policy->getHeaderValue()

@@ -569,7 +569,7 @@ class Csp {
    * If script-src or style-src are not set and fall back to default-src,
    * Firefox doesn't apply 'strict-dynamic', nonces, or hashes if they are set.
    *
-   * @see https://bugzilla.mozilla.org/show_bug.cgi?id=1313937
+   * https://bugzilla.mozilla.org/show_bug.cgi?id=1313937
    *
    * @param array $directives
    *   An array of directives.

@@ -23,7 +23,10 @@ class CspFirefoxBugTest extends UnitTestCase {
   public function testEmptyDefault() {
     $policy = new Csp();
 
-    $policy->setDirective('script-src', [Csp::POLICY_STRICT_DYNAMIC, "'nonce-abc'"]);
+    $policy->setDirective(
+      'script-src',
+      [Csp::POLICY_STRICT_DYNAMIC, "'nonce-abc'"]
+    );
     $policy->setDirective('style-src', [Csp::POLICY_SELF, "'hash-abc'"]);
 
     $this->assertEquals(
@@ -40,7 +43,10 @@ class CspFirefoxBugTest extends UnitTestCase {
   public function testStrictDynamic() {
     $policy = new Csp();
 
-    $policy->setDirective('default-src', [Csp::POLICY_STRICT_DYNAMIC, "'nonce-abc'"]);
+    $policy->setDirective(
+      'default-src',
+      [Csp::POLICY_STRICT_DYNAMIC, "'nonce-abc'"]
+    );
 
     $this->assertEquals(
       "default-src 'strict-dynamic' 'nonce-abc'; script-src 'strict-dynamic' 'nonce-abc'; style-src 'nonce-abc'",
@@ -89,7 +95,10 @@ class CspFirefoxBugTest extends UnitTestCase {
     $policy = new Csp();
 
     $policy->setDirective('default-src', [Csp::POLICY_SELF, "'hash-abc'"]);
-    $policy->setDirective('script-src', [Csp::POLICY_STRICT_DYNAMIC, "'nonce-abc'"]);
+    $policy->setDirective(
+      'script-src',
+      [Csp::POLICY_STRICT_DYNAMIC, "'nonce-abc'"]
+    );
 
     $this->assertEquals(
       "default-src 'self' 'hash-abc'; script-src 'strict-dynamic' 'nonce-abc'; style-src 'self' 'hash-abc'",
@@ -105,7 +114,10 @@ class CspFirefoxBugTest extends UnitTestCase {
   public function testSetStyleSrc() {
     $policy = new Csp();
 
-    $policy->setDirective('default-src', [Csp::POLICY_SELF, Csp::POLICY_STRICT_DYNAMIC, "'hash-abc'"]);
+    $policy->setDirective(
+      'default-src',
+      [Csp::POLICY_SELF, Csp::POLICY_STRICT_DYNAMIC, "'hash-abc'"]
+    );
     $policy->setDirective('style-src', [Csp::POLICY_SELF]);
 
     $this->assertEquals(

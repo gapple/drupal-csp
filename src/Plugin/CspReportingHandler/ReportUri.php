@@ -33,7 +33,7 @@ class ReportUri extends ReportingHandlerBase {
       '#description' => $this->t('Your <a href=":url">Report-URI.com subdomain</a>.', [
         ':url' => 'https://report-uri.com/account/setup/',
       ]),
-      '#default_value' => isset($this->configuration['subdomain']) ? $this->configuration['subdomain'] : '',
+      '#default_value' => $this->configuration['subdomain'] ?? '',
       '#states' => [
         'required' => [
           ':input[name="' . $this->configuration['type'] . '[enable]"]' => ['checked' => TRUE],
